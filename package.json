@@ -1,0 +1,32 @@
+{
+  "name": "sistemas_agendamento_consultas_medicas",
+  "version": "1.0.0",
+  "description": "Pagina web",
+  "main": "script.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Art455hur/sistemas_agendamento_consultas_medicas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/issues"
+  },
+  "homepage": "https://github.com/Art455hur/sistemas_agendamento_consultas_medicas#readme",
+  "dependencies": {
+    "next": "^16.3.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}

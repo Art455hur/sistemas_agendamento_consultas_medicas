@@ -25,8 +25,12 @@
   },
   "homepage": "https://github.com/Art455hur/sistemas_agendamento_consultas_medicas#readme",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "jose": "^6.2.12",
+    "mysql2": "^3.24.4",
     "next": "^16.3.5",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "server-only": "^0.0.1"
   }
 }

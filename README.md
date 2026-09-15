@@ -62,8 +62,7 @@ As referências foram utilizadas para estudar o fluxo de agendamento, a organiza
 O protótipo das interfaces foi desenvolvido no Figma.
 
 **Link do Figma:** [PROTÓTIPO](https://www.figma.com/make/g3WjcN1nALBsvfIhpLZsVb/Sistema-de-Agendamento-M%C3%A9dico-v2?t=xFoMyMTe26hyE9HX-20&fullscreen=1)
-
-## Como executar o projeto
+   ## SENHA DE ACESSO AO PROTÓTIPO: prgweb
 
 ## Como executar o projeto
 

@@ -34,12 +34,18 @@ Desenvolver uma aplicação web simples e navegável que permita ao paciente pes
 
 ## Tecnologias utilizadas
 
-* HTML;
-* CSS;
-* JavaScript;
-* Figma;
-* GitHub;
-* PraxiLab.
+## Tecnologias utilizadas
+
+- HTML e JSX — estrutura e conteúdo das páginas;
+- CSS — estilização da aplicação;
+- JavaScript — funcionamento e interatividade;
+- React — criação das páginas e componentes;
+- Next.js 16.3.5 — framework principal da aplicação;
+- Node.js e npm — execução e gerenciamento das dependências;
+- Git — controle de versão;
+- GitHub — armazenamento e colaboração;
+- Figma — prototipação das interfaces;
+- PraxiLab — organização e acompanhamento das tarefas.
 
 ## Referências
 
@@ -58,10 +64,27 @@ O protótipo das interfaces foi desenvolvido no Figma.
 
 ## Como executar o projeto
 
-1. Baixe ou clone este repositório;
-2. Abra a pasta do projeto;
-3. Abra o arquivo `index.html` no navegador;
-4. Também é possível executá-lo utilizando a extensão Live Server do Visual Studio Code.
+## Como executar o projeto
+
+1. Instale o Node.js;
+2. Clone ou baixe este repositório;
+3. Abra a pasta do projeto no Visual Studio Code;
+4. Abra o terminal;
+5. Instale as dependências:
+
+   ```bash
+   npm install
+6. Execute o projeto:
+
+   ```bash
+   npm run dev
+   ```
+
+7. Acesse no navegador:
+
+   ```text
+   http://localhost:3000
+   ```
 
 ## Integrantes
 

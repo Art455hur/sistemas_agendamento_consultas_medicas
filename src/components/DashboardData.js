@@ -14,9 +14,18 @@ export default function DashboardData() {
     setAppointments(savedAppointments);
   }, []);
 
-  const scheduledAppointments = appointments.filter(
-    (appointment) => appointment.status !== "Cancelada"
-  );
+  const now = new Date();
+
+  const scheduledAppointments = appointments.filter((appointment) => {
+    const appointmentDate = new Date(
+      `${appointment.date}T${appointment.time}`
+    );
+
+    return (
+      appointment.status === "Agendada" &&
+      appointmentDate >= now
+    );
+  });
 
   const completedAppointments = appointments.filter(
     (appointment) => appointment.status === "Concluída"
@@ -26,12 +35,14 @@ export default function DashboardData() {
     (appointment) => appointment.status === "Cancelada"
   );
 
-  const nextAppointment = [...scheduledAppointments].sort((first, second) => {
-    const firstDate = `${first.date}T${first.time}`;
-    const secondDate = `${second.date}T${second.time}`;
+  const nextAppointment = [...scheduledAppointments].sort(
+    (first, second) => {
+      const firstDate = `${first.date}T${first.time}`;
+      const secondDate = `${second.date}T${second.time}`;
 
-    return firstDate.localeCompare(secondDate);
-  })[0];
+      return firstDate.localeCompare(secondDate);
+    }
+  )[0];
 
   function formatDate(date) {
     if (!date || !date.includes("-")) {
@@ -79,7 +90,10 @@ export default function DashboardData() {
         {nextAppointment ? (
           <div className="appointment-card">
             <div>
-              <span className="card-label">CONSULTA AGENDADA</span>
+              <span className="card-label">
+                CONSULTA AGENDADA
+              </span>
+
               <h3>{nextAppointment.specialty}</h3>
 
               <p>
@@ -90,17 +104,27 @@ export default function DashboardData() {
               <p>🕐 {nextAppointment.time}</p>
             </div>
 
-            <Link href="/agendamentos">Ver detalhes</Link>
+            <Link href="/agendamentos">
+              Ver detalhes
+            </Link>
           </div>
         ) : (
           <div className="appointment-card">
             <div>
-              <span className="card-label">NENHUMA CONSULTA</span>
+              <span className="card-label">
+                NENHUMA CONSULTA
+              </span>
+
               <h3>Você não possui consultas agendadas</h3>
-              <p>Marque uma nova consulta com um especialista.</p>
+
+              <p>
+                Marque uma nova consulta com um especialista.
+              </p>
             </div>
 
-            <Link href="/agendar">Agendar agora</Link>
+            <Link href="/agendar">
+              Agendar agora
+            </Link>
           </div>
         )}
       </section>

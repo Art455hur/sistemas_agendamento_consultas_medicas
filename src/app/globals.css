@@ -1328,3 +1328,98 @@ body {
     grid-column: 1;
   }
 }
+
+/* ABAS DOS AGENDAMENTOS */
+
+.appointments-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 22px;
+  padding: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+}
+
+.appointments-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.appointments-tab:hover {
+  background: #eef6f8;
+  color: #1f8299;
+}
+
+.appointments-tab.active {
+  background: #1f8299;
+  color: white;
+}
+
+.appointments-tab span {
+  min-width: 22px;
+  padding: 3px 7px;
+  border-radius: 20px;
+  background: rgba(100, 116, 139, 0.12);
+  font-size: 12px;
+}
+
+.appointments-tab.active span {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.status-completed {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+@media (max-width: 600px) {
+  .appointments-tab {
+    padding: 10px 5px;
+    font-size: 12px;
+  }
+}
+
+/* AÇÕES DO AGENDAMENTO */
+
+.appointment-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reschedule-appointment {
+  padding: 11px 15px;
+  border: 1px solid #1f8299;
+  border-radius: 8px;
+  background: white;
+  color: #1f8299;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+}
+
+.reschedule-appointment:hover {
+  background: #1f8299;
+  color: white;
+}
+
+@media (max-width: 700px) {
+  .appointment-actions {
+    width: 100%;
+  }
+
+  .reschedule-appointment {
+    width: 100%;
+  }
+}

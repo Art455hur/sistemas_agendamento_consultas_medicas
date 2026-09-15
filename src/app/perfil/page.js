@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import UserMenu, { SidebarUser } from "../../components/UserMenu";
 
 export default function Perfil() {
   const [message, setMessage] = useState("");
@@ -41,14 +42,16 @@ export default function Perfil() {
       setMessage("");
     }, 3000);
   }
-const initials =
-  profile.name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase() || "US";
+
+  const initials =
+    profile.name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "US";
+
   return (
     <div className="dashboard">
       <aside className="sidebar">
@@ -67,22 +70,13 @@ const initials =
           </Link>
         </nav>
 
-        <div className="sidebar-user">
-          <strong>Olá, Usuário!</strong>
-          <span>Paciente</span>
-        </div>
+        <SidebarUser />
       </aside>
 
       <main className="dashboard-content">
         <header className="topbar">
           <div className="topbar-title">Perfil</div>
-
-          <div className="topbar-user">
-            <span className="notification">🔔</span>
-            <div className="user-avatar">{initials}</div>
-<strong>{profile.name}
-</strong>
-          </div>
+          <UserMenu />
         </header>
 
         <div className="profile-content">
@@ -93,10 +87,11 @@ const initials =
 
           <div className="profile-layout">
             <aside className="profile-summary">
-              <div className="profile-avatar-large">{initials}
-              </div>
+              <div className="profile-avatar-large">{initials}</div>
+
               <h2>{profile.name}</h2>
               <p>Paciente</p>
+
               <div className="profile-summary-line">
                 <span>✉️</span>
                 <small>{profile.email}</small>

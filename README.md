@@ -1,3 +1,4 @@
+docs/documentacao-inicial
 # Sistema de Agendamento de Consultas Médicas
 
 Projeto acadêmico desenvolvido na disciplina de Programação Web. O sistema tem como objetivo facilitar o agendamento e o gerenciamento de consultas médicas.
@@ -106,3 +107,4 @@ O projeto encontra-se em desenvolvimento. Nesta etapa, estão sendo criadas e te
 * Realizar testes de navegação;
 * Corrigir erros encontrados;
 * Finalizar a documentação e a apresentação.
+

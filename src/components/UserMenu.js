@@ -1,20 +1,55 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 function useSavedProfile() {
-  const [profile, setProfile] = useState({
-    name: "João Silva",
-  });
+  const [profile, setProfile] =
+    useState({
+      name: "Usuário",
+      email: "",
+      phone: "",
+    });
 
   useEffect(() => {
-    const savedProfile =
-      localStorage.getItem("profile");
+    function loadProfile() {
+      const savedProfile =
+        localStorage.getItem("profile");
 
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
+      if (savedProfile) {
+        setProfile(
+          JSON.parse(savedProfile)
+        );
+      }
     }
+
+    loadProfile();
+
+    window.addEventListener(
+      "profileUpdated",
+      loadProfile
+    );
+
+    window.addEventListener(
+      "storage",
+      loadProfile
+    );
+
+    return () => {
+      window.removeEventListener(
+        "profileUpdated",
+        loadProfile
+      );
+
+      window.removeEventListener(
+        "storage",
+        loadProfile
+      );
+    };
   }, []);
 
   return profile;
@@ -37,52 +72,71 @@ function formatDate(date) {
     return date;
   }
 
-  const [year, month, day] = date.split("-");
+  const [year, month, day] =
+    date.split("-");
+
   return `${day}/${month}/${year}`;
 }
 
 export default function UserMenu() {
+  const router = useRouter();
   const profile = useSavedProfile();
 
   const [appointments, setAppointments] =
     useState([]);
 
-  const [notificationsOpen, setNotificationsOpen] =
-    useState(false);
+  const [
+    notificationsOpen,
+    setNotificationsOpen,
+  ] = useState(false);
 
   useEffect(() => {
     const savedAppointments = JSON.parse(
-      localStorage.getItem("appointments") || "[]"
+      localStorage.getItem(
+        "appointments"
+      ) || "[]"
     );
 
-    setAppointments(savedAppointments);
+    setAppointments(
+      savedAppointments
+    );
   }, []);
 
   const now = new Date();
 
-  const scheduledAppointments = appointments
-    .filter((appointment) => {
-      const appointmentDate = new Date(
-        `${appointment.date}T${appointment.time}`
-      );
+  const scheduledAppointments =
+    appointments
+      .filter((appointment) => {
+        const appointmentDate =
+          new Date(
+            `${appointment.date}T${appointment.time}`
+          );
 
-      return (
-        (appointment.status === "Agendada" ||
-          !appointment.status) &&
-        appointmentDate >= now
-      );
-    })
-    .sort((first, second) => {
-      const firstDate = `${first.date}T${first.time}`;
-      const secondDate = `${second.date}T${second.time}`;
+        return (
+          (appointment.status ===
+            "Agendada" ||
+            !appointment.status) &&
+          appointmentDate >= now
+        );
+      })
+      .sort((first, second) => {
+        const firstDate =
+          `${first.date}T${first.time}`;
 
-      return firstDate.localeCompare(secondDate);
-    });
+        const secondDate =
+          `${second.date}T${second.time}`;
 
-  const cancelledAppointments = appointments.filter(
-    (appointment) =>
-      appointment.status === "Cancelada"
-  );
+        return firstDate.localeCompare(
+          secondDate
+        );
+      });
+
+  const cancelledAppointments =
+    appointments.filter(
+      (appointment) =>
+        appointment.status ===
+        "Cancelada"
+    );
 
   const nextAppointment =
     scheduledAppointments[0];
@@ -91,6 +145,30 @@ export default function UserMenu() {
     scheduledAppointments.length > 0 ||
     cancelledAppointments.length > 0;
 
+  function logout() {
+    const confirmed = window.confirm(
+      "Deseja realmente sair da sua conta?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    localStorage.removeItem(
+      "authToken"
+    );
+
+    localStorage.removeItem(
+      "loggedUser"
+    );
+
+    sessionStorage.removeItem(
+      "authToken"
+    );
+
+    router.replace("/");
+  }
+
   return (
     <div className="topbar-user">
       <div className="notification-wrapper">
@@ -98,18 +176,24 @@ export default function UserMenu() {
           type="button"
           className="notification-button"
           aria-label="Abrir notificações"
-          aria-expanded={notificationsOpen}
+          aria-expanded={
+            notificationsOpen
+          }
           onClick={() =>
             setNotificationsOpen(
-              (currentValue) => !currentValue
+              (currentValue) =>
+                !currentValue
             )
           }
         >
           🔔
 
-          {scheduledAppointments.length > 0 && (
+          {scheduledAppointments.length >
+            0 && (
             <span className="notification-badge">
-              {scheduledAppointments.length}
+              {
+                scheduledAppointments.length
+              }
             </span>
           )}
         </button>
@@ -117,13 +201,17 @@ export default function UserMenu() {
         {notificationsOpen && (
           <div className="notification-panel">
             <div className="notification-panel-header">
-              <strong>Notificações</strong>
+              <strong>
+                Notificações
+              </strong>
 
               <button
                 type="button"
                 aria-label="Fechar notificações"
                 onClick={() =>
-                  setNotificationsOpen(false)
+                  setNotificationsOpen(
+                    false
+                  )
                 }
               >
                 ✕
@@ -144,21 +232,30 @@ export default function UserMenu() {
                       </strong>
 
                       <p>
-                        {nextAppointment.specialty} com{" "}
-                        {nextAppointment.doctor}
+                        {
+                          nextAppointment.specialty
+                        }{" "}
+                        com{" "}
+                        {
+                          nextAppointment.doctor
+                        }
                       </p>
 
                       <small>
                         {formatDate(
                           nextAppointment.date
                         )}{" "}
-                        às {nextAppointment.time}
+                        às{" "}
+                        {
+                          nextAppointment.time
+                        }
                       </small>
                     </div>
                   </div>
                 )}
 
-                {scheduledAppointments.length > 1 && (
+                {scheduledAppointments.length >
+                  1 && (
                   <div className="notification-item">
                     <span className="notification-item-icon">
                       📋
@@ -171,14 +268,17 @@ export default function UserMenu() {
 
                       <p>
                         Você possui{" "}
-                        {scheduledAppointments.length}{" "}
+                        {
+                          scheduledAppointments.length
+                        }{" "}
                         consultas futuras.
                       </p>
                     </div>
                   </div>
                 )}
 
-                {cancelledAppointments.length > 0 && (
+                {cancelledAppointments.length >
+                  0 && (
                   <div className="notification-item">
                     <span className="notification-item-icon">
                       ✕
@@ -191,8 +291,11 @@ export default function UserMenu() {
 
                       <p>
                         Você possui{" "}
-                        {cancelledAppointments.length}{" "}
-                        {cancelledAppointments.length === 1
+                        {
+                          cancelledAppointments.length
+                        }{" "}
+                        {cancelledAppointments.length ===
+                        1
                           ? " consulta cancelada."
                           : " consultas canceladas."}
                       </p>
@@ -203,7 +306,11 @@ export default function UserMenu() {
             ) : (
               <div className="notification-empty">
                 <span>🔔</span>
-                <p>Nenhuma notificação no momento.</p>
+
+                <p>
+                  Nenhuma notificação no
+                  momento.
+                </p>
               </div>
             )}
 
@@ -211,7 +318,9 @@ export default function UserMenu() {
               href="/agendamentos"
               className="notification-link"
               onClick={() =>
-                setNotificationsOpen(false)
+                setNotificationsOpen(
+                  false
+                )
               }
             >
               Ver meus agendamentos
@@ -224,7 +333,17 @@ export default function UserMenu() {
         {getInitials(profile.name)}
       </div>
 
-      <strong>{profile.name}</strong>
+      <strong>
+        {profile.name}
+      </strong>
+
+      <button
+        type="button"
+        className="logout-button"
+        onClick={logout}
+      >
+        Sair
+      </button>
     </div>
   );
 }
@@ -234,7 +353,10 @@ export function SidebarUser() {
 
   return (
     <div className="sidebar-user">
-      <strong>Olá, {profile.name}!</strong>
+      <strong>
+        Olá, {profile.name}!
+      </strong>
+
       <span>Paciente</span>
     </div>
   );

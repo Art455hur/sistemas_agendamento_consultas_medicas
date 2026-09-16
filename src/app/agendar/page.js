@@ -271,7 +271,9 @@ export default function AgendarConsulta() {
         </div>
 
         <nav className="sidebar-menu">
-          <Link href="/">🏠 Início</Link>
+          <Link href="/dashboard">
+          🏠 Início
+          </Link>
 
           <Link
             href="/agendar"

@@ -1,423 +1,399 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import UserMenu, {
-  SidebarUser,
-} from "../components/UserMenu";
-import DashboardData from "../components/DashboardData";
+import { useEffect, useState } from "react";
+
+const specialties = [
+  {
+    name: "Cardiologia",
+    icon: "♡",
+    description:
+      "Especialidade responsável pela prevenção, diagnóstico e acompanhamento da saúde do coração e do sistema cardiovascular.",
+    services: [
+      "Avaliação cardiológica",
+      "Acompanhamento da pressão arterial",
+      "Prevenção de doenças cardiovasculares",
+    ],
+  },
+  {
+    name: "Ortopedia",
+    icon: "⚕",
+    description:
+      "Especialidade dedicada ao diagnóstico e tratamento de problemas nos ossos, músculos, articulações e ligamentos.",
+    services: [
+      "Avaliação ortopédica",
+      "Tratamento de dores articulares",
+      "Acompanhamento de lesões",
+    ],
+  },
+  {
+    name: "Dermatologia",
+    icon: "◎",
+    description:
+      "Especialidade responsável pelos cuidados com a pele, cabelos e unhas, incluindo prevenção e tratamento de doenças.",
+    services: [
+      "Avaliação da pele",
+      "Tratamento de acne e dermatites",
+      "Prevenção do câncer de pele",
+    ],
+  },
+  {
+    name: "Pediatria",
+    icon: "♙",
+    description:
+      "Especialidade voltada ao acompanhamento da saúde, crescimento e desenvolvimento de crianças e adolescentes.",
+    services: [
+      "Consulta pediátrica",
+      "Acompanhamento do crescimento",
+      "Orientação preventiva",
+    ],
+  },
+  {
+    name: "Ginecologia",
+    icon: "♀",
+    description:
+      "Especialidade dedicada à prevenção, diagnóstico e cuidado com a saúde do sistema reprodutor feminino.",
+    services: [
+      "Consulta ginecológica",
+      "Exames preventivos",
+      "Acompanhamento da saúde feminina",
+    ],
+  },
+  {
+    name: "Clínica Geral",
+    icon: "+",
+    description:
+      "Especialidade responsável pela avaliação inicial da saúde e pelo acompanhamento de diferentes condições clínicas.",
+    services: [
+      "Avaliação geral da saúde",
+      "Diagnóstico inicial",
+      "Orientação e encaminhamento",
+    ],
+  },
+];
+
+const steps = [
+  {
+    number: "01",
+    title: "Escolha a especialidade",
+    description:
+      "Encontre o profissional adequado para cuidar da sua saúde.",
+  },
+  {
+    number: "02",
+    title: "Selecione o horário",
+    description:
+      "Escolha uma data e um horário disponíveis para sua consulta.",
+  },
+  {
+    number: "03",
+    title: "Confirme o agendamento",
+    description:
+      "Revise os dados e confirme sua consulta de forma rápida.",
+  },
+];
 
 export default function Home() {
-  const [showAllSpecialties, setShowAllSpecialties] =
-    useState(false);
+  const [selectedSpecialty, setSelectedSpecialty] =
+    useState(null);
 
-  const [showAllDoctors, setShowAllDoctors] =
-    useState(false);
+  useEffect(() => {
+    if (!selectedSpecialty) {
+      return;
+    }
+
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
+    function closeWithEscape(event) {
+      if (event.key === "Escape") {
+        setSelectedSpecialty(null);
+      }
+    }
+
+    window.addEventListener(
+      "keydown",
+      closeWithEscape
+    );
+
+    return () => {
+      document.body.style.overflow =
+        previousOverflow;
+
+      window.removeEventListener(
+        "keydown",
+        closeWithEscape
+      );
+    };
+  }, [selectedSpecialty]);
+
+  function closeSpecialtyModal() {
+    setSelectedSpecialty(null);
+  }
 
   return (
-    <div className="dashboard">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <span>+</span>
-          <strong>AgendaSaúde</strong>
-        </div>
-
-        <nav className="sidebar-menu">
-          <Link href="/" className="active">
-            🏠 Início
+    <div className="public-home">
+      <header className="public-header">
+        <div className="public-navigation">
+          <Link href="/" className="public-logo">
+            <span>+</span>
+            <strong>AgendaSaúde</strong>
           </Link>
 
-          <Link href="/agendar">
-            🗓️ Agendar consulta
-          </Link>
+          <nav className="public-menu">
+            <a href="#inicio">Início</a>
+            <a href="#especialidades">
+              Especialidades
+            </a>
+            <a href="#como-funciona">
+              Como funciona
+            </a>
+            <a href="#sobre">Sobre</a>
+          </nav>
 
-          <Link href="/agendamentos">
-            📋 Meus agendamentos
-          </Link>
+          <div className="public-header-actions">
+            <Link
+              href="/login"
+              className="public-login-button"
+            >
+              Entrar
+            </Link>
 
-          <Link href="/perfil">
-            👤 Perfil
-          </Link>
-        </nav>
-
-        <SidebarUser />
-      </aside>
-
-      <main className="dashboard-content">
-        <header className="topbar">
-          <div className="topbar-title">
-            Início
+            <Link
+              href="/cadastro"
+              className="public-register-button"
+            >
+              Criar conta
+            </Link>
           </div>
+        </div>
+      </header>
 
-          <UserMenu />
-        </header>
+      <main className="public-main">
+        <section
+          id="inicio"
+          className="public-hero"
+        >
+          <div className="public-hero-content">
+            <span className="public-hero-badge">
+              ● Plataforma de agendamento médico
+            </span>
 
-        <header className="dashboard-header">
-          <div>
-            <h1>Olá, seja bem-vindo! 👋</h1>
+            <h1>
+              Sua saúde,
+              <br />
+              no seu tempo
+            </h1>
 
             <p>
-              Encontre especialistas e agende sua próxima
-              consulta.
+              Encontre profissionais, consulte horários e
+              agende sua consulta de forma simples e segura.
+            </p>
+
+            <div className="public-hero-actions">
+              <Link
+                href="/login"
+                className="public-primary-button"
+              >
+                Agendar consulta
+              </Link>
+
+              <a
+                href="#especialidades"
+                className="public-secondary-button"
+              >
+                Conhecer especialidades
+              </a>
+            </div>
+          </div>
+
+          <div className="public-hero-visual">
+            <div className="public-hero-image-background">
+              <img
+                src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=85"
+                alt="Profissional da saúde durante atendimento médico"
+              />
+            </div>
+
+            <div className="public-online-card">
+              <span>+</span>
+
+              <div>
+                <strong>
+                  Agendamento online
+                </strong>
+                <small>Disponível 24h</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="especialidades"
+          className="public-specialties-section"
+        >
+          <div className="public-section-heading">
+            <h2>Especialidades disponíveis</h2>
+
+            <p>
+              Atendimento com profissionais especializados
+              nas principais áreas da medicina
             </p>
           </div>
 
-          <Link href="/agendar">
-            <button type="button">
-              + Agendar consulta
-            </button>
-          </Link>
-        </header>
-
-        <DashboardData />
-
-        <section className="dashboard-section">
-          <div className="section-title">
-            <h2>Especialidades</h2>
-
-            <button
-              type="button"
-              className="view-all-link"
-              onClick={() =>
-                setShowAllSpecialties(
-                  (currentValue) => !currentValue
-                )
-              }
-            >
-              {showAllSpecialties
-                ? "Ver menos"
-                : "Ver todas"}
-            </button>
-          </div>
-
-          <div className="specialties">
-            <Link
-              href="/agendar?especialidade=Cl%C3%ADnica%20Geral"
-              className="specialty-card"
-            >
-              <span>🩺</span>
-              <strong>Clínica Geral</strong>
-              <small>12 especialistas</small>
-            </Link>
-
-            <Link
-              href="/agendar?especialidade=Cardiologia"
-              className="specialty-card"
-            >
-              <span>❤️</span>
-              <strong>Cardiologia</strong>
-              <small>8 especialistas</small>
-            </Link>
-
-            <Link
-              href="/agendar?especialidade=Dermatologia"
-              className="specialty-card"
-            >
-              <span>🧴</span>
-              <strong>Dermatologia</strong>
-              <small>10 especialistas</small>
-            </Link>
-
-            <Link
-              href="/agendar?especialidade=Ortopedia"
-              className="specialty-card"
-            >
-              <span>🦴</span>
-              <strong>Ortopedia</strong>
-              <small>7 especialistas</small>
-            </Link>
-
-            {showAllSpecialties && (
-              <>
-                <Link
-                  href="/agendar?especialidade=Pediatria"
-                  className="specialty-card"
-                >
-                  <span>🧒</span>
-                  <strong>Pediatria</strong>
-                  <small>6 especialistas</small>
-                </Link>
-
-                <Link
-                  href="/agendar?especialidade=Ginecologia"
-                  className="specialty-card"
-                >
-                  <span>🌸</span>
-                  <strong>Ginecologia</strong>
-                  <small>5 especialistas</small>
-                </Link>
-
-                <Link
-                  href="/agendar?especialidade=Neurologia"
-                  className="specialty-card"
-                >
-                  <span>🧠</span>
-                  <strong>Neurologia</strong>
-                  <small>4 especialistas</small>
-                </Link>
-
-                <Link
-                  href="/agendar?especialidade=Oftalmologia"
-                  className="specialty-card"
-                >
-                  <span>👁️</span>
-                  <strong>Oftalmologia</strong>
-                  <small>7 especialistas</small>
-                </Link>
-              </>
-            )}
+          <div className="public-specialties-grid">
+            {specialties.map((specialty) => (
+              <button
+                key={specialty.name}
+                type="button"
+                className="public-specialty-card"
+                onClick={() =>
+                  setSelectedSpecialty(specialty)
+                }
+              >
+                <span>{specialty.icon}</span>
+                <strong>{specialty.name}</strong>
+                <small>Clique para conhecer</small>
+              </button>
+            ))}
           </div>
         </section>
 
-        <section className="dashboard-section">
-          <div className="section-title">
-            <h2>Especialistas disponíveis</h2>
+        <section
+          id="como-funciona"
+          className="public-how-section"
+        >
+          <div className="public-section-heading">
+            <h2>Como funciona</h2>
 
-            <button
-              type="button"
-              className="view-all-link"
-              onClick={() =>
-                setShowAllDoctors(
-                  (currentValue) => !currentValue
-                )
-              }
-            >
-              {showAllDoctors
-                ? "Ver menos"
-                : "Ver todos"}
-            </button>
+            <p>
+              Três passos simples para garantir o seu
+              atendimento
+            </p>
           </div>
 
-          <div className="doctors">
-            <div className="doctor-card">
-              <div className="doctor-avatar">
-                RA
-              </div>
-
-              <div className="doctor-info">
-                <strong>Dr. Rafael Almeida</strong>
-                <p>Clínica Geral</p>
-
-                <span className="doctor-rating">
-                  ⭐ 4.9
-                </span>
-
-                <small className="doctor-availability">
-                  Disponível hoje
-                </small>
-              </div>
-
-              <Link
-                href="/agendar?especialidade=Cl%C3%ADnica%20Geral&profissional=Dr.%20Rafael%20Almeida"
-                className="doctor-schedule"
+          <div className="public-steps-grid">
+            {steps.map((step) => (
+              <article
+                key={step.number}
+                className="public-step-card"
               >
-                Agendar
-              </Link>
-            </div>
-
-            <div className="doctor-card">
-              <div className="doctor-avatar">
-                MS
-              </div>
-
-              <div className="doctor-info">
-                <strong>Dra. Mariana Silva</strong>
-                <p>Cardiologia</p>
-
-                <span className="doctor-rating">
-                  ⭐ 4.8
-                </span>
-
-                <small className="doctor-availability">
-                  Disponível amanhã
-                </small>
-              </div>
-
-              <Link
-                href="/agendar?especialidade=Cardiologia&profissional=Dra.%20Mariana%20Silva"
-                className="doctor-schedule"
-              >
-                Agendar
-              </Link>
-            </div>
-
-            <div className="doctor-card">
-              <div className="doctor-avatar">
-                CR
-              </div>
-
-              <div className="doctor-info">
-                <strong>Dra. Camila Rodrigues</strong>
-                <p>Dermatologia</p>
-
-                <span className="doctor-rating">
-                  ⭐ 4.9
-                </span>
-
-                <small className="doctor-availability">
-                  Disponível hoje
-                </small>
-              </div>
-
-              <Link
-                href="/agendar?especialidade=Dermatologia&profissional=Dra.%20Camila%20Rodrigues"
-                className="doctor-schedule"
-              >
-                Agendar
-              </Link>
-            </div>
-
-            {showAllDoctors && (
-              <>
-                <div className="doctor-card">
-                  <div className="doctor-avatar">
-                    LF
-                  </div>
-
-                  <div className="doctor-info">
-                    <strong>
-                      Dr. Lucas Ferreira
-                    </strong>
-
-                    <p>Ortopedia</p>
-
-                    <span className="doctor-rating">
-                      ⭐ 4.8
-                    </span>
-
-                    <small className="doctor-availability">
-                      Disponível amanhã
-                    </small>
-                  </div>
-
-                  <Link
-                    href="/agendar?especialidade=Ortopedia&profissional=Dr.%20Lucas%20Ferreira"
-                    className="doctor-schedule"
-                  >
-                    Agendar
-                  </Link>
-                </div>
-
-                <div className="doctor-card">
-                  <div className="doctor-avatar">
-                    JC
-                  </div>
-
-                  <div className="doctor-info">
-                    <strong>
-                      Dra. Juliana Costa
-                    </strong>
-
-                    <p>Pediatria</p>
-
-                    <span className="doctor-rating">
-                      ⭐ 4.9
-                    </span>
-
-                    <small className="doctor-availability">
-                      Disponível hoje
-                    </small>
-                  </div>
-
-                  <Link
-                    href="/agendar?especialidade=Pediatria&profissional=Dra.%20Juliana%20Costa"
-                    className="doctor-schedule"
-                  >
-                    Agendar
-                  </Link>
-                </div>
-
-                <div className="doctor-card">
-                  <div className="doctor-avatar">
-                    FL
-                  </div>
-
-                  <div className="doctor-info">
-                    <strong>
-                      Dra. Fernanda Lima
-                    </strong>
-
-                    <p>Ginecologia</p>
-
-                    <span className="doctor-rating">
-                      ⭐ 4.8
-                    </span>
-
-                    <small className="doctor-availability">
-                      Disponível amanhã
-                    </small>
-                  </div>
-
-                  <Link
-                    href="/agendar?especialidade=Ginecologia&profissional=Dra.%20Fernanda%20Lima"
-                    className="doctor-schedule"
-                  >
-                    Agendar
-                  </Link>
-                </div>
-
-                <div className="doctor-card">
-                  <div className="doctor-avatar">
-                    PM
-                  </div>
-
-                  <div className="doctor-info">
-                    <strong>
-                      Dr. Paulo Mendes
-                    </strong>
-
-                    <p>Neurologia</p>
-
-                    <span className="doctor-rating">
-                      ⭐ 4.9
-                    </span>
-
-                    <small className="doctor-availability">
-                      Disponível hoje
-                    </small>
-                  </div>
-
-                  <Link
-                    href="/agendar?especialidade=Neurologia&profissional=Dr.%20Paulo%20Mendes"
-                    className="doctor-schedule"
-                  >
-                    Agendar
-                  </Link>
-                </div>
-
-                <div className="doctor-card">
-                  <div className="doctor-avatar">
-                    BA
-                  </div>
-
-                  <div className="doctor-info">
-                    <strong>
-                      Dra. Beatriz Alves
-                    </strong>
-
-                    <p>Oftalmologia</p>
-
-                    <span className="doctor-rating">
-                      ⭐ 4.7
-                    </span>
-
-                    <small className="doctor-availability">
-                      Disponível amanhã
-                    </small>
-                  </div>
-
-                  <Link
-                    href="/agendar?especialidade=Oftalmologia&profissional=Dra.%20Beatriz%20Alves"
-                    className="doctor-schedule"
-                  >
-                    Agendar
-                  </Link>
-                </div>
-              </>
-            )}
+                <span>{step.number}</span>
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+              </article>
+            ))}
           </div>
+        </section>
+
+        <section
+          id="sobre"
+          className="public-about-section"
+        >
+          <div>
+            <span className="public-about-label">
+              Sobre a plataforma
+            </span>
+
+            <h2>
+              Cuidar da sua saúde ficou mais simples
+            </h2>
+
+            <p>
+              A AgendaSaúde conecta pacientes e
+              profissionais em uma plataforma prática,
+              segura e disponível a qualquer momento.
+            </p>
+          </div>
+
+          <Link
+            href="/cadastro"
+            className="public-primary-button"
+          >
+            Criar minha conta
+          </Link>
         </section>
       </main>
+
+      <footer className="public-footer">
+        <div className="public-footer-content">
+          <Link href="/" className="public-logo">
+            <span>+</span>
+            <strong>AgendaSaúde</strong>
+          </Link>
+
+          <p>
+            © 2026 AgendaSaúde. Todos os direitos
+            reservados.
+          </p>
+        </div>
+      </footer>
+
+      {selectedSpecialty && (
+        <div
+          className="specialty-modal-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeSpecialtyModal();
+            }
+          }}
+        >
+          <div
+            className="specialty-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="specialty-modal-title"
+          >
+            <button
+              type="button"
+              className="specialty-modal-close"
+              aria-label="Fechar detalhes"
+              onClick={closeSpecialtyModal}
+            >
+              ✕
+            </button>
+
+            <div className="specialty-modal-icon">
+              {selectedSpecialty.icon}
+            </div>
+
+            <h2 id="specialty-modal-title">
+              {selectedSpecialty.name}
+            </h2>
+
+            <p className="specialty-modal-description">
+              {selectedSpecialty.description}
+            </p>
+
+            <div className="specialty-modal-services">
+              <strong>PRINCIPAIS SERVIÇOS</strong>
+
+              <ul>
+                {selectedSpecialty.services.map(
+                  (service) => (
+                    <li key={service}>
+                      <span>✓</span>
+                      {service}
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+
+            <Link
+              href={`/login?especialidade=${encodeURIComponent(
+                selectedSpecialty.name
+              )}`}
+              className="specialty-modal-schedule"
+              onClick={closeSpecialtyModal}
+            >
+              Agendar consulta
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

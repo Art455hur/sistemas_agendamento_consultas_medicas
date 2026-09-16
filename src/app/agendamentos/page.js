@@ -184,7 +184,9 @@ if (validTabs.includes(requestedTab)) {
         </div>
 
         <nav className="sidebar-menu">
-          <Link href="/">🏠 Início</Link>
+          <Link href="/dashboard">
+          🏠 Início
+          </Link>
 
           <Link href="/agendar">
             🗓️ Agendar consulta

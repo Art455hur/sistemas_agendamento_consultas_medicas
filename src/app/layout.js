@@ -1,16 +1,21 @@
 import "./globals.css";
-import Navbar from "../components/Navbar";
+import AuthGuard from "../components/AuthGuard";
 
 export const metadata = {
   title: "Sistema de Agendamento Médico",
-  description: "Sistema de agendamento de consultas médicas",
+  description:
+    "Sistema de agendamento de consultas médicas",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}) {
   return (
     <html lang="pt-BR">
       <body>
-        {children}
+        <AuthGuard>
+          {children}
+        </AuthGuard>
       </body>
     </html>
   );

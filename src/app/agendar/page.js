@@ -13,7 +13,7 @@ const doctorsBySpecialty = {
   Dermatologia: ["Dra. Camila Rodrigues"],
   Pediatria: ["Dra. Juliana Costa"],
   Ginecologia: ["Dra. Fernanda Lima"],
-  "ClÃ­nica Geral": ["Dr. Rafael Almeida"],
+  "Clínica Geral": ["Dr. Rafael Almeida"],
   Neurologia: ["Dr. Paulo Mendes"],
   Oftalmologia: ["Dra. Beatriz Alves"],
 };
@@ -55,7 +55,31 @@ export default function AgendarConsulta() {
     const appointmentId =
       parameters.get("remarcar");
 
+    const selectedSpecialty =
+      parameters.get("especialidade");
+
+    const selectedDoctor =
+      parameters.get("profissional");
+
     if (!appointmentId) {
+      if (
+        selectedSpecialty &&
+        doctorsBySpecialty[selectedSpecialty]
+      ) {
+        const validDoctor =
+          doctorsBySpecialty[selectedSpecialty].includes(
+            selectedDoctor
+          );
+
+        setForm((currentForm) => ({
+          ...currentForm,
+          specialty: selectedSpecialty,
+          doctor: validDoctor
+            ? selectedDoctor
+            : "",
+        }));
+      }
+
       return;
     }
 
@@ -67,18 +91,22 @@ export default function AgendarConsulta() {
       );
 
     if (!appointmentToReschedule) {
-      alert("A consulta selecionada nÃ£o foi encontrada.");
+      alert(
+        "A consulta selecionada não foi encontrada."
+      );
+
       router.push("/agendamentos");
       return;
     }
 
     if (
       appointmentToReschedule.status === "Cancelada" ||
-      appointmentToReschedule.status === "ConcluÃ­da"
+      appointmentToReschedule.status === "Concluída"
     ) {
       alert(
         "Somente consultas agendadas podem ser remarcadas."
       );
+
       router.push("/agendamentos");
       return;
     }
@@ -118,6 +146,8 @@ export default function AgendarConsulta() {
     )
     .map((appointment) => appointment.time);
 
+  const isRescheduling = Boolean(reschedulingId);
+
   function updateField(event) {
     const { name, value } = event.target;
 
@@ -145,8 +175,9 @@ export default function AgendarConsulta() {
       !form.time
     ) {
       alert(
-        "Preencha a especialidade, o profissional, a data e o horÃ¡rio."
+        "Preencha a especialidade, o profissional, a data e o horário."
       );
+
       return;
     }
 
@@ -155,7 +186,10 @@ export default function AgendarConsulta() {
     );
 
     if (appointmentDate <= new Date()) {
-      alert("Escolha uma data e um horÃ¡rio futuros.");
+      alert(
+        "Escolha uma data e um horário futuros."
+      );
+
       return;
     }
 
@@ -176,8 +210,9 @@ export default function AgendarConsulta() {
 
     if (duplicatedAppointment) {
       alert(
-        "VocÃª jÃ¡ possui uma consulta agendada nessa data e horÃ¡rio."
+        "Você já possui uma consulta agendada nessa data e horário."
       );
+
       return;
     }
 
@@ -222,32 +257,36 @@ export default function AgendarConsulta() {
       ])
     );
 
-    alert("Consulta agendada com sucesso!");
-    router.push("/agendamentos");
+    router.push(
+      `/confirmacao?id=${newAppointment.id}`
+    );
   }
-
-  const isRescheduling = Boolean(reschedulingId);
 
   return (
     <div className="dashboard">
       <aside className="sidebar">
         <div className="sidebar-logo">
           <span>+</span>
-          <strong>AgendaSaÃºde</strong>
+          <strong>AgendaSaúde</strong>
         </div>
 
         <nav className="sidebar-menu">
-          <Link href="/">ðŸ  InÃ­cio</Link>
+          <Link href="/">🏠 Início</Link>
 
-          <Link href="/agendar" className="active">
-            ðŸ—“ï¸ Agendar consulta
+          <Link
+            href="/agendar"
+            className="active"
+          >
+            🗓️ Agendar consulta
           </Link>
 
           <Link href="/agendamentos">
-            ðŸ“‹ Meus agendamentos
+            📋 Meus agendamentos
           </Link>
 
-          <Link href="/perfil">ðŸ‘¤ Perfil</Link>
+          <Link href="/perfil">
+            👤 Perfil
+          </Link>
         </nav>
 
         <SidebarUser />
@@ -274,8 +313,8 @@ export default function AgendarConsulta() {
 
             <p>
               {isRescheduling
-                ? "Altere os dados da consulta e confirme a remarcaÃ§Ã£o."
-                : "Escolha a especialidade, o mÃ©dico, a data e o horÃ¡rio."}
+                ? "Altere a data e o horário da consulta."
+                : "Escolha a especialidade, o médico, a data e o horário."}
             </p>
           </div>
 
@@ -303,37 +342,16 @@ export default function AgendarConsulta() {
                       Selecione uma especialidade
                     </option>
 
-                    <option value="Cardiologia">
-                      Cardiologia
-                    </option>
-
-                    <option value="Ortopedia">
-                      Ortopedia
-                    </option>
-
-                    <option value="Dermatologia">
-                      Dermatologia
-                    </option>
-
-                    <option value="Pediatria">
-                      Pediatria
-                    </option>
-
-                    <option value="Ginecologia">
-                      Ginecologia
-                    </option>
-
-                    <option value="ClÃ­nica Geral">
-                      ClÃ­nica Geral
-                    </option>
-
-                    <option value="Neurologia">
-                      Neurologia
-                    </option>
-
-                    <option value="Oftalmologia">
-                      Oftalmologia
-                    </option>
+                    {Object.keys(
+                      doctorsBySpecialty
+                    ).map((specialty) => (
+                      <option
+                        key={specialty}
+                        value={specialty}
+                      >
+                        {specialty}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -348,7 +366,8 @@ export default function AgendarConsulta() {
                     value={form.doctor}
                     onChange={updateField}
                     disabled={
-                      !form.specialty || isRescheduling
+                      !form.specialty ||
+                      isRescheduling
                     }
                   >
                     <option value="">
@@ -389,7 +408,7 @@ export default function AgendarConsulta() {
 
                 <div className="booking-field">
                   <label htmlFor="time">
-                    HorÃ¡rio
+                    Horário
                   </label>
 
                   <select
@@ -401,13 +420,15 @@ export default function AgendarConsulta() {
                   >
                     <option value="">
                       {form.date
-                        ? "Selecione um horÃ¡rio"
+                        ? "Selecione um horário"
                         : "Escolha primeiro a data"}
                     </option>
 
                     {availableTimes.map((time) => {
                       const unavailable =
-                        unavailableTimes.includes(time);
+                        unavailableTimes.includes(
+                          time
+                        );
 
                       return (
                         <option
@@ -417,7 +438,7 @@ export default function AgendarConsulta() {
                         >
                           {time}
                           {unavailable
-                            ? " â€” IndisponÃ­vel"
+                            ? " — Indisponível"
                             : ""}
                         </option>
                       );
@@ -431,14 +452,14 @@ export default function AgendarConsulta() {
                   </label>
 
                   <textarea
-                  id="reason"
-                  name="reason"
-                  rows="4"
-                  value={form.reason}
-                  onChange={updateField}
-                  disabled={isRescheduling}
-                  placeholder="Descreva brevemente o motivo da consulta"
-/>
+                    id="reason"
+                    name="reason"
+                    rows="4"
+                    value={form.reason}
+                    onChange={updateField}
+                    disabled={isRescheduling}
+                    placeholder="Descreva brevemente o motivo da consulta"
+                  />
                 </div>
 
                 <button
@@ -446,7 +467,7 @@ export default function AgendarConsulta() {
                   className="booking-button"
                 >
                   {isRescheduling
-                    ? "Confirmar remarcaÃ§Ã£o"
+                    ? "Confirmar remarcação"
                     : "Confirmar agendamento"}
                 </button>
               </form>
@@ -454,7 +475,7 @@ export default function AgendarConsulta() {
 
             <aside className="booking-summary">
               <div className="booking-summary-icon">
-                ðŸ©º
+                🩺
               </div>
 
               <h2>
@@ -465,14 +486,22 @@ export default function AgendarConsulta() {
 
               <p>
                 {isRescheduling
-                  ? "Atualize a data, o horÃ¡rio ou os demais dados da consulta."
+                  ? "Atualize a data e o horário da consulta."
                   : "Preencha os dados ao lado para marcar sua consulta."}
               </p>
 
               <ul>
-                <li>âœ“ Escolha uma especialidade</li>
-                <li>âœ“ Selecione o profissional</li>
-                <li>âœ“ Defina a data e o horÃ¡rio</li>
+                <li>
+                  ✓ Escolha uma especialidade
+                </li>
+
+                <li>
+                  ✓ Selecione o profissional
+                </li>
+
+                <li>
+                  ✓ Defina a data e o horário
+                </li>
               </ul>
             </aside>
           </div>

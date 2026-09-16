@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 function useSavedProfile() {
@@ -8,7 +9,8 @@ function useSavedProfile() {
   });
 
   useEffect(() => {
-    const savedProfile = localStorage.getItem("profile");
+    const savedProfile =
+      localStorage.getItem("profile");
 
     if (savedProfile) {
       setProfile(JSON.parse(savedProfile));
@@ -30,13 +32,198 @@ function getInitials(name) {
   );
 }
 
+function formatDate(date) {
+  if (!date || !date.includes("-")) {
+    return date;
+  }
+
+  const [year, month, day] = date.split("-");
+  return `${day}/${month}/${year}`;
+}
+
 export default function UserMenu() {
   const profile = useSavedProfile();
 
+  const [appointments, setAppointments] =
+    useState([]);
+
+  const [notificationsOpen, setNotificationsOpen] =
+    useState(false);
+
+  useEffect(() => {
+    const savedAppointments = JSON.parse(
+      localStorage.getItem("appointments") || "[]"
+    );
+
+    setAppointments(savedAppointments);
+  }, []);
+
+  const now = new Date();
+
+  const scheduledAppointments = appointments
+    .filter((appointment) => {
+      const appointmentDate = new Date(
+        `${appointment.date}T${appointment.time}`
+      );
+
+      return (
+        (appointment.status === "Agendada" ||
+          !appointment.status) &&
+        appointmentDate >= now
+      );
+    })
+    .sort((first, second) => {
+      const firstDate = `${first.date}T${first.time}`;
+      const secondDate = `${second.date}T${second.time}`;
+
+      return firstDate.localeCompare(secondDate);
+    });
+
+  const cancelledAppointments = appointments.filter(
+    (appointment) =>
+      appointment.status === "Cancelada"
+  );
+
+  const nextAppointment =
+    scheduledAppointments[0];
+
+  const hasNotifications =
+    scheduledAppointments.length > 0 ||
+    cancelledAppointments.length > 0;
+
   return (
     <div className="topbar-user">
-      <span className="notification">🔔</span>
-      <div className="user-avatar">{getInitials(profile.name)}</div>
+      <div className="notification-wrapper">
+        <button
+          type="button"
+          className="notification-button"
+          aria-label="Abrir notificações"
+          aria-expanded={notificationsOpen}
+          onClick={() =>
+            setNotificationsOpen(
+              (currentValue) => !currentValue
+            )
+          }
+        >
+          🔔
+
+          {scheduledAppointments.length > 0 && (
+            <span className="notification-badge">
+              {scheduledAppointments.length}
+            </span>
+          )}
+        </button>
+
+        {notificationsOpen && (
+          <div className="notification-panel">
+            <div className="notification-panel-header">
+              <strong>Notificações</strong>
+
+              <button
+                type="button"
+                aria-label="Fechar notificações"
+                onClick={() =>
+                  setNotificationsOpen(false)
+                }
+              >
+                ✕
+              </button>
+            </div>
+
+            {hasNotifications ? (
+              <div className="notification-list">
+                {nextAppointment && (
+                  <div className="notification-item">
+                    <span className="notification-item-icon">
+                      🗓️
+                    </span>
+
+                    <div>
+                      <strong>
+                        Próxima consulta
+                      </strong>
+
+                      <p>
+                        {nextAppointment.specialty} com{" "}
+                        {nextAppointment.doctor}
+                      </p>
+
+                      <small>
+                        {formatDate(
+                          nextAppointment.date
+                        )}{" "}
+                        às {nextAppointment.time}
+                      </small>
+                    </div>
+                  </div>
+                )}
+
+                {scheduledAppointments.length > 1 && (
+                  <div className="notification-item">
+                    <span className="notification-item-icon">
+                      📋
+                    </span>
+
+                    <div>
+                      <strong>
+                        Consultas agendadas
+                      </strong>
+
+                      <p>
+                        Você possui{" "}
+                        {scheduledAppointments.length}{" "}
+                        consultas futuras.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {cancelledAppointments.length > 0 && (
+                  <div className="notification-item">
+                    <span className="notification-item-icon">
+                      ✕
+                    </span>
+
+                    <div>
+                      <strong>
+                        Consultas canceladas
+                      </strong>
+
+                      <p>
+                        Você possui{" "}
+                        {cancelledAppointments.length}{" "}
+                        {cancelledAppointments.length === 1
+                          ? " consulta cancelada."
+                          : " consultas canceladas."}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="notification-empty">
+                <span>🔔</span>
+                <p>Nenhuma notificação no momento.</p>
+              </div>
+            )}
+
+            <Link
+              href="/agendamentos"
+              className="notification-link"
+              onClick={() =>
+                setNotificationsOpen(false)
+              }
+            >
+              Ver meus agendamentos
+            </Link>
+          </div>
+        )}
+      </div>
+
+      <div className="user-avatar">
+        {getInitials(profile.name)}
+      </div>
+
       <strong>{profile.name}</strong>
     </div>
   );

@@ -11,28 +11,90 @@ export default function DashboardData() {
       localStorage.getItem("appointments") || "[]"
     );
 
-    setAppointments(savedAppointments);
+    const now = new Date();
+    let appointmentsWereUpdated = false;
+
+    const updatedAppointments = savedAppointments.map(
+      (appointment) => {
+        const isScheduled =
+          appointment.status === "Agendada" ||
+          !appointment.status;
+
+        if (
+          !isScheduled ||
+          !appointment.date ||
+          !appointment.time
+        ) {
+          return appointment;
+        }
+
+        const appointmentDate = new Date(
+          `${appointment.date}T${appointment.time}`
+        );
+
+        const isValidDate = !Number.isNaN(
+          appointmentDate.getTime()
+        );
+
+        if (!isValidDate) {
+          return appointment;
+        }
+
+        if (appointmentDate < now) {
+          appointmentsWereUpdated = true;
+
+          return {
+            ...appointment,
+            status: "Concluída",
+          };
+        }
+
+        if (!appointment.status) {
+          appointmentsWereUpdated = true;
+
+          return {
+            ...appointment,
+            status: "Agendada",
+          };
+        }
+
+        return appointment;
+      }
+    );
+
+    if (appointmentsWereUpdated) {
+      localStorage.setItem(
+        "appointments",
+        JSON.stringify(updatedAppointments)
+      );
+    }
+
+    setAppointments(updatedAppointments);
   }, []);
 
   const now = new Date();
 
-  const scheduledAppointments = appointments.filter((appointment) => {
-    const appointmentDate = new Date(
-      `${appointment.date}T${appointment.time}`
-    );
+  const scheduledAppointments = appointments.filter(
+    (appointment) => {
+      const appointmentDate = new Date(
+        `${appointment.date}T${appointment.time}`
+      );
 
-    return (
-      appointment.status === "Agendada" &&
-      appointmentDate >= now
-    );
-  });
+      return (
+        appointment.status === "Agendada" &&
+        appointmentDate >= now
+      );
+    }
+  );
 
   const completedAppointments = appointments.filter(
-    (appointment) => appointment.status === "Concluída"
+    (appointment) =>
+      appointment.status === "Concluída"
   );
 
   const cancelledAppointments = appointments.filter(
-    (appointment) => appointment.status === "Cancelada"
+    (appointment) =>
+      appointment.status === "Cancelada"
   );
 
   const nextAppointment = [...scheduledAppointments].sort(
@@ -56,33 +118,42 @@ export default function DashboardData() {
   return (
     <>
       <section className="summary-cards">
-        <div className="summary-card">
-          <div className="summary-icon">🗓️</div>
+  <Link
+    href="/agendamentos?aba=scheduled"
+    className="summary-card"
+  >
+    <div className="summary-icon">🗓️</div>
 
-          <div>
-            <strong>{scheduledAppointments.length}</strong>
-            <span>Próximas consultas</span>
-          </div>
-        </div>
+    <div>
+      <strong>{scheduledAppointments.length}</strong>
+      <span>Próximas consultas</span>
+    </div>
+  </Link>
 
-        <div className="summary-card">
-          <div className="summary-icon">✓</div>
+  <Link
+    href="/agendamentos?aba=completed"
+    className="summary-card"
+  >
+    <div className="summary-icon">✓</div>
 
-          <div>
-            <strong>{completedAppointments.length}</strong>
-            <span>Consultas concluídas</span>
-          </div>
-        </div>
+    <div>
+      <strong>{completedAppointments.length}</strong>
+      <span>Consultas concluídas</span>
+    </div>
+  </Link>
 
-        <div className="summary-card">
-          <div className="summary-icon">✕</div>
+  <Link
+    href="/agendamentos?aba=cancelled"
+    className="summary-card"
+  >
+    <div className="summary-icon">✕</div>
 
-          <div>
-            <strong>{cancelledAppointments.length}</strong>
-            <span>Consultas canceladas</span>
-          </div>
-        </div>
-      </section>
+    <div>
+      <strong>{cancelledAppointments.length}</strong>
+      <span>Consultas canceladas</span>
+    </div>
+  </Link>
+</section>
 
       <section className="dashboard-section">
         <h2>Próxima consulta</h2>
@@ -100,7 +171,10 @@ export default function DashboardData() {
                 <strong>{nextAppointment.doctor}</strong>
               </p>
 
-              <p>🗓️ {formatDate(nextAppointment.date)}</p>
+              <p>
+                🗓️ {formatDate(nextAppointment.date)}
+              </p>
+
               <p>🕐 {nextAppointment.time}</p>
             </div>
 
@@ -115,7 +189,9 @@ export default function DashboardData() {
                 NENHUMA CONSULTA
               </span>
 
-              <h3>Você não possui consultas agendadas</h3>
+              <h3>
+                Você não possui consultas agendadas
+              </h3>
 
               <p>
                 Marque uma nova consulta com um especialista.

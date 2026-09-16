@@ -15,7 +15,67 @@ export default function MeusAgendamentos() {
       localStorage.getItem("appointments") || "[]"
     );
 
-    setAppointments(savedAppointments);
+    const now = new Date();
+    let appointmentsWereUpdated = false;
+
+    const updatedAppointments = savedAppointments.map(
+      (appointment) => {
+        const isScheduled =
+          appointment.status === "Agendada" ||
+          !appointment.status;
+
+        if (
+          !isScheduled ||
+          !appointment.date ||
+          !appointment.time
+        ) {
+          return appointment;
+        }
+
+        const appointmentDate = new Date(
+          `${appointment.date}T${appointment.time}`
+        );
+
+        const isValidDate = !Number.isNaN(
+          appointmentDate.getTime()
+        );
+
+        if (isValidDate && appointmentDate < now) {
+          appointmentsWereUpdated = true;
+
+          return {
+            ...appointment,
+            status: "Concluída",
+          };
+        }
+
+        return appointment;
+      }
+    );
+
+    if (appointmentsWereUpdated) {
+      localStorage.setItem(
+        "appointments",
+        JSON.stringify(updatedAppointments)
+      );
+    }
+
+    setAppointments(updatedAppointments);
+    const parameters = new URLSearchParams(
+  window.location.search
+);
+
+const requestedTab = parameters.get("aba");
+
+const validTabs = [
+  "scheduled",
+  "completed",
+  "cancelled",
+];
+
+if (validTabs.includes(requestedTab)) {
+  setActiveTab(requestedTab);
+}
   }, []);
 
   const scheduledAppointments = appointments.filter(

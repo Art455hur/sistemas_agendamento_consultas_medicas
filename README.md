@@ -236,7 +236,7 @@ São armazenados:
 
 O protótipo foi desenvolvido no Figma Make e apresenta o fluxo completo do paciente.
 
-### Figma
+### Projeto no Figma
 
 [Visualizar projeto no Figma](https://www.figma.com/make/g3WjcN1nALBsvfIhpLZsVb/Sistema-de-Agendamento-M%C3%A9dico-v2?t=xFoMyMTe26hyE9HX-20&fullscreen=1)
 
@@ -244,11 +244,18 @@ O protótipo foi desenvolvido no Figma Make e apresenta o fluxo completo do paci
 
 [Acessar o protótipo navegável](https://wake-hut-89531713.figma.site)
 
-Senha:
+O protótipo possui acesso público e não exige senha.
 
-```text
-prgweb
-```
+## NexTech Soluções
+
+A **NexTech Soluções** é a software house responsável pelo desenvolvimento acadêmico do AgendaSaúde.
+
+A landing page institucional apresenta a identidade visual da equipe, os serviços oferecidos, os integrantes e o projeto desenvolvido.
+
+* **Landing page:** [Acessar NexTech Soluções](https://alert-author-78887172.figma.site)
+* **Contato da equipe:** [prgweb.sh@gmail.com](prgweb.sh@gmail.com)
+* **Repositório:** [AgendaSaúde no GitHub](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas)
+
 
 ## Organização do projeto
 
@@ -324,13 +331,16 @@ http://localhost:3000
 
 - Sandro Alexandre Abati;
 - Railson dos Santos Rufino - UX e Prototipação, revisão e melhoria da aplicação e Apoio em Requisitos e Documentação;
-- Luiz Fernando Testzlaff - Desenvolvedor Front-end, responsável pela implementação inicial das páginas e componentes.;
+- Luiz Fernando Testzlaff - Desenvolvedor Front-end, responsável pela implementação inicial das páginas e componentes;
 - Brício Rocha Borges de Almeida;
 - Arthur Araujo dos Santos Coelho;
 - Ian Hebert Freitas Moreira.
 
 
 ## Situação atual
+
+- Landing page institucional da NexTech Soluções publicada;
+- Links públicos do protótipo, da landing page e do repositório adicionados.
 
 O MVP visual está navegável e possui os principais fluxos do paciente.
 
@@ -349,7 +359,7 @@ Já foram implementados:
 
 ## Próximos passos
 
-- Finalizar a documentação da N1;
+- Manter a documentação do projeto atualizada;
 - Registrar os papéis da equipe;
 - Concluir os cards e checklists;
 - Realizar testes de usabilidade;

@@ -329,12 +329,12 @@ http://localhost:3000
 
 ## Integrantes
 
-- Sandro Alexandre Abati;
+- Sandro Alexandre Abati - Scrum Master, facilita o processo, acompanha impedimentos e ajuda a organizar a equipe;
 - Railson dos Santos Rufino - UX e Prototipação, revisão e melhoria da aplicação e Apoio em Requisitos e Documentação;
 - Luiz Fernando Testzlaff - Desenvolvedor Front-end, responsável pela implementação inicial das páginas e componentes;
-- Brício Rocha Borges de Almeida;
-- Arthur Araujo dos Santos Coelho;
-- Ian Hebert Freitas Moreira.
+- Brício Rocha Borges de Almeida  - Responsável por Qualidade e Testes, planeja testes, registra erros e acompanha correções;
+- Arthur Araujo dos Santos Coelho - Analista de Requisitos, documenta necessidades, regras de negócio e critérios de aceitação;
+- Ian Hebert Freitas Moreira - Product owner e Desenvolvedor back-end, Representa as necessidades do produto e ajuda a priorizar as funcionalidades.
 
 
 ## Situação atual

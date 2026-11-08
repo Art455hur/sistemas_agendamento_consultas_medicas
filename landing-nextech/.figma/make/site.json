@@ -1,0 +1,10 @@
+{
+  "description": "Showcase NexTech Soluções' identity, services, and team through a modern, responsive landing page, highlighting their key product, AgendaSaúde.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

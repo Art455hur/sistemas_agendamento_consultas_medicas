@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { createClient, isSupabaseConfigured } from "../lib/supabase/client";
 
 function useSavedProfile() {
   const [profile, setProfile] =
@@ -145,12 +146,23 @@ export default function UserMenu() {
     scheduledAppointments.length > 0 ||
     cancelledAppointments.length > 0;
 
-  function logout() {
+  async function logout() {
     const confirmed = window.confirm(
       "Deseja realmente sair da sua conta?"
     );
 
     if (!confirmed) {
+      return;
+    }
+
+    if (isSupabaseConfigured()) {
+      const { error } = await createClient().auth.signOut();
+      if (error) {
+        window.alert("Não foi possível sair. Tente novamente.");
+        return;
+      }
+      router.replace("/");
+      router.refresh();
       return;
     }
 

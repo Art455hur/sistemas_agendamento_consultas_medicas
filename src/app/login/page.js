@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
 
 export default function Login() {
   const router = useRouter();
@@ -35,9 +36,13 @@ export default function Login() {
       );
       setMessageType("success");
     }
+    if (parameters.get("erro") === "confirmacao") {
+      setMessage("O link não pôde ser confirmado. Solicite um novo e-mail e tente novamente.");
+      setMessageType("error");
+    }
   }, []);
 
-  function handleLogin(event) {
+  async function handleLogin(event) {
     event.preventDefault();
 
     setMessage("");
@@ -48,6 +53,32 @@ export default function Login() {
         "Preencha o e-mail e a senha."
       );
       setMessageType("error");
+      return;
+    }
+
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(), password,
+      });
+      if (error || !data.user) {
+        setMessage("Não foi possível entrar. Confira seus dados e confirme seu e-mail, se necessário.");
+        setMessageType("error");
+        return;
+      }
+      // A sessão real usa cookies. Nunca persista a senha ou um token próprio.
+      localStorage.removeItem("registeredUser");
+      localStorage.removeItem("authToken");
+      sessionStorage.removeItem("authToken");
+      localStorage.setItem("profile", JSON.stringify({
+        name: data.user.user_metadata?.name || "Paciente",
+        email: data.user.email, phone: "", birthDate: "", cpf: "",
+      }));
+      const parameters = new URLSearchParams(window.location.search);
+      const redirect = parameters.get("redirect");
+      const safe = redirect?.startsWith("/") && !redirect.startsWith("//");
+      router.replace(safe ? redirect : "/dashboard");
+      router.refresh();
       return;
     }
 
@@ -147,7 +178,7 @@ export default function Login() {
     router.push("/dashboard");
   }
 
-  function resetPassword() {
+  async function resetPassword() {
     setMessage("");
     setMessageType("");
 
@@ -156,6 +187,19 @@ export default function Login() {
         "Digite seu e-mail antes de redefinir a senha."
       );
       setMessageType("error");
+      return;
+    }
+
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email.trim().toLowerCase(),
+        { redirectTo: `${window.location.origin}/auth/callback?next=/redefinir-senha` }
+      );
+      setMessage(error
+        ? "Não foi possível enviar o e-mail. Tente novamente mais tarde."
+        : "Se o e-mail estiver cadastrado, você receberá instruções para redefinir a senha.");
+      setMessageType(error ? "error" : "success");
       return;
     }
 
@@ -344,7 +388,7 @@ export default function Login() {
             </div>
 
             <div className="auth-options">
-              <label className="auth-remember">
+              {!isSupabaseConfigured() && <label className="auth-remember">
                 <input
                   type="checkbox"
                   checked={remember}
@@ -356,7 +400,7 @@ export default function Login() {
                 />
 
                 <span>Lembrar de mim</span>
-              </label>
+              </label>}
 
               <button
                 type="button"

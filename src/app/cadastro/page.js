@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
 
 function formatPhone(value) {
   const numbers = value
@@ -118,7 +119,7 @@ export default function Cadastro() {
     }));
   }
 
-  function handleRegister(event) {
+  async function handleRegister(event) {
     event.preventDefault();
 
     setMessage("");
@@ -193,6 +194,24 @@ export default function Cadastro() {
       setMessage(
         "As senhas não coincidem."
       );
+      return;
+    }
+
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signUp({
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        options: {
+          data: { name: form.name.trim() },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        setMessage("Não foi possível criar a conta. Verifique os dados e tente novamente.");
+        return;
+      }
+      setMessage("Cadastro enviado! Confirme seu e-mail, se solicitado, e depois entre na sua conta.");
       return;
     }
 

@@ -8,6 +8,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { createClient, isSupabaseConfigured } from "../lib/supabase/client";
 
 const protectedRoutes = [
   "/dashboard",
@@ -50,6 +51,27 @@ export default function AuthGuard({
     }
 
     setAllowedPath(null);
+
+    if (isSupabaseConfigured()) {
+      let active = true;
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user }, error }) => {
+        if (!active) return;
+        if (error || !user) {
+          if (isProtectedRoute) {
+            const currentPage = window.location.pathname + window.location.search;
+            router.replace(`/login?redirect=${encodeURIComponent(currentPage)}`);
+          } else {
+            setAllowedPath(pathname);
+          }
+        } else if (isGuestOnlyRoute) {
+          router.replace("/dashboard");
+        } else {
+          setAllowedPath(pathname);
+        }
+      });
+      return () => { active = false; };
+    }
 
     const token =
       localStorage.getItem("authToken") ||

@@ -1,83 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useAppointments } from "../lib/useAppointments";
 
 export default function DashboardData() {
-  const [appointments, setAppointments] = useState([]);
-
-  useEffect(() => {
-    const savedAppointments = JSON.parse(
-      localStorage.getItem("appointments") || "[]"
-    );
-
-    const now = new Date();
-    let appointmentsWereUpdated = false;
-
-    const updatedAppointments = savedAppointments.map(
-      (appointment) => {
-        const isScheduled =
-          appointment.status === "Agendada" ||
-          !appointment.status;
-
-        if (
-          !isScheduled ||
-          !appointment.date ||
-          !appointment.time
-        ) {
-          return appointment;
-        }
-
-        const appointmentDate = new Date(
-          `${appointment.date}T${appointment.time}`
-        );
-
-        const isValidDate = !Number.isNaN(
-          appointmentDate.getTime()
-        );
-
-        if (!isValidDate) {
-          return appointment;
-        }
-
-        if (appointmentDate < now) {
-          appointmentsWereUpdated = true;
-
-          return {
-            ...appointment,
-            status: "Concluída",
-          };
-        }
-
-        if (!appointment.status) {
-          appointmentsWereUpdated = true;
-
-          return {
-            ...appointment,
-            status: "Agendada",
-          };
-        }
-
-        return appointment;
-      }
-    );
-
-    if (appointmentsWereUpdated) {
-      localStorage.setItem(
-        "appointments",
-        JSON.stringify(updatedAppointments)
-      );
-    }
-
-    setAppointments(updatedAppointments);
-  }, []);
+  const { appointments, loading, error } = useAppointments();
 
   const now = new Date();
 
   const scheduledAppointments = appointments.filter(
     (appointment) => {
       const appointmentDate = new Date(
-        `${appointment.date}T${appointment.time}`
+        appointment.scheduledAt || `${appointment.date}T${appointment.time}`
       );
 
       return (
@@ -115,6 +49,8 @@ export default function DashboardData() {
     return `${day}/${month}/${year}`;
   }
 
+  if (loading) return <p role="status">Carregando consultas...</p>;
+  if (error) return <p role="alert">{error}</p>;
   return (
     <>
       <section className="summary-cards">

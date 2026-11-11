@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useAppointments } from "../lib/useAppointments";
 import { createClient, isSupabaseConfigured } from "../lib/supabase/client";
 
 function useSavedProfile() {
@@ -83,25 +84,8 @@ export default function UserMenu() {
   const router = useRouter();
   const profile = useSavedProfile();
 
-  const [appointments, setAppointments] =
-    useState([]);
-
-  const [
-    notificationsOpen,
-    setNotificationsOpen,
-  ] = useState(false);
-
-  useEffect(() => {
-    const savedAppointments = JSON.parse(
-      localStorage.getItem(
-        "appointments"
-      ) || "[]"
-    );
-
-    setAppointments(
-      savedAppointments
-    );
-  }, []);
+  const { appointments, loading, error } = useAppointments();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const now = new Date();
 
@@ -110,7 +94,7 @@ export default function UserMenu() {
       .filter((appointment) => {
         const appointmentDate =
           new Date(
-            `${appointment.date}T${appointment.time}`
+            appointment.scheduledAt || `${appointment.date}T${appointment.time}`
           );
 
         return (
@@ -230,7 +214,7 @@ export default function UserMenu() {
               </button>
             </div>
 
-            {hasNotifications ? (
+            {loading ? <p role="status">Carregando notificações...</p> : error ? <p role="alert">{error}</p> : hasNotifications ? (
               <div className="notification-list">
                 {nextAppointment && (
                   <div className="notification-item">

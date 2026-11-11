@@ -3,263 +3,102 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getAppointment, getBookingDoctors, getBookingSlots, saveAppointment } from "../../lib/appointments";
+import { clinicDateTime } from "../../lib/appointment-format";
+import { isSupabaseConfigured } from "../../lib/supabase/client";
 import UserMenu, {
   SidebarUser,
 } from "../../components/UserMenu";
 
-const doctorsBySpecialty = {
-  Cardiologia: ["Dra. Mariana Silva"],
-  Ortopedia: ["Dr. Lucas Ferreira"],
-  Dermatologia: ["Dra. Camila Rodrigues"],
-  Pediatria: ["Dra. Juliana Costa"],
-  Ginecologia: ["Dra. Fernanda Lima"],
-  "Clínica Geral": ["Dr. Rafael Almeida"],
-  Neurologia: ["Dr. Paulo Mendes"],
-  Oftalmologia: ["Dra. Beatriz Alves"],
-};
-
-const availableTimes = [
-  "08:00",
-  "09:00",
-  "10:30",
-  "14:00",
-  "15:30",
-];
-
 export default function AgendarConsulta() {
   const router = useRouter();
-
-  const [form, setForm] = useState({
-    specialty: "",
-    doctor: "",
-    date: "",
-    time: "",
-    reason: "",
-  });
-
-  const [appointments, setAppointments] = useState([]);
-  const [reschedulingId, setReschedulingId] =
-    useState(null);
+  const [form, setForm] = useState({ specialty: "", doctor: "", doctorId: "", date: "", time: "", reason: "" });
+  const [doctors, setDoctors] = useState([]);
+  const [slots, setSlots] = useState([]);
+  const [reschedulingId, setReschedulingId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState(false);
+  const [slotError, setSlotError] = useState("");
+  const [refreshSlots, setRefreshSlots] = useState(0);
+  const isRescheduling = Boolean(reschedulingId);
+  const minimumDate = isSupabaseConfigured() ? clinicDateTime(new Date()).date
+    : new Date().toLocaleDateString("en-CA");
+  const doctorsBySpecialty = Object.groupBy(doctors, (doctor) => doctor.specialty);
 
   useEffect(() => {
-    const savedAppointments = JSON.parse(
-      localStorage.getItem("appointments") || "[]"
-    );
-
-    setAppointments(savedAppointments);
-
-    const parameters = new URLSearchParams(
-      window.location.search
-    );
-
-    const appointmentId =
-      parameters.get("remarcar");
-
-    const selectedSpecialty =
-      parameters.get("especialidade");
-
-    const selectedDoctor =
-      parameters.get("profissional");
-
-    if (!appointmentId) {
-      if (
-        selectedSpecialty &&
-        doctorsBySpecialty[selectedSpecialty]
-      ) {
-        const validDoctor =
-          doctorsBySpecialty[selectedSpecialty].includes(
-            selectedDoctor
-          );
-
-        setForm((currentForm) => ({
-          ...currentForm,
-          specialty: selectedSpecialty,
-          doctor: validDoctor
-            ? selectedDoctor
-            : "",
-        }));
-      }
-
-      return;
+    let active = true;
+    async function load() {
+      try {
+        const availableDoctors = await getBookingDoctors();
+        const parameters = new URLSearchParams(window.location.search);
+        const id = parameters.get("remarcar");
+        const appointment = id ? await getAppointment(id) : null;
+        if (!active) return;
+        setDoctors(availableDoctors);
+        if (id) {
+          if (!appointment || appointment.status !== "Agendada") {
+            setError("Consulta não encontrada ou indisponível para remarcação.");
+            setLoadError(true);
+            return;
+          }
+          setReschedulingId(id);
+          setForm(appointment);
+        } else {
+          const specialty = parameters.get("especialidade");
+          const doctor = availableDoctors.find((item) => item.specialty === specialty &&
+            (item.id === parameters.get("profissional") || item.full_name === parameters.get("profissional")));
+          setForm((current) => ({ ...current,
+            specialty: availableDoctors.some((item) => item.specialty === specialty) ? specialty : "",
+            doctorId: doctor?.id || "", doctor: doctor?.full_name || "",
+          }));
+        }
+      } catch (failure) { if (active) { setError(failure.message); setLoadError(true); } }
+      finally { if (active) setLoading(false); }
     }
+    load();
+    return () => { active = false; };
+  }, []);
 
-    const appointmentToReschedule =
-      savedAppointments.find(
-        (appointment) =>
-          String(appointment.id) ===
-          String(appointmentId)
-      );
-
-    if (!appointmentToReschedule) {
-      alert(
-        "A consulta selecionada não foi encontrada."
-      );
-
-      router.push("/agendamentos");
-      return;
-    }
-
-    if (
-      appointmentToReschedule.status === "Cancelada" ||
-      appointmentToReschedule.status === "Concluída"
-    ) {
-      alert(
-        "Somente consultas agendadas podem ser remarcadas."
-      );
-
-      router.push("/agendamentos");
-      return;
-    }
-
-    setReschedulingId(appointmentId);
-
-    setForm({
-      specialty:
-        appointmentToReschedule.specialty || "",
-      doctor:
-        appointmentToReschedule.doctor || "",
-      date:
-        appointmentToReschedule.date || "",
-      time:
-        appointmentToReschedule.time || "",
-      reason:
-        appointmentToReschedule.reason || "",
-    });
-  }, [router]);
-
-  const today = new Date();
-
-  const minimumDate = [
-    today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, "0"),
-    String(today.getDate()).padStart(2, "0"),
-  ].join("-");
-
-  const unavailableTimes = appointments
-    .filter(
-      (appointment) =>
-        appointment.date === form.date &&
-        (appointment.status === "Agendada" ||
-          !appointment.status) &&
-        String(appointment.id) !==
-          String(reschedulingId)
-    )
-    .map((appointment) => appointment.time);
-
-  const isRescheduling = Boolean(reschedulingId);
+  useEffect(() => {
+    let active = true;
+    setSlots([]);
+    setSlotError("");
+    if (!form.doctorId || !form.date) { setSlotsLoading(false); return; }
+    setSlotsLoading(true);
+    getBookingSlots(form.doctorId, form.date, reschedulingId)
+      .then((items) => { if (active) setSlots(items); })
+      .catch((failure) => { if (active) setSlotError(failure.message); })
+      .finally(() => { if (active) setSlotsLoading(false); });
+    return () => { active = false; };
+  }, [form.doctorId, form.date, reschedulingId, refreshSlots]);
 
   function updateField(event) {
     const { name, value } = event.target;
-
-    setForm((currentForm) => ({
-      ...currentForm,
-      [name]: value,
-
-      ...(name === "specialty" && {
-        doctor: "",
-      }),
-
-      ...(name === "date" && {
-        time: "",
-      }),
+    setForm((current) => ({ ...current, [name]: value,
+      ...(name === "specialty" && { doctor: "", doctorId: "", time: "" }),
+      ...(name === "doctorId" && { doctor: doctors.find((item) => item.id === value)?.full_name || "", time: "" }),
+      ...(name === "date" && { time: "" }),
     }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-
-    if (
-      !form.specialty ||
-      !form.doctor ||
-      !form.date ||
-      !form.time
-    ) {
-      alert(
-        "Preencha a especialidade, o profissional, a data e o horário."
-      );
-
-      return;
-    }
-
-    const appointmentDate = new Date(
-      `${form.date}T${form.time}`
-    );
-
-    if (appointmentDate <= new Date()) {
-      alert(
-        "Escolha uma data e um horário futuros."
-      );
-
-      return;
-    }
-
-    const savedAppointments = JSON.parse(
-      localStorage.getItem("appointments") || "[]"
-    );
-
-    const duplicatedAppointment =
-      savedAppointments.some(
-        (appointment) =>
-          appointment.date === form.date &&
-          appointment.time === form.time &&
-          (appointment.status === "Agendada" ||
-            !appointment.status) &&
-          String(appointment.id) !==
-            String(reschedulingId)
-      );
-
-    if (duplicatedAppointment) {
-      alert(
-        "Você já possui uma consulta agendada nessa data e horário."
-      );
-
-      return;
-    }
-
-    if (reschedulingId) {
-      const updatedAppointments =
-        savedAppointments.map((appointment) => {
-          if (
-            String(appointment.id) ===
-            String(reschedulingId)
-          ) {
-            return {
-              ...appointment,
-              ...form,
-              status: "Agendada",
-            };
-          }
-
-          return appointment;
-        });
-
-      localStorage.setItem(
-        "appointments",
-        JSON.stringify(updatedAppointments)
-      );
-
-      alert("Consulta remarcada com sucesso!");
-      router.push("/agendamentos");
-      return;
-    }
-
-    const newAppointment = {
-      id: Date.now(),
-      ...form,
-      status: "Agendada",
-    };
-
-    localStorage.setItem(
-      "appointments",
-      JSON.stringify([
-        ...savedAppointments,
-        newAppointment,
-      ])
-    );
-
-    router.push(
-      `/confirmacao?id=${newAppointment.id}`
-    );
+    if (saving || loading || slotsLoading || loadError) return;
+    const slot = slots.find((item) => item.time === form.time);
+    if (!slot) { setError("Escolha um profissional, uma data e um horário disponível."); return; }
+    setSaving(true);
+    setError("");
+    try {
+      const appointment = await saveAppointment({ ...form, scheduledAt: slot.scheduledAt }, reschedulingId);
+      router.push(reschedulingId ? "/agendamentos" : `/confirmacao?id=${appointment.id}`);
+    } catch (failure) {
+      setError(failure.message);
+      setForm((current) => ({ ...current, time: "" }));
+      setRefreshSlots((current) => current + 1);
+    } finally { setSaving(false); }
   }
 
   return (
@@ -320,6 +159,10 @@ export default function AgendarConsulta() {
             </p>
           </div>
 
+          {loading && <p role="status">Carregando profissionais...</p>}
+          {error && <p role="alert">{error}</p>}
+          {!loading && !error && doctors.length === 0 && <p role="status">Nenhum profissional disponível para agendamento no momento. Entre em contato com a clínica.</p>}
+          {isSupabaseConfigured() && <p>Horários da clínica: Manaus (UTC−4).</p>}
           <div className="booking-layout">
             <section className="booking-card">
               <h2>Dados da consulta</h2>
@@ -338,7 +181,7 @@ export default function AgendarConsulta() {
                     name="specialty"
                     value={form.specialty}
                     onChange={updateField}
-                    disabled={isRescheduling}
+                    disabled={isRescheduling || loading || saving}
                   >
                     <option value="">
                       Selecione uma especialidade
@@ -364,12 +207,12 @@ export default function AgendarConsulta() {
 
                   <select
                     id="doctor"
-                    name="doctor"
-                    value={form.doctor}
+                    name="doctorId"
+                    value={form.doctorId}
                     onChange={updateField}
                     disabled={
                       !form.specialty ||
-                      isRescheduling
+                      isRescheduling || loading || saving
                     }
                   >
                     <option value="">
@@ -384,10 +227,10 @@ export default function AgendarConsulta() {
                       ] || []
                     ).map((doctor) => (
                       <option
-                        key={doctor}
-                        value={doctor}
+                        key={doctor.id}
+                        value={doctor.id}
                       >
-                        {doctor}
+                        {doctor.full_name}
                       </option>
                     ))}
                   </select>
@@ -418,7 +261,7 @@ export default function AgendarConsulta() {
                     name="time"
                     value={form.time}
                     onChange={updateField}
-                    disabled={!form.date}
+                    disabled={!form.date || !form.doctorId || slotsLoading || saving}
                   >
                     <option value="">
                       {form.date
@@ -426,28 +269,15 @@ export default function AgendarConsulta() {
                         : "Escolha primeiro a data"}
                     </option>
 
-                    {availableTimes.map((time) => {
-                      const unavailable =
-                        unavailableTimes.includes(
-                          time
-                        );
-
-                      return (
-                        <option
-                          key={time}
-                          value={time}
-                          disabled={unavailable}
-                        >
-                          {time}
-                          {unavailable
-                            ? " — Indisponível"
-                            : ""}
-                        </option>
-                      );
-                    })}
+                    {slots.map((slot) => (
+                      <option key={slot.scheduledAt} value={slot.time}>{slot.time}</option>
+                    ))}
                   </select>
                 </div>
 
+                {slotsLoading && <p role="status">Consultando horários...</p>}
+                {slotError && <p role="alert">{slotError}</p>}
+                {!slotsLoading && form.doctorId && form.date && slots.length === 0 && !slotError && <p role="status">Nenhum horário disponível nesta data. Escolha outra data.</p>}
                 <div className="booking-field booking-field-full">
                   <label htmlFor="reason">
                     Motivo da consulta
@@ -457,9 +287,10 @@ export default function AgendarConsulta() {
                     id="reason"
                     name="reason"
                     rows="4"
+                    maxLength={2000}
                     value={form.reason}
                     onChange={updateField}
-                    disabled={isRescheduling}
+                    disabled={isRescheduling || loading || saving}
                     placeholder="Descreva brevemente o motivo da consulta"
                   />
                 </div>
@@ -467,8 +298,9 @@ export default function AgendarConsulta() {
                 <button
                   type="submit"
                   className="booking-button"
+                  disabled={saving || loading || loadError || slotsLoading || !slots.some((slot) => slot.time === form.time)}
                 >
-                  {isRescheduling
+                  {saving ? "Salvando..." : isRescheduling
                     ? "Confirmar remarcação"
                     : "Confirmar agendamento"}
                 </button>

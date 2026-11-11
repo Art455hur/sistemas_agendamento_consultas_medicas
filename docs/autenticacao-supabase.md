@@ -1,6 +1,6 @@
 # Autenticação Supabase — etapa preparatória
 
-Este incremento prepara cadastro, login, confirmação de e-mail, recuperação de senha e logout com Supabase Auth. **Não habilitar em produção ainda**: perfil, consultas e agendamentos continuam em `localStorage`, sem isolamento entre usuários nem persistência remota. Também não há autorização de rotas por perfil vinculada ao banco. Uma conta local simulada não é migrada automaticamente para Supabase Auth.
+Este incremento prepara cadastro, login, confirmação de e-mail, recuperação de senha e logout com Supabase Auth. A primeira integração de consultas está descrita em [consultas-supabase.md](consultas-supabase.md), incluindo a migração e o roteiro de validação. **Não habilitar em produção ainda**: a edição do perfil permanece local e os painéis e permissões de funcionários ainda precisam ser concluídos. Uma conta local simulada não é migrada automaticamente para Supabase Auth.
 
 ## Ativação futura (após migrar os dados e revisar RLS)
 

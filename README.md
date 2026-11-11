@@ -2,6 +2,8 @@
 
 O **AgendaSaúde** é um projeto acadêmico desenvolvido na disciplina de Programação Web.
 
+> **N2 — primeira integração das consultas:** fluxo Supabase preparado nesta branch para agendar, listar, cancelar e remarcar. Veja [como executar e testar](docs/consultas-supabase.md). O modo simulado continua sendo o padrão até configurar e validar o ambiente de teste. As seções de MVP abaixo descrevem a etapa inicial.
+
 A aplicação tem como objetivo facilitar o acesso a profissionais da saúde, permitindo que pacientes consultem especialidades, escolham horários e gerenciem seus agendamentos em uma interface simples e navegável.
 
 ## Problema

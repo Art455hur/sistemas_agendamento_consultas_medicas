@@ -31,7 +31,9 @@ export async function proxy(request) {
     },
   });
 
-  const { data: { claims } } = await supabase.auth.getClaims();
+  // Sem sessão (ou com token inválido), getClaims pode retornar data: null.
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = error ? null : data?.claims;
   const pathname = request.nextUrl.pathname;
   const protectedPath = protectedPaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)

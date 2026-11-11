@@ -59,7 +59,8 @@ export default async function AdministracaoPage({ searchParams }) {
   }
 
   const supabase = await createClient();
-  const { data: { claims }, error: authError } = await supabase.auth.getClaims();
+  const { data: authData, error: authError } = await supabase.auth.getClaims();
+  const claims = authData?.claims;
 
   if (authError || !claims?.sub) {
     redirect("/login?redirect=%2Fadministracao");

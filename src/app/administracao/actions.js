@@ -24,7 +24,8 @@ export async function assignStaff(formData) {
   }
 
   const supabase = await createClient();
-  const { data: { claims }, error: authError } = await supabase.auth.getClaims();
+  const { data: authData, error: authError } = await supabase.auth.getClaims();
+  const claims = authData?.claims;
   if (authError || !claims?.sub) redirect("/login?redirect=%2Fadministracao");
 
   const { error } = await supabase.rpc("admin_assign_staff", {
@@ -50,7 +51,8 @@ export async function deactivateStaff(formData) {
   }
 
   const supabase = await createClient();
-  const { data: { claims }, error: authError } = await supabase.auth.getClaims();
+  const { data: authData, error: authError } = await supabase.auth.getClaims();
+  const claims = authData?.claims;
   if (authError || !claims?.sub) redirect("/login?redirect=%2Fadministracao");
 
   const { error } = await supabase.rpc("admin_deactivate_staff", { p_profile_id: profileId });

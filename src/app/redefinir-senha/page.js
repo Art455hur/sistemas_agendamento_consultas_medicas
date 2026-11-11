@@ -11,7 +11,7 @@ export default function RedefinirSenha() {
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
-    createClient().auth.getUser().then(({ data: { user } }) => setReady(Boolean(user)));
+    createClient().auth.getUser().then(({ data }) => setReady(Boolean(data?.user)));
   }, []);
 
   async function handleSubmit(event) {

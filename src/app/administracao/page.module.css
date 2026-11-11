@@ -7,6 +7,8 @@
 .current { color: #087996; background: #eaf7f9; }
 .upcoming { color: #738899; }
 .upcoming small { font-size: 10px; font-weight: 600; color: #9eacb7; }
+.teamLink { min-height: 43px; display: flex; align-items: center; padding: 0 12px; border-radius: 9px; color: #087996; font-size: 14px; font-weight: 700; text-decoration: none; }
+.teamLink:hover, .teamLink:focus-visible { background: #eaf7f9; }
 .sidebarFooter { margin-top: auto; border-top: 1px solid #e8edf1; padding: 23px 12px 0; color: #91a0ad; font-size: 12px; }
 .main { min-width: 0; width: 100%; }
 .topbar { min-height: 72px; border-bottom: 1px solid #e5ecf1; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(22px, 5vw, 70px); }
@@ -22,6 +24,28 @@
 .noticeIcon { color: #fff; background: #12809b; width: 25px; height: 25px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; flex-shrink: 0; }
 .notice strong { font-size: 14px; }
 .notice p { color: #4f7080; font-size: 13px; line-height: 1.6; margin: 5px 0 0; }
+.staffSection { scroll-margin-top: 25px; margin-bottom: 46px; }
+.feedback { background: #eaf5f8; border: 1px solid #cde5ed; border-radius: 10px; padding: 12px 15px; font-size: 13px; }
+.staffList { border: 1px solid #e3ebef; border-radius: 14px; background: #fff; overflow: hidden; }
+.staffList > p { padding: 12px 20px; font-size: 13px; }
+.staffRow { display: flex; align-items: center; gap: 20px; padding: 16px 19px; border-bottom: 1px solid #e8edf1; }
+.staffRow:last-child { border: 0; }
+.staffRow > div { flex: 1; min-width: 0; }
+.staffRow strong, .staffRow span { display: block; }
+.staffRow strong { font-size: 14px; overflow-wrap: anywhere; }
+.staffRow div span { color: #718699; font-size: 12px; margin-top: 5px; overflow-wrap: anywhere; }
+.active, .inactive { border-radius: 20px; padding: 6px 10px; font-size: 12px; font-weight: 700; }
+.active { color: #167052; background: #e7f6ee; }
+.inactive { color: #865c2a; background: #fdf1dd; }
+.deactivate { border: 1px solid #e9caca; background: #fff; color: #9a3f3f; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.staffForm { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin-top: 19px; }
+.staffForm > div:first-child { flex: 2; min-width: 220px; }
+.staffForm > div:nth-child(2) { flex: 1; min-width: 140px; }
+.staffForm label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.staffForm input, .staffForm select { width: 100%; min-height: 42px; border: 1px solid #cbdbe4; border-radius: 8px; background: #fff; color: #17324d; padding: 9px 11px; font: inherit; }
+.staffForm button { min-height: 42px; border: 0; border-radius: 8px; background: #087c96; color: #fff; padding: 9px 17px; font: inherit; font-weight: 700; cursor: pointer; }
+.staffForm button:hover { background: #07647b; }
+.staffHint { color: #718699; font-size: 12px; line-height: 1.5; }
 .sectionHeading { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 21px; gap: 15px; }
 .sectionHeading h2, .nextStep h2 { font-size: 20px; margin: 0 0 4px; }
 .sectionHeading p { font-size: 13px; }
@@ -46,3 +70,4 @@
 .stateCard a:not(.brand) { color: #087c96; font-weight: 700; }
 @media (max-width: 1050px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .shell { display: block; } .sidebar { width: 100%; min-height: 0; padding: 14px 20px; } .workspaceLabel, .navigation, .sidebarFooter { display: none; } .topbar { min-height: 56px; } .content { padding-top: 34px; } .heading { flex-direction: column; } .grid { grid-template-columns: 1fr; } .module { min-height: 210px; } .sectionHeading { align-items: flex-start; } }
+@media (max-width: 700px) { .staffRow { flex-wrap: wrap; gap: 10px; } .staffRow > div { flex-basis: 100%; } }

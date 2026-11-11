@@ -11,7 +11,8 @@ local continua disponível. Dados antigos do navegador não são importados.
    aplicam todas as migrações e não acessam o banco hospedado.
 3. Em um ambiente de desenvolvimento do Supabase, aplique as migrações pendentes,
    na ordem dos nomes em `supabase/migrations`. A nova migração termina em
-   `_consultas_paciente.sql`. Ela ainda precisa ser aplicada no projeto de destino.
+   `_consultas_paciente.sql`. No projeto `rgggijnypvvdkskyalip`, ela já foi aplicada
+   e verificada em 11/11/2026 (versão `20261111213338`); não execute novamente nesse projeto.
 4. Cadastre um paciente e um profissional pelo Supabase Auth, com e-mails de teste
    que vocês controlam. No SQL Editor, como administrador, altere somente o perfil
    do profissional para `role = 'doctor'`, preencha `specialty` e `full_name` e crie

@@ -6,7 +6,7 @@ create table public.hospital (
   created_at timestamptz not null default now()
 );
 
-insert into public.hospital (id, name) values (1, 'Hospital principal');
+insert into public.hospital (id, name) values (1, 'Hospital Sapiens');
 
 create table public.hospital_staff (
   profile_id uuid primary key references public.profiles(id) on delete cascade,

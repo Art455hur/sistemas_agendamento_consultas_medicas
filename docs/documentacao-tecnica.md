@@ -113,8 +113,9 @@ Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 | `20261112173011` | `20261112173011_validar_cpf_perfis.sql` | Validação matemática de CPF novo ou alterado, preservando o legado |
 | `20261112182236` | `20261112182236_agenda_administrativa_leitura.sql` | Leitura limitada da agenda por administrador ativo |
 | `20261112190336` | `20261112190336_crud_especialidades.sql` | CRUD administrativo de especialidades e integração com médicos |
+| `20261112194614` | `20261112194614_crud_pacientes.sql` | Gestão administrativa de pacientes com desativação lógica |
 
-As onze migrações acima constam no histórico do projeto compartilhado de testes. As versões `20261112182236` (agenda administrativa) e `20261112190336` (CRUD de especialidades) já foram aplicadas e testadas em 12/11/2026; não execute esses arquivos novamente nesse projeto.
+As onze primeiras migrações constam no histórico do projeto compartilhado de testes. As versões `20261112182236` (agenda administrativa) e `20261112190336` (CRUD de especialidades) já foram aplicadas e testadas em 12/11/2026. A migration `20261112194614_crud_pacientes.sql` já foi aplicada no Supabase compartilhado e validada com teste transacional de listar, editar, desativar e reativar pacientes.
 Confira o histórico remoto antes de qualquer execução. Não reaplique arquivos já
 registrados nem altere migrações antigas para introduzir novas mudanças. Mudanças
 futuras devem entrar em nova migração e PR; avise a equipe antes de aplicá-las no
@@ -128,7 +129,7 @@ banco compartilhado. Esta atualização documental não executa SQL.
 | Paciente | Próprio perfil; ler, agendar, cancelar e remarcar suas consultas | Não altera papéis nem dados de outros pacientes |
 | Médico ativo | Leitura das consultas em que é o médico, conforme RLS | Painel próprio pendente; desativação revoga essa leitura |
 | Secretaria | Leitura do próprio perfil e vínculo | Agenda da clínica e painel próprios ainda pendentes |
-| Administrador ativo | Painel, gestão da equipe e leitura da agenda da clínica por dia (após aplicar a nova migração) | Não cancela/remarca consultas; formulário não promove administradores |
+| Administrador ativo | Painel, gestão da equipe, especialidades, pacientes e leitura da agenda da clínica | Não promove administradores; CRUD de pacientes usa desativação lógica |
 
 RLS restringe linhas e grants restringem operações/colunas. As RPCs de equipe
 validam administrador ativo no banco. A leitura administrativa da agenda também
@@ -167,6 +168,10 @@ rejeitar números repetidos. O banco também valida os dígitos em inclusões e
 alterações de CPF por trigger invoker, mantendo formato/unicidade. Um CPF inválido
 antigo é preservado quando o número não muda; o formulário continua exigindo CPF
 válido para salvar. Veja [limites e roteiro de teste](validacao-cpf.md).
+
+### Pacientes
+
+O cadastro continua sendo feito pelo fluxo público do Supabase Auth. O administrador pode listar, editar, desativar e reativar pacientes em `/administracao/pacientes`. A desativação é lógica: preserva conta e histórico, cancela consultas futuras ainda agendadas e bloqueia os fluxos privados do paciente até a reativação.
 
 ### Equipe
 

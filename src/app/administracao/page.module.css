@@ -105,3 +105,16 @@
 .specialtyCreateForm label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
 .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 @media (max-width: 700px) { .specialtyRow { flex-wrap: wrap; } .specialtyEditForm { flex-basis: 100%; } .specialtyCreateForm { align-items: stretch; flex-direction: column; } }
+
+.patientList { display: grid; gap: 16px; margin-top: 28px; }
+.patientCard { background: #fff; border: 1px solid #e3ebef; border-radius: 14px; padding: 20px; }
+.patientHeader, .patientFoot { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.patientHeader h2 { margin: 0; font-size: 17px; }
+.patientHeader p { margin: 5px 0 0; color: #718699; font-size: 12px; }
+.patientForm { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 12px; align-items: end; margin-top: 18px; }
+.patientForm label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.patientForm input { width: 100%; min-height: 42px; border: 1px solid #cbdbe4; border-radius: 8px; padding: 9px 11px; font: inherit; }
+.patientForm > button { min-height: 42px; border: 0; border-radius: 8px; background: #087c96; color: #fff; padding: 9px 15px; font-weight: 700; cursor: pointer; }
+.patientFoot { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e8edf1; color: #718699; font-size: 12px; }
+@media (max-width: 1050px) { .patientForm { grid-template-columns: repeat(2, minmax(0,1fr)); } .patientForm > button { grid-column: 1 / -1; } }
+@media (max-width: 700px) { .patientHeader, .patientFoot { align-items: flex-start; flex-direction: column; } .patientForm { grid-template-columns: 1fr; } }

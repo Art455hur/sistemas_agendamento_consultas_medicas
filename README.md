@@ -58,8 +58,8 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Conflitos | Proteção no banco contra duas consultas ativas do mesmo médico ou paciente no mesmo instante |
 | Dashboard e notificações | Indicadores e avisos individuais de consultas futuras/canceladas, com links e atualização após alterações |
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
-| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades e leitura diária da agenda da clínica |
-| Banco e testes | Onze migrações versionadas no código; conferir o histórico remoto antes de aplicar migrações pendentes |
+| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes e leitura diária da agenda da clínica |
+| Banco e testes | Doze migrações versionadas no código; conferir o histórico remoto antes de aplicar migrações pendentes |
 
 A gestão de funcionários exige contas previamente existentes no Supabase Auth. Não cria contas Auth nem concede papel de administrador. Notificações na interface não representam envio de e-mail, SMS ou push.
 
@@ -301,7 +301,7 @@ O modo simulado permanece o padrão. A configuração atual da Vercel e o estado
 ## Próximos passos
 
 - Concluir painéis do médico e da secretaria.
-- Implementar gestão de disponibilidade por profissional e demais cadastros previstos no backlog; o CRUD de especialidades está implementado nesta branch.
+- Implementar gestão de disponibilidade por profissional e demais cadastros previstos no backlog.
 - Completar edição da agenda pelo administrador e o módulo de serviços; a agenda diária já permite leitura.
 - Ampliar as validações dos demais campos; formulários e banco já conferem os dígitos verificadores do CPF em novas gravações e alterações do número. Veja [escopo e testes](docs/validacao-cpf.md).
 - Definir o destino dos dados simulados e validar isolamento entre contas.

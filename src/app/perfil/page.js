@@ -379,9 +379,13 @@ export default function Perfil() {
                     onChange={updateField}
                     required
                   />
+                  {isSupabaseConfigured() && (
+                    <small id="email-help" style={{ color: "#66788a", fontSize: "12px", lineHeight: 1.5 }}>
+                      O e-mail de acesso não é alterado nesta tela.
+                    </small>
+                  )}
                 </div>
 
-                {isSupabaseConfigured() && <p id="email-help">O e-mail de acesso não é alterado nesta tela.</p>}
                 <div className="profile-field">
                   <label htmlFor="phone">
                     Telefone

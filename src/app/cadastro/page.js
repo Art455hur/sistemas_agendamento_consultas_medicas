@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { registrationFeedback, registrationConnectionFeedback } from "@/features/auth/registration-feedback.js";
+import ConfirmationResend from "@/features/auth/ConfirmationResend";
+import { canResendConfirmation } from "@/features/auth/confirmation-resend.js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { isValidCpf } from "@/shared/validation/cpf.js";
 
@@ -36,6 +38,7 @@ export default function Cadastro() {
   const [messageType, setMessageType] = useState("error");
   const [submitting, setSubmitting] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState("");
   const requestState = useRef("idle");
 
   const today = new Date();
@@ -54,6 +57,7 @@ export default function Cadastro() {
 
   function updateField(event) {
     const { name, value } = event.target;
+    if (name === "email") setConfirmationEmail("");
 
     let formattedValue = value;
 
@@ -76,6 +80,7 @@ export default function Cadastro() {
     if (requestState.current !== "idle") return;
     setMessageType("error");
     setMessage("");
+    setConfirmationEmail("");
 
     if (
       !form.name.trim() ||
@@ -160,6 +165,7 @@ export default function Cadastro() {
           },
         });
         const feedback = registrationFeedback(result);
+        if (canResendConfirmation(result)) setConfirmationEmail(form.email.trim().toLowerCase());
         setMessage(feedback.message);
         setMessageType(feedback.type);
         if (feedback.complete) {
@@ -467,6 +473,8 @@ export default function Cadastro() {
               {submitting ? "Enviando cadastro..." : complete ? "Cadastro enviado" : "Criar cadastro"}
             </button>
           </form>
+
+          {confirmationEmail && <ConfirmationResend key={confirmationEmail} email={confirmationEmail} />}
 
           <p className="auth-switch">
             Já possui uma conta?{" "}

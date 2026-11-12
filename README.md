@@ -54,12 +54,12 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Páginas públicas | Home e apresentação das especialidades |
 | Autenticação | Cadastro de paciente, login, confirmação de e-mail, recuperação de senha e logout com Supabase; modo simulado preservado |
 | Consultas | Agendamento, confirmação, listagem, cancelamento e remarcação das próprias consultas |
-| Disponibilidade | Catálogo de médicos ativos, grade fixa e atualização dos horários ao retornar à aba ou acionar o botão |
+| Disponibilidade | Catálogo de médicos ativos, grade padrão com personalização por médico e dia e atualização dos horários ao retornar à aba ou acionar o botão |
 | Conflitos | Proteção no banco contra duas consultas ativas do mesmo médico ou paciente no mesmo instante |
 | Dashboard e notificações | Indicadores e avisos individuais de consultas futuras/canceladas, com links e atualização após alterações |
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
-| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes e leitura diária da agenda da clínica |
-| Banco e testes | Doze migrações versionadas no código; conferir o histórico remoto antes de aplicar migrações pendentes |
+| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes, leitura diária da agenda e horários por médico/dia |
+| Banco e testes | Treze migrações versionadas no código; conferir o histórico remoto antes de aplicar migrações pendentes |
 
 A gestão de funcionários exige contas previamente existentes no Supabase Auth. Não cria contas Auth nem concede papel de administrador. Notificações na interface não representam envio de e-mail, SMS ou push.
 

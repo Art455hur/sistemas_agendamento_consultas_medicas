@@ -269,6 +269,7 @@ Os testes automatizados usam dados fictícios e banco descartável; não acessam
 ## Documentação técnica
 
 - [Guia técnico e estado da N2](docs/documentacao-tecnica.md)
+- [Refatoração de código e componentes](docs/refatoracao-componentes.md)
 - [Validação do CPF e dados fictícios para testes](docs/validacao-cpf.md)
 - [Autenticação e configuração](docs/autenticacao-supabase.md)
 - [Perfis e permissões](docs/perfis-e-permissoes.md)

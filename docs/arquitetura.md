@@ -102,3 +102,13 @@ preservados: excluir ou mover esses materiais exige avaliar seus consumidores.
 A divisão do serviço de consultas em adaptadores separados e a extração do
 restante da UI das páginas podem ocorrer em cards próprios, com validação de
 comportamento. Este card define a estrutura e migra os módulos já reutilizados.
+
+## Componentes compartilhados do paciente
+
+As telas de dashboard, agendamento, listagem, perfil e confirmação reutilizam
+`src/components/layout/PatientShell.js`. Novas telas do paciente devem informar
+seu título e item ativo, em vez de copiar o menu e o cabeçalho.
+
+Máscaras e apresentação de datas ficam em `src/shared/formatting`. O cartão de
+consulta pertence ao módulo de consultas; o hook de perfil pertence ao módulo de
+perfil. Consulte [contratos e roteiro da refatoração](refatoracao-componentes.md).

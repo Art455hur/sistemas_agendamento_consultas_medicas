@@ -6,9 +6,7 @@ import { useEffect, useState } from "react";
 import { getAppointment, getBookingDoctors, getBookingSlots, saveAppointment } from "@/features/appointments/services/appointments.js";
 import { clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import UserMenu, {
-  SidebarUser,
-} from "@/components/navigation/UserMenu.js";
+import PatientShell from "@/components/layout/PatientShell.js";
 
 export default function AgendarConsulta() {
   const router = useRouter();
@@ -119,47 +117,7 @@ export default function AgendarConsulta() {
   }
 
   return (
-    <div className="dashboard">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <span>+</span>
-          <strong>AgendaSaúde</strong>
-        </div>
-
-        <nav className="sidebar-menu">
-          <Link href="/dashboard">
-          🏠 Início
-          </Link>
-
-          <Link
-            href="/agendar"
-            className="active"
-          >
-            🗓️ Agendar consulta
-          </Link>
-
-          <Link href="/agendamentos">
-            📋 Meus agendamentos
-          </Link>
-
-          <Link href="/perfil">
-            👤 Perfil
-          </Link>
-        </nav>
-
-        <SidebarUser />
-      </aside>
-
-      <main className="dashboard-content">
-        <header className="topbar">
-          <div className="topbar-title">
-            {isRescheduling
-              ? "Remarcar consulta"
-              : "Agendar consulta"}
-          </div>
-
-          <UserMenu />
-        </header>
+    <PatientShell title={isRescheduling ? "Remarcar consulta" : "Agendar consulta"} activePath="/agendar">
 
         <div className="booking-content">
           <div className="booking-heading">
@@ -369,7 +327,6 @@ export default function AgendarConsulta() {
             </aside>
           </div>
         </div>
-      </main>
-    </div>
+    </PatientShell>
   );
 }

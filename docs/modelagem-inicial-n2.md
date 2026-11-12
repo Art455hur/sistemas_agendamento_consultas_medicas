@@ -1,5 +1,7 @@
 # Modelagem inicial N2 — AgendaSaúde
 
+> **Registro histórico da primeira migração.** As restrições e pendências abaixo descrevem aquela entrega. Migrações posteriores já acrescentaram operações de consultas, perfil e gestão de equipe. Para o estado atual e as oito migrações, consulte a [documentação técnica](documentacao-tecnica.md). O estado do site publicado não é verificado por este arquivo.
+
 Esta migração é a fundação, não a implementação dos CRUDs. Por enquanto a aplicação publicada segue usando dados simulados: a autenticação Supabase permanece **desligada**.
 
 ## Estrutura
@@ -23,3 +25,4 @@ Esta migração é a fundação, não a implementação dos CRUDs. Por enquanto 
 4. Testes de RLS por perfil, fluxo de autenticação e publicação após revisão.
 
 **Hipótese desta versão:** um único hospital. Se houver mais de uma unidade, incluir `clinic_id` e políticas por estabelecimento antes de liberar acesso à secretaria e à administração.
+

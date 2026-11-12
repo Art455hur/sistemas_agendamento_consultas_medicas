@@ -1,28 +1,31 @@
 # Perfis e permissões — AgendaSaúde N2
 
-Esta é a base para a implementação dos painéis e da autenticação real. O MVP da N1
-continua com o fluxo simulado de paciente; as regras abaixo **ainda não protegem**
-as páginas ou os dados em produção.
+Atualizado em 12/11/2026. As regras abaixo descrevem o código com Supabase habilitado.
+O modo de demonstração continua local e não oferece autorização para uso real.
 
-| Perfil | Escopo | Ações previstas |
+| Perfil | Implementação atual | Pendente |
 | --- | --- | --- |
-| Paciente | Seus próprios dados | Consultar, agendar, cancelar e remarcar suas consultas |
-| Médico | Sua agenda e consultas | Consultar horários e informações necessárias ao atendimento |
-| Secretaria | Agenda do estabelecimento | Consultar agendamentos e contatar pacientes para atendimento |
-| Administrador | Estabelecimento | Consultar agenda, gerenciar funcionários e profissionais |
+| Paciente | Próprio perfil e consultas; agendar, listar, cancelar e remarcar | Completar validações e testes de ponta a ponta |
+| Médico | RLS permite ler suas consultas com vínculo ativo | Painel `/medico` e gestão de agenda |
+| Secretaria | Próprio perfil e vínculo | Painel `/secretaria` e agenda do hospital |
+| Administrador | Painel `/administracao` e gestão de médicos/secretárias, exigindo vínculo ativo | Gestão geral de agenda e serviços |
 
-## Regras de implementação
+## Regras de acesso
 
-- Cadastro público cria apenas pacientes. O usuário não pode escolher seu próprio papel.
-- Papel e vínculo com o estabelecimento devem ser atribuídos por fluxo administrativo
-  autorizado, nunca por um campo livre enviado pelo navegador.
-- A checagem visual de rotas não substitui autorização no servidor e políticas RLS no banco.
-- Dados de pacientes só podem ser vistos por quem precisa deles para o atendimento.
-- Um profissional não pode acessar a agenda de outro somente alterando a URL.
-- A desativação de um funcionário deve preservar o histórico dos atendimentos.
+- Cadastro público cria apenas `patient`; dados enviados pelo navegador não concedem papel.
+- Perfil e vínculo são verificados no servidor/banco; a tabela de permissões de
+  `access-control.js` também contém intenções futuras e não substitui RLS.
+- Cada pessoa lê/edita os campos permitidos do próprio perfil, sem alterar `role`.
+- Operações de consulta passam por funções SQL que conferem paciente e titularidade.
+- Médico desativado perde leitura de consultas e sai do catálogo; paciente mantém seu histórico.
+- RPCs de equipe exigem administrador ativo e não permitem alterar administradores
+  ou o próprio papel. O formulário não cria contas Auth.
+- A primeira conta administrativa depende de operação autorizada e auditável;
+  não existe promoção pública nem automatismo no cadastro.
 
-## Próxima etapa
+As rotas `/medico` e `/secretaria` ainda não existem como páginas. Não declarar
+acesso à agenda clínica como implementado somente porque consta nas permissões previstas.
 
-Migrar o login simulado para autenticação real; modelar estabelecimento, perfis,
-vínculos e agendamentos no banco; aplicar RLS e testes por perfil; somente depois
-ativar as rotas `/medico`, `/secretaria` e `/administracao`.
+Consulte [o guia técnico](documentacao-tecnica.md) e o
+[roteiro da gestão de equipe](gestao-funcionarios.md). A liberação de Auth no site
+publicado permanece condicionada à revisão e aos testes completos.

@@ -240,3 +240,9 @@ O botão fica desativado durante o envio e depois de um cadastro aceito. Uma
 trava imediata também impede duas chamadas antes da atualização visual do React.
 As senhas são limpas do formulário após sucesso. Essa alteração não muda os
 metadados enviados no cadastro nem configurações do Supabase.
+
+## Notificações dos agendamentos
+
+O sino exibe avisos individuais de consultas futuras e canceladas, com links para
+a aba e o cartão correspondentes. Recarrega após operações, ao voltar à aba e
+periodicamente enquanto visível. Consulte [comportamento, limites e roteiro](notificacoes-agendamentos.md).

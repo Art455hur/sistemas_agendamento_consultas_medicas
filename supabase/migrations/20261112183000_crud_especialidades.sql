@@ -15,7 +15,6 @@ create unique index specialties_name_ci_idx
   on public.specialties (lower(trim(name)));
 
 alter table public.specialties enable row level security;
-
 revoke all on table public.specialties from public, anon, authenticated;
 
 -- Preserva as especialidades já usadas por médicos antes da criação do catálogo.
@@ -75,50 +74,6 @@ set search_path = ''
 as $$
 declare
   v_name text := trim(coalesce(p_name, ''));
-begin
-  if auth.uid() is null or not private.is_active_hospital_admin() then
-    raise exception using errcode = '42501', message = 'Acesso administrativo negado.';
-  end if;
-  if p_id is null or length(v_name) not between 2 and 120 then
-    raise exception using errcode = '22023', message = 'Especialidade inválida.';
-  end if;
-
-  update public.specialties
-  set name = v_name, updated_at = now()
-  where id = p_id;
-
-  if not found then
-    raise exception using errcode = 'P0002', message = 'Especialidade não encontrada.';
-  end if;
-
-  -- Mantém o cadastro dos médicos alinhado ao novo nome sem alterar consultas antigas.
-  update public.profiles p
-  set specialty = v_name
-  where p.role = 'doctor'
-    and p.specialty is not null
-    and not exists (
-      select 1
-      from public.specialties other_s
-      where other_s.id <> p_id
-        and lower(trim(other_s.name)) = lower(trim(p.specialty))
-    )
-    and lower(trim(p.specialty)) = (
-      select lower(trim(s.name))
-      from public.specialties s
-      where s.id = p_id
-    );
-end;
-$$;
-
--- A versão acima não consegue localizar o nome anterior após o UPDATE.
--- Recria a função guardando o valor anterior antes de renomear.
-create or replace function private.update_specialty(p_id uuid, p_name text)
-returns void
-language plpgsql security definer
-set search_path = ''
-as $$
-declare
-  v_name text := trim(coalesce(p_name, ''));
   v_old_name text;
 begin
   if auth.uid() is null or not private.is_active_hospital_admin() then
@@ -141,6 +96,7 @@ begin
   set name = v_name, updated_at = now()
   where id = p_id;
 
+  -- Mantém os médicos no nome canônico sem alterar o texto histórico das consultas.
   update public.profiles
   set specialty = v_name
   where role = 'doctor'

@@ -2,9 +2,9 @@
 
 Este projeto já tem uma branch de trabalho `codex/supabase-integration`. O Supabase conectado é `rgggijnypvvdkskyalip`, na região de São Paulo. O banco tem as migrations 1 a 5; a migration 5 foi recuperada do histórico do Supabase porque faltava no GitHub. A migration 6 adiciona CPF/data de nascimento ao perfil e usa o fuso `America/Sao_Paulo` para os horários.
 
-## 1. Aplicar a migration no banco
+## 1. Histórico de migrations
 
-O plano atual não permite branches de desenvolvimento do Supabase. Por isso, a migration 6 está salva no repositório, mas ainda não foi aplicada ao banco de produção. Quando estiver pronto para alterar esse banco, na pasta do projeto execute:
+A migration 6 (`20261112014111_perfil_paciente_e_fuso_sao_paulo.sql`) já foi aplicada ao banco de produção e conferida. O plano Free não permite branches de desenvolvimento. Para aplicar migrations futuras, na pasta do projeto execute:
 
 ```powershell
 npx supabase@latest login
@@ -12,7 +12,7 @@ npx supabase@latest link --project-ref rgggijnypvvdkskyalip
 npx supabase@latest db push --remote
 ```
 
-Confira que a migration enviada é `20261112002810_perfil_paciente_e_fuso_sao_paulo.sql` e aceite a confirmação do CLI. Ela é aditiva: cria colunas, uma restrição de CPF único e ajusta as funções de horário. Os perfis e agendamentos atuais não são apagados. Não use `db reset` neste projeto.
+O `db push --remote` aplica migrations pendentes no projeto associado. Confira sempre o nome exibido antes de aceitar. Não use `db reset` neste projeto.
 
 ## 2. Configurar a execução local
 
@@ -50,7 +50,6 @@ O trabalho é mantido na branch `codex/supabase-integration` para preservar a br
 
 ## O que falta para a demonstração online
 
-- Aplicar a migration 6 no Supabase; a branch isolada foi bloqueada pelo plano Free.
 - Cadastrar as variáveis acima na Vercel e fazer um novo deploy de Preview.
 - Confirmar o e-mail da conta de demonstração e conferir que existem médicos ativos para selecionar.
 

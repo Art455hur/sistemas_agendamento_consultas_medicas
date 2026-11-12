@@ -153,6 +153,7 @@ export default async function AdministracaoPage({ searchParams }) {
         <div className={styles.workspaceLabel}>ESPAÇO DE TRABALHO</div>
         <nav aria-label="Navegação administrativa" className={styles.navigation}>
           <span className={styles.current} aria-current="page">▦ Visão geral</span>
+          <Link className={styles.teamLink} href="/administracao/pacientes">♙ Pacientes</Link>
           <a className={styles.teamLink} href="#equipe">♧ Equipe</a>
           <a className={styles.teamLink} href="#especialidades">✚ Especialidades</a>
           <a className={styles.teamLink} href="#agenda">▤ Agenda</a>

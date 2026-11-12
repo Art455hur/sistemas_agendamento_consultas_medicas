@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ROLES } from "../../lib/access-control";
 import { createClient } from "../../lib/supabase/server";
-import { assignStaff, deactivateStaff } from "./actions";
+import { assignStaff, deactivateStaff, reactivateStaff } from "./actions";
 import styles from "./page.module.css";
 
 export const metadata = {
@@ -29,6 +29,9 @@ const modules = [
 const feedback = {
   atribuido: "Dados do funcionário salvos e vínculo ativado no Hospital Sapiens.",
   desativado: "Vínculo desativado. A conta permanece no Supabase Auth.",
+  reativado: "Funcionário reativado com sucesso.",
+  "dados-incompletos": "Preencha o nome e, para médicos, a especialidade no formulário antes de reativar.",
+  "vinculo-nao-encontrado": "O vínculo deste funcionário não foi encontrado. Atualize a página.",
   "nao-encontrado": "Conta não encontrada. Crie o usuário em Auth antes de vinculá-lo.",
   consultas: "Esta conta tem consultas vinculadas e não pode trocar de função.",
   negado: "Ação negada: somente um administrador ativo pode gerenciar a equipe.",
@@ -169,11 +172,15 @@ export default async function AdministracaoPage({ searchParams }) {
                     <span className={member.active ? styles.active : styles.inactive}>
                       {member.active ? "Ativo" : "Inativo"}
                     </span>
-                    {member.active && member.staff_role !== ROLES.ADMIN && (
-                      <form action={deactivateStaff}>
+                    {member.staff_role !== ROLES.ADMIN && (
+                      <form action={member.active ? deactivateStaff : reactivateStaff}>
                         <input type="hidden" name="profileId" value={member.profile_id} />
-                        <button className={styles.deactivate} type="submit" aria-label={`Desativar ${member.email}`}>
-                          Desativar
+                        <button
+                          className={member.active ? styles.deactivate : styles.reactivate}
+                          type="submit"
+                          aria-label={`${member.active ? "Desativar" : "Reativar"} ${member.email}`}
+                        >
+                          {member.active ? "Desativar" : "Reativar"}
                         </button>
                       </form>
                     )}
@@ -206,7 +213,7 @@ export default async function AdministracaoPage({ searchParams }) {
               </div>
               <button type="submit">Salvar e ativar vínculo</button>
             </form>
-            <p className={styles.staffHint}>Para atualizar os dados de um funcionário, preencha o formulário com o mesmo e-mail. Salvar também reativa o vínculo. Desativar não exclui o usuário nem cancela consultas existentes. A conta administrativa não pode ser alterada por este formulário.</p>
+            <p className={styles.staffHint}>Use Reativar ao lado de um funcionário inativo para recuperar o vínculo com os mesmos dados. Para atualizar nome, função ou especialidade, preencha o formulário com o mesmo e-mail. Desativar não exclui o usuário nem cancela consultas existentes. A conta administrativa não pode ser alterada por este formulário.</p>
           </section>
 
           <section aria-labelledby="modules-heading">

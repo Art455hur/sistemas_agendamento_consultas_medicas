@@ -73,6 +73,9 @@ A migração `20261112025202_especialidade_funcionarios.sql` também já foi apl
 no projeto de testes `rgggijnypvvdkskyalip`; ela permite salvar o nome e a especialidade
 pelo administrador sem promover contas automaticamente.
 
-Execute `npm test` (31 testes) e `npm run build`. Além do roteiro do paciente,
+Execute `npm test` (33 testes) e `npm run build`. Além do roteiro do paciente,
 valide o formulário administrativo e o catálogo seguindo `gestao-funcionarios.md`.
 Não publique antes da revisão da interface integrada.
+
+A migração `20261112131100_reativar_funcionario.sql` já foi aplicada no banco de
+testes. Funcionários inativos agora têm botão **Reativar** no painel administrativo.

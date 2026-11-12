@@ -40,6 +40,7 @@ test("gestão administrativa integrada ao catálogo e consultas", async (t) => {
       await actor(name);
       await fails(save("doctor", "doctor", "Doutora Teste", "Cardiologia"), "42501");
       await fails(db.query("select * from public.admin_list_staff()"), "42501");
+      await fails(db.query("select public.admin_reactivate_staff($1)", [ids.doctor]), "42501");
     }
   });
   await actor("admin");
@@ -79,7 +80,23 @@ test("gestão administrativa integrada ao catálogo e consultas", async (t) => {
     assert.equal((await db.query("select * from public.booking_doctors()")).rows.length, 0);
     assert.equal((await db.query("select id from public.appointments")).rows[0].id, appointmentId);
   });
-  await t.test("salvar reativa e atualiza médico sem alterar consultas antigas", async () => {
+  await t.test("reativar recupera o vínculo e catálogo sem modificar dados ou consultas", async () => {
+    await actor("admin");
+    await db.query("select public.admin_reactivate_staff($1)", [ids.doctor]);
+    // Repetir a ação é seguro: não cria outro vínculo nem altera dados.
+    await db.query("select public.admin_reactivate_staff($1)", [ids.doctor]);
+    const members = (await db.query("select * from public.admin_list_staff()")).rows;
+    assert.equal(members.filter((member) => member.profile_id === ids.doctor).length, 1);
+    assert.equal(members.find((member) => member.profile_id === ids.doctor).active, true);
+    await actor("patient");
+    assert.deepEqual((await db.query("select * from public.booking_doctors()")).rows[0], {
+      id: ids.doctor, full_name: "Doutora Teste", specialty: "Cardiologia",
+    });
+    assert.equal((await db.query("select id from public.appointments")).rows[0].id, appointmentId);
+    await actor("doctor");
+    assert.equal((await db.query("select * from public.appointments")).rows.length, 1);
+  });
+  await t.test("salvar atualiza médico sem alterar consultas antigas", async () => {
     await actor("admin");
     await save("doctor", "doctor", "Doutora Atualizada", "Dermatologia");
     await actor("patient");
@@ -93,11 +110,31 @@ test("gestão administrativa integrada ao catálogo e consultas", async (t) => {
     await fails(save("candidate", "admin", "Novo Admin", null), "22023");
     await fails(save("admin", "doctor", "Administrador Teste", "Clínica Geral"), "42501");
     await fails(db.query("select public.admin_deactivate_staff($1)", [ids.admin]), "42501");
+    await fails(db.query("select public.admin_reactivate_staff($1)", [ids.admin]), "42501");
+    await fails(db.query("select public.admin_reactivate_staff($1)", [ids.patient]), "42501");
+    await fails(db.query("select public.admin_reactivate_staff($1)", ["00000000-0000-4000-8000-000000009999"]), "P0002");
+    await db.query("select public.admin_deactivate_staff($1)", [ids.secretary]);
+    await db.query("select public.admin_reactivate_staff($1)", [ids.secretary]);
+    assert.equal((await db.query("select * from public.admin_list_staff()")).rows.find((member) => member.profile_id === ids.secretary).active, true);
+  });
+  await t.test("médico incompleto continua inativo e vínculo ausente não é criado", async () => {
+    await db.exec("reset role");
+    await db.query("update public.profiles set role='doctor',full_name='Médico incompleto',specialty=null where id=$1", [ids.candidate]);
+    await db.query("insert into public.hospital_staff(profile_id,active) values($1,false)", [ids.candidate]);
+    await actor("admin");
+    await fails(db.query("select public.admin_reactivate_staff($1)", [ids.candidate]), "22023");
+    assert.equal((await db.query("select * from public.admin_list_staff()")).rows.find((member) => member.profile_id === ids.candidate).active, false);
+    await db.exec("reset role");
+    await db.query("update public.profiles set specialty='Clínica Geral' where id=$1", [ids.candidate]);
+    await db.query("delete from public.hospital_staff where profile_id=$1", [ids.candidate]);
+    await actor("admin");
+    await fails(db.query("select public.admin_reactivate_staff($1)", [ids.candidate]), "P0002");
   });
   await t.test("admin sem vínculo ativo perde o acesso às operações", async () => {
     await db.exec("reset role");
     await db.query("update public.hospital_staff set active=false where profile_id=$1", [ids.admin]);
     await actor("admin");
     await fails(save("candidate", "doctor", "Doutora Teste", "Cardiologia"), "42501");
+    await fails(db.query("select public.admin_reactivate_staff($1)", [ids.doctor]), "42501");
   });
 });

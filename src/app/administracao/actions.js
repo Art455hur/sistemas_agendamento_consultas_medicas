@@ -66,3 +66,26 @@ export async function deactivateStaff(formData) {
   revalidatePath("/administracao");
   redirect(resultUrl("desativado"));
 }
+
+export async function reactivateStaff(formData) {
+  if (!authEnabled()) redirect(resultUrl("indisponivel"));
+
+  const profileId = String(formData.get("profileId") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profileId)) {
+    redirect(resultUrl("invalido"));
+  }
+
+  const supabase = await createClient();
+  const { data, error: authError } = await supabase.auth.getClaims();
+  if (authError || !data?.claims?.sub) redirect("/login?redirect=%2Fadministracao");
+
+  const { error } = await supabase.rpc("admin_reactivate_staff", { p_profile_id: profileId });
+  if (error) {
+    if (error.code === "42501") redirect(resultUrl("negado"));
+    if (error.code === "22023") redirect(resultUrl("dados-incompletos"));
+    if (error.code === "P0002") redirect(resultUrl("vinculo-nao-encontrado"));
+    redirect(resultUrl("erro"));
+  }
+  revalidatePath("/administracao");
+  redirect(resultUrl("reativado"));
+}

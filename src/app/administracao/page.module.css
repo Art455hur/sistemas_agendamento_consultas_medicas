@@ -38,6 +38,8 @@
 .active { color: #167052; background: #e7f6ee; }
 .inactive { color: #865c2a; background: #fdf1dd; }
 .deactivate { border: 1px solid #e9caca; background: #fff; color: #9a3f3f; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.reactivate { border: 1px solid #b9ddcd; background: #edf8f2; color: #167052; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.reactivate:hover, .reactivate:focus-visible { background: #dcefe5; }
 .staffForm { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin-top: 19px; }
 .staffForm > div:first-child { flex: 2; min-width: 220px; }
 .staffForm > div:nth-child(2) { flex: 1; min-width: 140px; }

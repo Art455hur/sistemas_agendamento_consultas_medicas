@@ -56,7 +56,7 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Consultas | Agendamento, confirmação, listagem, cancelamento e remarcação das próprias consultas |
 | Disponibilidade | Catálogo de médicos ativos, grade fixa e atualização dos horários ao retornar à aba ou acionar o botão |
 | Conflitos | Proteção no banco contra duas consultas ativas do mesmo médico ou paciente no mesmo instante |
-| Dashboard e notificações | Indicadores, próxima consulta e avisos na interface derivados dos agendamentos |
+| Dashboard e notificações | Indicadores e avisos individuais de consultas futuras/canceladas, com links e atualização após alterações |
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
 | Administração | Painel restrito a administrador ativo, gestão de funcionários e leitura diária da agenda da clínica |
 | Banco e testes | Dez migrações versionadas (a última pendente no banco compartilhado) e testes de regras, persistência, RLS e sessão |
@@ -270,6 +270,7 @@ Os testes automatizados usam dados fictícios e banco descartável; não acessam
 
 - [Guia técnico e estado da N2](docs/documentacao-tecnica.md)
 - [Refatoração de código e componentes](docs/refatoracao-componentes.md)
+- [Notificações integradas aos agendamentos](docs/notificacoes-agendamentos.md)
 - [Validação do CPF e dados fictícios para testes](docs/validacao-cpf.md)
 - [Autenticação e configuração](docs/autenticacao-supabase.md)
 - [Perfis e permissões](docs/perfis-e-permissoes.md)

@@ -3,7 +3,7 @@
 import AppointmentListItem from "@/features/appointments/components/AppointmentListItem.js";
 
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAppointments } from "@/features/appointments/hooks/useAppointments.js";
 import { cancelAppointment as cancelSavedAppointment } from "@/features/appointments/services/appointments.js";
@@ -12,6 +12,7 @@ import PatientShell from "@/components/layout/PatientShell.js";
 function AppointmentsContent() {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("aba");
+  const lastScrolledLocation = useRef("");
   const { appointments, loading, error } = useAppointments();
   const [activeTab, setActiveTab] = useState("scheduled");
   const [cancelling, setCancelling] = useState(null);
@@ -22,10 +23,16 @@ function AppointmentsContent() {
 
   useEffect(() => {
     if (loading || error || !window.location.hash.startsWith("#consulta-")) return;
+    const location = window.location.search + window.location.hash;
+    if (lastScrolledLocation.current === location) return;
     let id;
     try { id = decodeURIComponent(window.location.hash.slice(1)); }
     catch { return; }
-    document.getElementById(id)?.scrollIntoView({ block: "center" });
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ block: "center" });
+      lastScrolledLocation.current = location;
+    }
   }, [activeTab, appointments, loading, error, searchParams]);
 
   const scheduledAppointments = appointments.filter(

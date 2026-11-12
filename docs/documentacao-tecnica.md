@@ -49,7 +49,7 @@ A landing institucional em `landing-nextech` é uma aplicação independente.
 | `/agendamentos` | Lista e cancelamento de consultas |
 | `/confirmacao` | Resultado do agendamento |
 | `/perfil` | Dados do titular da conta |
-| `/administracao` | Gestão de equipe para administrador com vínculo ativo |
+| `/administracao` | Gestão de equipe e leitura diária da agenda para administrador com vínculo ativo |
 
 `/medico` e `/secretaria` aparecem no planejamento de navegação, mas ainda não
 têm páginas implementadas. Não considerar os painéis desses perfis concluídos.
@@ -109,8 +109,9 @@ Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 | `20261112025202` | `20261112025202_especialidade_funcionarios.sql` | Nome e especialidade na gestão da equipe |
 | `20261112131100` | `20261112131100_reativar_funcionario.sql` | Reativação preservando dados |
 | `20261112173011` | `20261112173011_validar_cpf_perfis.sql` | Validação matemática de CPF novo ou alterado, preservando o legado |
+| `20261112182236` | `20261112182236_agenda_administrativa_leitura.sql` | Leitura limitada da agenda por administrador ativo |
 
-As nove migrações constam no histórico do projeto compartilhado de testes. A versão `20261112173011` foi aplicada e verificada em 12/11/2026; não a execute novamente nesse projeto.
+As nove migrações anteriores constam no histórico do projeto compartilhado de testes. A versão `20261112173011` foi aplicada e verificada em 12/11/2026; não a execute novamente nesse projeto. A décima migração de leitura da agenda ainda não foi aplicada ao projeto compartilhado.
 Confira o histórico remoto antes de qualquer execução. Não reaplique arquivos já
 registrados nem altere migrações antigas para introduzir novas mudanças. Mudanças
 futuras devem entrar em nova migração e PR; avise a equipe antes de aplicá-las no
@@ -124,10 +125,12 @@ banco compartilhado. Esta atualização documental não executa SQL.
 | Paciente | Próprio perfil; ler, agendar, cancelar e remarcar suas consultas | Não altera papéis nem dados de outros pacientes |
 | Médico ativo | Leitura das consultas em que é o médico, conforme RLS | Painel próprio pendente; desativação revoga essa leitura |
 | Secretaria | Leitura do próprio perfil e vínculo | Agenda da clínica e painel próprios ainda pendentes |
-| Administrador ativo | Painel e RPCs para listar/editar/vincular/desativar/reativar médicos e secretárias | Sem gestão geral de consultas implementada; formulário não promove administradores |
+| Administrador ativo | Painel, gestão da equipe e leitura da agenda da clínica por dia (após aplicar a nova migração) | Não cancela/remarca consultas; formulário não promove administradores |
 
 RLS restringe linhas e grants restringem operações/colunas. As RPCs de equipe
-validam administrador ativo no banco. As RPCs de consultas validam a identidade
+validam administrador ativo no banco. A leitura administrativa da agenda também
+exige esse vínculo e retorna apenas dados essenciais de médicos vinculados ao
+Hospital Sapiens, inclusive históricos de médicos inativos. As RPCs de consultas validam a identidade
 e o papel do paciente; não há escrita direta de consultas liberada ao cliente.
 Ter um papel em `access-control.js` não concede automaticamente acesso à Data API.
 
@@ -202,7 +205,7 @@ segurança do ambiente. Merge e testes automatizados não substituem esse roteir
 ## Pendências e manutenção
 
 Painéis de médico/secretaria, grade individual de disponibilidade, gestão completa
-de especialidades/cadastros, módulos administrativos de agenda/serviços e validações
+de especialidades/cadastros, edição administrativa de consultas, módulo de serviços e validações
 adicionais continuam no backlog. Não marcar um card inteiro como concluído pela
 entrega de uma parte.
 

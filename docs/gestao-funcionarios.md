@@ -1,19 +1,68 @@
 # Gestão de funcionários — Hospital Sapiens
 
-As migrations `20261111205951_gestao_funcionarios_hospital.sql` e `20261111210414_bloquear_agenda_medico_inativo.sql` estão aplicadas no projeto Supabase de testes e versionadas com os mesmos números registrados no histórico remoto. O administrador ativo pode listar os vínculos de equipe, vincular uma conta Auth existente como médico(a) ou secretário(a), reativá-la e desativar o vínculo. Não é possível criar ou alterar um administrador por esses formulários. O cadastro público continua criando apenas pacientes. Um médico desativado perde a leitura de suas consultas pelo banco; o paciente continua vendo as suas.
+O painel `/administracao` exige Auth habilitada, sessão válida, papel `admin`
+e vínculo ativo no hospital. Usa apenas a chave publicável. O cadastro público
+continua criando pacientes; o formulário administrativo não cria contas Auth nem
+concede papel administrativo.
 
-O painel `/administracao` exige `NEXT_PUBLIC_ENABLE_SUPABASE_AUTH=true`, uma sessão válida, `profiles.role = admin` **e** vínculo ativo no `hospital_staff`. A aplicação usa apenas a chave publicável; nunca coloca a chave secreta ou `service_role` no navegador. Na Vercel, o login real permanece desligado até a aprovação dos testes completos.
+## Integração dos PRs #14 e #15
 
-## Procedimento de teste
+- O administrador preenche o e-mail de uma conta Auth existente, nome, função e
+  especialidade. Médico exige nome e especialidade; secretaria exige nome.
+- Funcionário ativo mostra **Desativar** e inativo mostra **Reativar**.
+- Reativar recupera o vínculo existente sem mudar nome, função, especialidade ou
+  consultas. A ação exige administrador ativo. Médico incompleto recebe uma
+  mensagem para completar os dados no formulário.
+- Salvar atualiza os dados e ativa o vínculo. Para editar, use o mesmo e-mail.
+- Médico salvo com especialidade aparece no catálogo do paciente. Desativado,
+  sai do catálogo e perde a leitura das próprias consultas pelo banco.
+- O paciente conserva a leitura das próprias consultas. Alterar nome/especialidade
+  do médico não modifica os dados históricos já registrados na consulta.
+- Contas com consultas não podem trocar de função. Administradores não podem
+  alterar a própria conta ou outro administrador por esse formulário.
+- A RPC nova `admin_save_staff` é SECURITY INVOKER; delega a uma função limitada
+  em `private`, que exige administrador ativo e valida os dados. A RPC antiga
+  `admin_assign_staff` foi convertida em wrapper: não vincula médicos incompletos.
 
-1. Mantenha contas de teste sem dados reais. Crie no Supabase Auth uma conta de funcionário com e-mail controlado, confirme-a e defina uma senha de teste; a conta precisa ter seu `profiles` criado pelo trigger.
-2. Em ambiente de desenvolvimento com Auth habilitada, entre com a conta de teste `admin@hospital-sapiens.test` e abra `/administracao`. Ela já tem papel `admin` e vínculo ativo, mas precisa de senha conhecida para o teste de navegador.
-3. No formulário, vincule a conta recém-criada como médico(a) ou secretaria. Confirme que aparece na lista e que o papel mudou no banco. Desative e confirme que o vínculo ficou inativo; a conta Auth não é excluída.
-4. Tente entrar no painel como paciente e chamar as RPCs como paciente/usuário anônimo. O banco deve negar. Tente atribuir `admin`, alterar o próprio vínculo e trocar o papel de uma conta com consultas: também deve negar.
-5. Teste médico e secretaria depois que os painéis respectivos consultarem `hospital_staff.active`; **não ative Auth em produção antes disso**. Depois integre a agenda, verifique RLS de consultas e teste os fluxos de ponta a ponta.
+## Histórico do banco de testes
 
-O teste SQL já confirmou a listagem pelo administrador, a negação da listagem para paciente e a negação da autodesativação. Em transação revertida, a atribuição de médico e uma consulta temporária confirmaram que o médico ativo conseguia ler a consulta, o desativado não, e o paciente ainda a via. Os dados de teste permaneceram intactos após o `ROLLBACK`.
+Estas migrações já foram aplicadas em `rgggijnypvvdkskyalip` e não devem ser
+executadas manualmente outra vez:
 
-As três RPCs públicas são `SECURITY DEFINER` e têm `EXECUTE` concedido apenas a `authenticated`; cada uma checa no banco o papel **e o vínculo ativo** do chamador antes de consultar/escrever, e usam `search_path` vazio. O advisor [0029](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) sinaliza esse acesso deliberadamente; revise-o em cada mudança. O advisor também informa que [Leaked Password Protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) está desligada; habilite-a antes de usar contas reais.
+- `20261111205951_gestao_funcionarios_hospital.sql`
+- `20261111210414_bloquear_agenda_medico_inativo.sql`
+- `20261112025202_especialidade_funcionarios.sql`
+- `20261112131100_reativar_funcionario.sql`
 
-Não execute manualmente a migration outra vez: ela já está registrada no Supabase. A branch e a PR permitem revisão antes do merge; a migration foi aplicada ao banco de testes para permitir validar as permissões agora.
+A atualização de perfil/fuso `20261112014111` já existia no banco, foi recuperada
+para o repositório e preservada. A tela usa `America/Sao_Paulo` conforme essa
+atualização. Não são alterados os horários absolutos de consultas existentes.
+
+## Roteiro manual antes de publicar
+
+1. Com contas de teste, entre como administrador ativo e abra `/administracao`.
+2. Preencha o e-mail de uma conta nova de funcionário, nome, função Médico e
+   especialidade. Salve e confira o vínculo na equipe.
+3. Entre como paciente em outra sessão: o profissional deve aparecer e aceitar
+   um agendamento. Confira nome, especialidade e horário na confirmação.
+4. Desative o profissional pelo painel: deve sair do catálogo. O paciente continua
+   vendo a consulta. O médico não deve conseguir ler consultas pela Data API.
+5. Clique em **Reativar** na linha do profissional inativo. Confirme a volta ao
+   catálogo e a preservação dos dados, sem preencher o formulário.
+6. Tente operações como paciente e tente conceder `admin`, alterar o próprio papel
+   ou trocar a função de uma conta com consultas: todas devem ser negadas.
+7. Confirme que secretaria aceita especialidade em branco.
+
+`npm test` cobre permissões, campos obrigatórios, compatibilidade da RPC antiga,
+catálogo, consulta, reativação e preservação do histórico em Postgres descartável.
+A validação manual dos formulários no navegador ainda é necessária.
+
+Os advisors já existentes continuam apontando as RPCs públicas de listagem e
+inativação (`admin_list_staff`, `admin_deactivate_staff`), que são SECURITY DEFINER
+com verificação de administrador ativo. Referência: [advisor 0029](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
+A proteção contra senhas vazadas continua desligada no projeto de testes.
+
+A reativação usa a RPC SECURITY INVOKER `admin_reactivate_staff` e uma operação
+limitada no schema privado. Ela não cria vínculos ausentes nem altera contas
+administrativas. Os testes também cobrem secretaria sem especialidade, repetição
+da ação, médico incompleto e negação a paciente/anônimo/admin inativo.

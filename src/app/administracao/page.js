@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ROLES } from "../../lib/access-control";
 import { createClient } from "../../lib/supabase/server";
-import { assignStaff, deactivateStaff } from "./actions";
+import { assignStaff, deactivateStaff, reactivateStaff } from "./actions";
 import styles from "./page.module.css";
 
 export const metadata = {
@@ -27,12 +27,15 @@ const modules = [
 ];
 
 const feedback = {
-  atribuido: "Funcionário vinculado ao Hospital Sapiens.",
+  atribuido: "Dados do funcionário salvos e vínculo ativado no Hospital Sapiens.",
   desativado: "Vínculo desativado. A conta permanece no Supabase Auth.",
+  reativado: "Funcionário reativado com sucesso.",
+  "dados-incompletos": "Preencha o nome e, para médicos, a especialidade no formulário antes de reativar.",
+  "vinculo-nao-encontrado": "O vínculo deste funcionário não foi encontrado. Atualize a página.",
   "nao-encontrado": "Conta não encontrada. Crie o usuário em Auth antes de vinculá-lo.",
   consultas: "Esta conta tem consultas vinculadas e não pode trocar de função.",
   negado: "Ação negada: somente um administrador ativo pode gerenciar a equipe.",
-  invalido: "Confira o e-mail, a função e os dados enviados.",
+  invalido: "Confira o e-mail, o nome e a função. Médicos também precisam de especialidade.",
   erro: "Não foi possível concluir a operação. Confira o banco e tente novamente.",
   indisponivel: "A autenticação ainda não está ativada.",
 };
@@ -150,7 +153,7 @@ export default async function AdministracaoPage({ searchParams }) {
             <div className={styles.sectionHeading}>
               <div>
                 <h2 id="staff-heading">Equipe do Hospital Sapiens</h2>
-                <p>Vincule contas existentes como médico ou secretaria; o cadastro público não atribui funções.</p>
+                <p>Vincule contas existentes e preencha os dados profissionais. Médicos com especialidade e vínculo ativo aparecem no agendamento.</p>
               </div>
               <span>{staff?.length ?? 0} vínculos</span>
             </div>
@@ -169,11 +172,15 @@ export default async function AdministracaoPage({ searchParams }) {
                     <span className={member.active ? styles.active : styles.inactive}>
                       {member.active ? "Ativo" : "Inativo"}
                     </span>
-                    {member.active && member.staff_role !== ROLES.ADMIN && (
-                      <form action={deactivateStaff}>
+                    {member.staff_role !== ROLES.ADMIN && (
+                      <form action={member.active ? deactivateStaff : reactivateStaff}>
                         <input type="hidden" name="profileId" value={member.profile_id} />
-                        <button className={styles.deactivate} type="submit" aria-label={`Desativar ${member.email}`}>
-                          Desativar
+                        <button
+                          className={member.active ? styles.deactivate : styles.reactivate}
+                          type="submit"
+                          aria-label={`${member.active ? "Desativar" : "Reativar"} ${member.email}`}
+                        >
+                          {member.active ? "Desativar" : "Reativar"}
                         </button>
                       </form>
                     )}
@@ -189,15 +196,24 @@ export default async function AdministracaoPage({ searchParams }) {
                 <input id="staff-email" name="email" type="email" maxLength={254} required placeholder="funcionario@exemplo.com" />
               </div>
               <div>
+                <label htmlFor="staff-name">Nome do profissional</label>
+                <input id="staff-name" name="fullName" type="text" minLength={3} maxLength={120} required placeholder="Nome completo" />
+              </div>
+              <div>
+                <label htmlFor="staff-specialty">Especialidade (obrigatória para médicos)</label>
+                <input id="staff-specialty" name="specialty" type="text" maxLength={120} placeholder="Ex.: Clínica Geral" aria-describedby="staff-specialty-help" />
+                <small id="staff-specialty-help">Para secretaria, deixe em branco.</small>
+              </div>
+              <div>
                 <label htmlFor="staff-role">Função</label>
                 <select id="staff-role" name="role" required defaultValue="doctor">
                   <option value="doctor">Médico</option>
                   <option value="receptionist">Secretaria</option>
                 </select>
               </div>
-              <button type="submit">Vincular ou reativar</button>
+              <button type="submit">Salvar e ativar vínculo</button>
             </form>
-            <p className={styles.staffHint}>Desativar não exclui o usuário nem cancela consultas existentes. A conta administrativa não pode ser alterada por este formulário.</p>
+            <p className={styles.staffHint}>Use Reativar ao lado de um funcionário inativo para recuperar o vínculo com os mesmos dados. Para atualizar nome, função ou especialidade, preencha o formulário com o mesmo e-mail. Desativar não exclui o usuário nem cancela consultas existentes. A conta administrativa não pode ser alterada por este formulário.</p>
           </section>
 
           <section aria-labelledby="modules-heading">

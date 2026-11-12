@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getBookingDoctors } from "../../lib/appointments";
+import { isSupabaseConfigured } from "../../lib/supabase/client";
 import UserMenu, {
   SidebarUser,
 } from "../../components/UserMenu";
 import DashboardData from "../../components/DashboardData";
 
-const specialties = [
+const demoSpecialties = [
   {
     name: "Clínica Geral",
     icon: "🩺",
@@ -50,7 +52,7 @@ const specialties = [
   },
 ];
 
-const doctors = [
+const demoDoctors = [
   {
     name: "Dr. Rafael Almeida",
     initials: "RA",
@@ -110,6 +112,26 @@ const doctors = [
 ];
 
 export default function Dashboard() {
+  const [catalog, setCatalog] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(isSupabaseConfigured());
+  const [catalogError, setCatalogError] = useState("");
+  const realBooking = isSupabaseConfigured();
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    let active = true;
+    getBookingDoctors().then((items) => { if (active) setCatalog(items); })
+      .catch((failure) => { if (active) setCatalogError(failure.message); })
+      .finally(() => { if (active) setCatalogLoading(false); });
+    return () => { active = false; };
+  }, []);
+  const doctors = realBooking ? catalog.map((item) => ({
+    id: item.id, name: item.full_name, specialty: item.specialty,
+    initials: item.full_name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join(""),
+    availability: "Consultar horários",
+  })) : demoDoctors;
+  const specialties = realBooking ? [...new Set(catalog.map((item) => item.specialty))].map((name) => ({
+    name, icon: "🩺", total: catalog.filter((item) => item.specialty === name).length,
+  })) : demoSpecialties;
   const [showAllSpecialties, setShowAllSpecialties] =
     useState(false);
 
@@ -188,6 +210,9 @@ export default function Dashboard() {
         </header>
 
         <DashboardData />
+        {catalogLoading && <p role="status">Carregando profissionais...</p>}
+        {catalogError && <p role="alert">{catalogError}</p>}
+        {realBooking && !catalogLoading && !catalogError && catalog.length === 0 && <p>Nenhum profissional disponível no momento. Entre em contato com a clínica.</p>}
 
         <section className="dashboard-section">
           <div className="section-title">
@@ -264,13 +289,13 @@ export default function Dashboard() {
                 new URLSearchParams({
                   especialidade:
                     doctor.specialty,
-                  profissional: doctor.name,
+                  profissional: doctor.id || doctor.name,
                 });
 
               return (
                 <div
                   className="doctor-card"
-                  key={doctor.name}
+                  key={doctor.id || doctor.name}
                 >
                   <div className="doctor-avatar">
                     {doctor.initials}
@@ -285,9 +310,7 @@ export default function Dashboard() {
                       {doctor.specialty}
                     </p>
 
-                    <span className="doctor-rating">
-                      ⭐ {doctor.rating}
-                    </span>
+                    {doctor.rating && <span className="doctor-rating">⭐ {doctor.rating}</span>}
 
                     <small className="doctor-availability">
                       {doctor.availability}

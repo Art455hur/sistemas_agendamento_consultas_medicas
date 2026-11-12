@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getAppointment } from "../../lib/appointments";
 import UserMenu, {
   SidebarUser,
 } from "../../components/UserMenu";
@@ -10,28 +11,13 @@ export default function Confirmacao() {
   const [appointment, setAppointment] =
     useState(undefined);
 
+  const [error, setError] = useState("");
   useEffect(() => {
-    const parameters = new URLSearchParams(
-      window.location.search
-    );
-
-    const appointmentId =
-      parameters.get("id");
-
-    const savedAppointments = JSON.parse(
-      localStorage.getItem("appointments") || "[]"
-    );
-
-    const confirmedAppointment =
-      savedAppointments.find(
-        (savedAppointment) =>
-          String(savedAppointment.id) ===
-          String(appointmentId)
-      );
-
-    setAppointment(
-      confirmedAppointment || null
-    );
+    let active = true;
+    const id = new URLSearchParams(window.location.search).get("id");
+    getAppointment(id).then((item) => { if (active) setAppointment(item); })
+      .catch((failure) => { if (active) { setError(failure.message); setAppointment(null); } });
+    return () => { active = false; };
   }, []);
 
   function formatDate(date) {
@@ -80,7 +66,7 @@ export default function Confirmacao() {
         </header>
 
         <div className="confirmation-content">
-          {appointment === undefined ? (
+          {error ? <p role="alert">{error}</p> : appointment === undefined ? (
             <section className="confirmation-card">
               <p>Carregando confirmação...</p>
             </section>

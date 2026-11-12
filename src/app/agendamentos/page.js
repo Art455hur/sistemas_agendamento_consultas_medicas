@@ -2,80 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useAppointments } from "../../lib/useAppointments";
+import { cancelAppointment as cancelSavedAppointment } from "../../lib/appointments";
 import UserMenu, {
   SidebarUser,
 } from "../../components/UserMenu";
 
 export default function MeusAgendamentos() {
-  const [appointments, setAppointments] = useState([]);
+  const { appointments, loading, error } = useAppointments();
   const [activeTab, setActiveTab] = useState("scheduled");
-
+  const [cancelling, setCancelling] = useState(null);
+  const [actionError, setActionError] = useState("");
   useEffect(() => {
-    const savedAppointments = JSON.parse(
-      localStorage.getItem("appointments") || "[]"
-    );
-
-    const now = new Date();
-    let appointmentsWereUpdated = false;
-
-    const updatedAppointments = savedAppointments.map(
-      (appointment) => {
-        const isScheduled =
-          appointment.status === "Agendada" ||
-          !appointment.status;
-
-        if (
-          !isScheduled ||
-          !appointment.date ||
-          !appointment.time
-        ) {
-          return appointment;
-        }
-
-        const appointmentDate = new Date(
-          `${appointment.date}T${appointment.time}`
-        );
-
-        const isValidDate = !Number.isNaN(
-          appointmentDate.getTime()
-        );
-
-        if (isValidDate && appointmentDate < now) {
-          appointmentsWereUpdated = true;
-
-          return {
-            ...appointment,
-            status: "Concluída",
-          };
-        }
-
-        return appointment;
-      }
-    );
-
-    if (appointmentsWereUpdated) {
-      localStorage.setItem(
-        "appointments",
-        JSON.stringify(updatedAppointments)
-      );
-    }
-
-    setAppointments(updatedAppointments);
-    const parameters = new URLSearchParams(
-  window.location.search
-);
-
-const requestedTab = parameters.get("aba");
-
-const validTabs = [
-  "scheduled",
-  "completed",
-  "cancelled",
-];
-
-if (validTabs.includes(requestedTab)) {
-  setActiveTab(requestedTab);
-}
+    const requestedTab = new URLSearchParams(window.location.search).get("aba");
+    if (["scheduled", "completed", "cancelled"].includes(requestedTab)) setActiveTab(requestedTab);
   }, []);
 
   const scheduledAppointments = appointments.filter(
@@ -145,34 +85,13 @@ if (validTabs.includes(requestedTab)) {
     return "status status-scheduled";
   }
 
-  function cancelAppointment(appointmentId) {
-    const confirmed = window.confirm(
-      "Deseja realmente cancelar esta consulta?"
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    const updatedAppointments = appointments.map(
-      (appointment) => {
-        if (appointment.id === appointmentId) {
-          return {
-            ...appointment,
-            status: "Cancelada",
-          };
-        }
-
-        return appointment;
-      }
-    );
-
-    setAppointments(updatedAppointments);
-
-    localStorage.setItem(
-      "appointments",
-      JSON.stringify(updatedAppointments)
-    );
+  async function cancelAppointment(appointmentId) {
+    if (cancelling || !window.confirm("Deseja realmente cancelar esta consulta?")) return;
+    setCancelling(appointmentId);
+    setActionError("");
+    try { await cancelSavedAppointment(appointmentId); }
+    catch (failure) { setActionError(failure.message); }
+    finally { setCancelling(null); }
   }
 
   return (
@@ -285,7 +204,8 @@ if (validTabs.includes(requestedTab)) {
             </button>
           </section>
 
-          {filteredAppointments.length === 0 ? (
+          {actionError && <p role="alert">{actionError}</p>}
+          {loading ? <p role="status">Carregando consultas...</p> : error ? <p role="alert">{error}</p> : filteredAppointments.length === 0 ? (
             <section className="empty-appointments">
               <div>🗓️</div>
 
@@ -369,13 +289,14 @@ if (validTabs.includes(requestedTab)) {
                           <button
                             type="button"
                             className="cancel-appointment"
+                            disabled={Boolean(cancelling)}
                             onClick={() =>
                               cancelAppointment(
                                 appointment.id
                               )
                             }
                           >
-                            Cancelar consulta
+                            {cancelling === appointment.id ? "Cancelando..." : "Cancelar consulta"}
                           </button>
                         </div>
                       )}

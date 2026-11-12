@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server.js";
 
 const protectedPaths = [
   "/dashboard", "/agendar", "/agendamentos", "/perfil", "/confirmacao", "/administracao",
@@ -31,15 +31,14 @@ export async function proxy(request) {
     },
   });
 
-  // Sem sessão (ou com token inválido), getClaims pode retornar data: null.
-  const { data, error } = await supabase.auth.getClaims();
-  const claims = error ? null : data?.claims;
+  const { data, error: authError } = await supabase.auth.getClaims();
+  const claims = data?.claims;
   const pathname = request.nextUrl.pathname;
   const protectedPath = protectedPaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)
   );
 
-  if (protectedPath && !claims) {
+  if (protectedPath && (authError || !claims?.sub)) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";
     login.search = "";

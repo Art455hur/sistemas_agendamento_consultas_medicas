@@ -38,6 +38,8 @@
 .active { color: #167052; background: #e7f6ee; }
 .inactive { color: #865c2a; background: #fdf1dd; }
 .deactivate { border: 1px solid #e9caca; background: #fff; color: #9a3f3f; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.reactivate { border: 1px solid #b9ddcd; background: #edf8f2; color: #167052; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.reactivate:hover, .reactivate:focus-visible { background: #dcefe5; }
 .staffForm { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin-top: 19px; }
 .staffForm > div:first-child { flex: 2; min-width: 220px; }
 .staffForm > div:nth-child(2) { flex: 1; min-width: 140px; }
@@ -71,3 +73,6 @@
 @media (max-width: 1050px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .shell { display: block; } .sidebar { width: 100%; min-height: 0; padding: 14px 20px; } .workspaceLabel, .navigation, .sidebarFooter { display: none; } .topbar { min-height: 56px; } .content { padding-top: 34px; } .heading { flex-direction: column; } .grid { grid-template-columns: 1fr; } .module { min-height: 210px; } .sectionHeading { align-items: flex-start; } }
 @media (max-width: 700px) { .staffRow { flex-wrap: wrap; gap: 10px; } .staffRow > div { flex-basis: 100%; } }
+
+.staffForm > div { flex: 1 1 220px; min-width: 0; }
+.staffForm small { display: block; margin-top: 6px; color: #718699; font-size: 12px; }

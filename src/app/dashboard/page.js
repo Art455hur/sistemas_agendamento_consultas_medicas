@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getBookingDoctors } from "../../lib/appointments";
-import { isSupabaseConfigured } from "../../lib/supabase/client";
+import { getBookingDoctors } from "@/lib/appointments";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import UserMenu, {
   SidebarUser,
-} from "../../components/UserMenu";
-import DashboardData from "../../components/DashboardData";
+} from "@/components/UserMenu";
+import DashboardData from "@/components/DashboardData";
 
 const demoSpecialties = [
   {

@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getAppointment, getBookingDoctors, getBookingSlots, saveAppointment } from "../../lib/appointments";
-import { clinicDateTime } from "../../lib/appointment-format";
-import { isSupabaseConfigured } from "../../lib/supabase/client";
+import { getAppointment, getBookingDoctors, getBookingSlots, saveAppointment } from "@/lib/appointments";
+import { clinicDateTime } from "@/lib/appointment-format";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import UserMenu, {
   SidebarUser,
-} from "../../components/UserMenu";
+} from "@/components/UserMenu";
 
 export default function AgendarConsulta() {
   const router = useRouter();

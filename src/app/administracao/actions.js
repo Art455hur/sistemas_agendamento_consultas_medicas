@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "../../lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 function authEnabled() {
   return process.env.NEXT_PUBLIC_ENABLE_SUPABASE_AUTH === "true" &&

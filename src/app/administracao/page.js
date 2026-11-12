@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ROLES } from "../../lib/access-control";
-import { createClient } from "../../lib/supabase/server";
-import { assignStaff, deactivateStaff, reactivateStaff } from "./actions";
-import styles from "./page.module.css";
+import { ROLES } from "@/lib/access-control";
+import { createClient } from "@/lib/supabase/server";
+import { assignStaff, deactivateStaff, reactivateStaff } from "@/app/administracao/actions";
+import styles from "@/app/administracao/page.module.css";
 
 export const metadata = {
   title: "Administração | AgendaSaúde",

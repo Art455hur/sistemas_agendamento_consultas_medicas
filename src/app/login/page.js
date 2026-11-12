@@ -6,7 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export default function Login() {
   const router = useRouter();

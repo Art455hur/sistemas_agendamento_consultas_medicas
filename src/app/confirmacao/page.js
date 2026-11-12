@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getAppointment } from "../../lib/appointments";
+import { getAppointment } from "@/lib/appointments";
 import UserMenu, {
   SidebarUser,
-} from "../../components/UserMenu";
+} from "@/components/UserMenu";
 
 export default function Confirmacao() {
   const [appointment, setAppointment] =

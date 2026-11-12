@@ -113,9 +113,9 @@ Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 | `20261112173011` | `20261112173011_validar_cpf_perfis.sql` | Validação matemática de CPF novo ou alterado, preservando o legado |
 | `20261112182236` | `20261112182236_agenda_administrativa_leitura.sql` | Leitura limitada da agenda por administrador ativo |
 | `20261112190336` | `20261112190336_crud_especialidades.sql` | CRUD administrativo de especialidades e integração com médicos |
-| `20261112194500` | `20261112194500_crud_pacientes.sql` | Gestão administrativa de pacientes com desativação lógica |
+| `20261112194614` | `20261112194614_crud_pacientes.sql` | Gestão administrativa de pacientes com desativação lógica |
 
-As onze primeiras migrações constam no histórico do projeto compartilhado de testes. As versões `20261112182236` (agenda administrativa) e `20261112190336` (CRUD de especialidades) já foram aplicadas e testadas em 12/11/2026. A migration `20261112194500_crud_pacientes.sql` está apenas versionada nesta branch e foi validada com rollback; ainda não foi aplicada no Supabase compartilhado.
+As onze primeiras migrações constam no histórico do projeto compartilhado de testes. As versões `20261112182236` (agenda administrativa) e `20261112190336` (CRUD de especialidades) já foram aplicadas e testadas em 12/11/2026. A migration `20261112194614_crud_pacientes.sql` já foi aplicada no Supabase compartilhado e validada com teste transacional de listar, editar, desativar e reativar pacientes.
 Confira o histórico remoto antes de qualquer execução. Não reaplique arquivos já
 registrados nem altere migrações antigas para introduzir novas mudanças. Mudanças
 futuras devem entrar em nova migração e PR; avise a equipe antes de aplicá-las no

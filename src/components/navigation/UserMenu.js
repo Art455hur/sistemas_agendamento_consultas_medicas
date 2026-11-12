@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useRouter } from "next/navigation";
 import { useSavedProfile } from "../../features/profile/hooks/useSavedProfile.js";
 import Notifications from "./Notifications.js";
@@ -17,7 +16,6 @@ function getInitials(name) {
       .toUpperCase() || "US"
   );
 }
-
 
 export default function UserMenu() {
   const router = useRouter();

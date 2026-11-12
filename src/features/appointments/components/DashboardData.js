@@ -42,7 +42,6 @@ export default function DashboardData() {
     }
   )[0];
 
-
   if (loading) return <p role="status">Carregando consultas...</p>;
   if (error) return <p role="alert">{error}</p>;
   return (

@@ -20,7 +20,6 @@ export default function Confirmacao() {
     return () => { active = false; };
   }, []);
 
-
   return (
     <PatientShell title="Confirmação" homeHref="/">
 

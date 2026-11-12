@@ -64,7 +64,6 @@ export default function MeusAgendamentos() {
   const currentEmptyMessage =
     emptyMessages[activeTab];
 
-
   async function cancelAppointment(appointmentId) {
     if (cancelling || !window.confirm("Deseja realmente cancelar esta consulta?")) return;
     setCancelling(appointmentId);

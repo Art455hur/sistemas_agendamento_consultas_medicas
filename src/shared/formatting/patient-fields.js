@@ -54,4 +54,3 @@ export function formatCpf(value) {
       ".$1-$2"
     );
 }
-

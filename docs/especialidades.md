@@ -41,7 +41,7 @@ As funções expostas são `SECURITY INVOKER`; operações privilegiadas ficam n
 
 Arquivo:
 
-`supabase/migrations/20261112183000_crud_especialidades.sql`
+`supabase/migrations/20261112190336_crud_especialidades.sql`
 
 Ela também importa para o catálogo as especialidades já usadas por médicos, evitando perda de dados.
 

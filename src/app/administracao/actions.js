@@ -14,6 +14,10 @@ function resultUrl(result) {
   return `/administracao?resultado=${result}`;
 }
 
+function patientResultUrl(result) {
+  return `/administracao/pacientes?resultado=${result}`;
+}
+
 function validUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
@@ -142,4 +146,68 @@ export async function deactivateSpecialty(formData) {
 
 export async function reactivateSpecialty(formData) {
   return setSpecialtyActive(formData, true);
+}
+
+
+function patientErrorResult(error) {
+  if (error?.code === "42501") return "negado";
+  if (error?.code === "23505") return "cpf-duplicado";
+  if (error?.code === "P0002") return "paciente-nao-encontrado";
+  if (error?.code === "22023" || error?.code === "23514") return "paciente-invalido";
+  return "erro";
+}
+
+export async function updatePatient(formData) {
+  const id = String(formData.get("patientId") ?? "");
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").replace(/\D/g, "");
+  const cpf = String(formData.get("cpf") ?? "").replace(/\D/g, "");
+  const birthDate = String(formData.get("birthDate") ?? "").trim();
+
+  if (
+    !validUuid(id) ||
+    fullName.length < 3 ||
+    fullName.length > 120 ||
+    (phone && (phone.length < 10 || phone.length > 11)) ||
+    (cpf && cpf.length !== 11) ||
+    (birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(birthDate))
+  ) {
+    redirect(patientResultUrl("paciente-invalido"));
+  }
+
+  const supabase = await authenticatedClient();
+  const { error } = await supabase.rpc("admin_update_patient", {
+    p_id: id,
+    p_full_name: fullName,
+    p_phone: phone || null,
+    p_cpf: cpf || null,
+    p_birth_date: birthDate || null,
+  });
+  if (error) redirect(patientResultUrl(patientErrorResult(error)));
+
+  revalidatePath("/administracao/pacientes");
+  redirect(patientResultUrl("paciente-atualizado"));
+}
+
+async function setPatientActive(formData, active) {
+  const id = String(formData.get("patientId") ?? "");
+  if (!validUuid(id)) redirect(patientResultUrl("paciente-invalido"));
+
+  const supabase = await authenticatedClient();
+  const { error } = await supabase.rpc("admin_set_patient_active", {
+    p_id: id,
+    p_active: active,
+  });
+  if (error) redirect(patientResultUrl(patientErrorResult(error)));
+
+  revalidatePath("/administracao/pacientes");
+  redirect(patientResultUrl(active ? "paciente-reativado" : "paciente-desativado"));
+}
+
+export async function deactivatePatient(formData) {
+  return setPatientActive(formData, false);
+}
+
+export async function reactivatePatient(formData) {
+  return setPatientActive(formData, true);
 }

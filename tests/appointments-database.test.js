@@ -103,10 +103,41 @@ test("CRUD, RLS, horários e papéis no Postgres", async (t) => {
     await assert.rejects(create(ids.inactive, "09:00"), (error) => error.code === "22023");
     await assert.rejects(create(ids.doctor, "09:00", "x".repeat(2001)), (error) => error.code === "22023");
   });
+  await t.test("remarcação para horário ocupado preserva a consulta original", async () => {
+    await asUser(ids.other);
+    const occupied = (await create(ids.doctor, "09:00")).rows[0];
+    await asUser(ids.patient);
+    await fails("select * from public.reschedule_patient_appointment($1,$2)", [appointment.id, at("09:00")], "23505");
+    const original = (await db.query("select scheduled_at from public.appointments where id=$1", [appointment.id])).rows[0];
+    assert.equal(new Date(original.scheduled_at).toISOString(), new Date(at("08:00")).toISOString());
+    await asUser(ids.other);
+    await db.query("select * from public.cancel_patient_appointment($1)", [occupied.id]);
+    await asUser(ids.patient);
+  });
+  await t.test("remarcação não permite duas consultas do paciente no mesmo horário", async () => {
+    const second = (await create(ids.doctor2, "10:30")).rows[0];
+    await fails("select * from public.reschedule_patient_appointment($1,$2)", [appointment.id, at("10:30")], "23505");
+    await db.query("select * from public.cancel_patient_appointment($1)", [second.id]);
+  });
+  await t.test("médicos distintos podem atender pacientes distintos no mesmo instante", async () => {
+    await asUser(ids.other);
+    const parallel = (await create(ids.doctor2, "08:00")).rows[0];
+    assert.equal(parallel.patient_id, ids.other);
+    await db.query("select * from public.cancel_patient_appointment($1)", [parallel.id]);
+    await asUser(ids.patient);
+  });
+  await t.test("remarcar para o próprio horário não cria conflito nem duplicata", async () => {
+    const same = (await db.query("select * from public.reschedule_patient_appointment($1,$2)", [appointment.id, at("08:00")])).rows[0];
+    assert.equal(same.id, appointment.id);
+    assert.equal((await db.query("select id from public.appointments where status='scheduled'")).rows.length, 1);
+  });
   await t.test("remarcação conserva ID, médico, paciente e motivo", async () => {
     const result = (await db.query("select * from public.reschedule_patient_appointment($1,$2)", [appointment.id, at("09:00")])).rows[0];
     for (const key of ["id", "patient_id", "doctor_id", "specialty", "reason"]) assert.equal(result[key], appointment[key]);
     assert.equal(new Date(result.scheduled_at).toISOString(), new Date(at("09:00")).toISOString());
+    const free = (await db.query("select * from public.booking_slots($1,$2,null)", [ids.doctor, tomorrow])).rows;
+    assert.ok(free.some((row) => new Date(row.scheduled_at).toISOString() === new Date(at("08:00")).toISOString()));
+    assert.ok(!free.some((row) => new Date(row.scheduled_at).toISOString() === new Date(at("09:00")).toISOString()));
   });
   await t.test("cancelamento libera horário e não pode ser revertido por remarcação", async () => {
     await db.query("select * from public.cancel_patient_appointment($1)", [appointment.id]);

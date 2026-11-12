@@ -19,6 +19,7 @@ export default function AppointmentListItem({ appointment, cancelling, onCancel 
   return (
                   <article
                     className="appointment-item"
+                    id={`consulta-${appointment.id}`}
                   >
                     <div className="appointment-item-icon">
                       🩺

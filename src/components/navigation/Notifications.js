@@ -1,214 +1,97 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useAppointments } from "../../features/appointments/hooks/useAppointments.js";
+import { appointmentNotifications } from "../../features/notifications/appointment-notifications.js";
 import { formatDate } from "../../shared/formatting/date.js";
 
 export default function Notifications() {
   const { appointments, loading, error } = useAppointments();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+  const wrapper = useRef(null);
+  const trigger = useRef(null);
+  const notifications = loading || error ? [] : appointmentNotifications(appointments);
+  const count = notifications.length;
 
-  const now = new Date();
-
-  const scheduledAppointments =
-    appointments
-      .filter((appointment) => {
-        const appointmentDate =
-          new Date(
-            appointment.scheduledAt || `${appointment.date}T${appointment.time}`
-          );
-
-        return (
-          (appointment.status ===
-            "Agendada" ||
-            !appointment.status) &&
-          appointmentDate >= now
-        );
-      })
-      .sort((first, second) => {
-        const firstDate =
-          `${first.date}T${first.time}`;
-
-        const secondDate =
-          `${second.date}T${second.time}`;
-
-        return firstDate.localeCompare(
-          secondDate
-        );
-      });
-
-  const cancelledAppointments =
-    appointments.filter(
-      (appointment) =>
-        appointment.status ===
-        "Cancelada"
-    );
-
-  const nextAppointment =
-    scheduledAppointments[0];
-
-  const hasNotifications =
-    scheduledAppointments.length > 0 ||
-    cancelledAppointments.length > 0;
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        trigger.current?.focus();
+      }
+    };
+    const onOutside = (event) => {
+      if (!wrapper.current?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onOutside);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onOutside);
+    };
+  }, [open]);
 
   return (
-      <div className="notification-wrapper">
-        <button
-          type="button"
-          className="notification-button"
-          aria-label="Abrir notificações"
-          aria-expanded={
-            notificationsOpen
-          }
-          onClick={() =>
-            setNotificationsOpen(
-              (currentValue) =>
-                !currentValue
-            )
-          }
-        >
-          🔔
+    <div className="notification-wrapper" ref={wrapper}>
+      <button
+        ref={trigger}
+        type="button"
+        className="notification-button"
+        aria-label={`Notificações${count ? `: ${count} avisos` : ""}`}
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((value) => !value)}
+      >
+        🔔
+        {count > 0 && <span className="notification-badge">{count}</span>}
+      </button>
 
-          {scheduledAppointments.length >
-            0 && (
-            <span className="notification-badge">
-              {
-                scheduledAppointments.length
-              }
-            </span>
-          )}
-        </button>
-
-        {notificationsOpen && (
-          <div className="notification-panel">
-            <div className="notification-panel-header">
-              <strong>
-                Notificações
-              </strong>
-
-              <button
-                type="button"
-                aria-label="Fechar notificações"
-                onClick={() =>
-                  setNotificationsOpen(
-                    false
-                  )
-                }
-              >
-                ✕
-              </button>
-            </div>
-
-            {loading ? <p role="status">Carregando notificações...</p> : error ? <p role="alert">{error}</p> : hasNotifications ? (
-              <div className="notification-list">
-                {nextAppointment && (
-                  <div className="notification-item">
-                    <span className="notification-item-icon">
-                      🗓️
-                    </span>
-
-                    <div>
-                      <strong>
-                        Próxima consulta
-                      </strong>
-
-                      <p>
-                        {
-                          nextAppointment.specialty
-                        }{" "}
-                        com{" "}
-                        {
-                          nextAppointment.doctor
-                        }
-                      </p>
-
-                      <small>
-                        {formatDate(
-                          nextAppointment.date
-                        )}{" "}
-                        às{" "}
-                        {
-                          nextAppointment.time
-                        }
-                      </small>
-                    </div>
-                  </div>
-                )}
-
-                {scheduledAppointments.length >
-                  1 && (
-                  <div className="notification-item">
-                    <span className="notification-item-icon">
-                      📋
-                    </span>
-
-                    <div>
-                      <strong>
-                        Consultas agendadas
-                      </strong>
-
-                      <p>
-                        Você possui{" "}
-                        {
-                          scheduledAppointments.length
-                        }{" "}
-                        consultas futuras.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {cancelledAppointments.length >
-                  0 && (
-                  <div className="notification-item">
-                    <span className="notification-item-icon">
-                      ✕
-                    </span>
-
-                    <div>
-                      <strong>
-                        Consultas canceladas
-                      </strong>
-
-                      <p>
-                        Você possui{" "}
-                        {
-                          cancelledAppointments.length
-                        }{" "}
-                        {cancelledAppointments.length ===
-                        1
-                          ? " consulta cancelada."
-                          : " consultas canceladas."}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="notification-empty">
-                <span>🔔</span>
-
-                <p>
-                  Nenhuma notificação no
-                  momento.
-                </p>
-              </div>
-            )}
-
-            <Link
-              href="/agendamentos"
-              className="notification-link"
-              onClick={() =>
-                setNotificationsOpen(
-                  false
-                )
-              }
-            >
-              Ver meus agendamentos
-            </Link>
+      {open && (
+        <section id={panelId} className="notification-panel" aria-label="Notificações de agendamentos">
+          <div className="notification-panel-header">
+            <strong>Notificações</strong>
+            <button type="button" aria-label="Fechar notificações" onClick={() => {
+              setOpen(false);
+              trigger.current?.focus();
+            }}>✕</button>
           </div>
-        )}
-      </div>
+
+          {loading ? <p role="status">Carregando notificações...</p> : error ? (
+            <p role="alert">{error}</p>
+          ) : count > 0 ? (
+            <div className="notification-list">
+              {notifications.map((notification) => (
+                <Link
+                  key={notification.id}
+                  href={notification.href}
+                  className="notification-item notification-appointment"
+                  onClick={() => setOpen(false)}
+                >
+                  <span className="notification-item-icon" aria-hidden="true">{notification.icon}</span>
+                  <div>
+                    <strong>{notification.title}</strong>
+                    <p>{notification.specialty} com {notification.doctor}</p>
+                    <small>{formatDate(notification.date)} às {notification.time}</small>
+                    <span className="notification-detail-link">Ver consulta</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="notification-empty">
+              <span aria-hidden="true">🔔</span>
+              <p>Nenhuma notificação no momento.</p>
+            </div>
+          )}
+
+          <Link href="/agendamentos" className="notification-link" onClick={() => setOpen(false)}>
+            Ver meus agendamentos
+          </Link>
+        </section>
+      )}
+    </div>
   );
 }

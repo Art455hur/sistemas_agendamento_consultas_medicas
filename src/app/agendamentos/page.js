@@ -3,20 +3,30 @@
 import AppointmentListItem from "@/features/appointments/components/AppointmentListItem.js";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAppointments } from "@/features/appointments/hooks/useAppointments.js";
 import { cancelAppointment as cancelSavedAppointment } from "@/features/appointments/services/appointments.js";
 import PatientShell from "@/components/layout/PatientShell.js";
 
-export default function MeusAgendamentos() {
+function AppointmentsContent() {
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("aba");
   const { appointments, loading, error } = useAppointments();
   const [activeTab, setActiveTab] = useState("scheduled");
   const [cancelling, setCancelling] = useState(null);
   const [actionError, setActionError] = useState("");
   useEffect(() => {
-    const requestedTab = new URLSearchParams(window.location.search).get("aba");
     if (["scheduled", "completed", "cancelled"].includes(requestedTab)) setActiveTab(requestedTab);
-  }, []);
+  }, [requestedTab]);
+
+  useEffect(() => {
+    if (loading || error || !window.location.hash.startsWith("#consulta-")) return;
+    let id;
+    try { id = decodeURIComponent(window.location.hash.slice(1)); }
+    catch { return; }
+    document.getElementById(id)?.scrollIntoView({ block: "center" });
+  }, [activeTab, appointments, loading, error, searchParams]);
 
   const scheduledAppointments = appointments.filter(
     (appointment) =>
@@ -182,5 +192,13 @@ export default function MeusAgendamentos() {
           )}
         </div>
     </PatientShell>
+  );
+}
+
+export default function MeusAgendamentos() {
+  return (
+    <Suspense fallback={<p role="status">Carregando consultas...</p>}>
+      <AppointmentsContent />
+    </Suspense>
   );
 }

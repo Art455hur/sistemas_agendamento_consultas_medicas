@@ -3085,3 +3085,27 @@ html {
     grid-column: 1;
   }
 }
+/* Cada aviso aponta para a consulta e para sua aba de status. */
+.notification-appointment {
+  text-decoration: none;
+  color: inherit;
+}
+
+.notification-appointment:hover,
+.notification-appointment:focus-visible {
+  background: #eef6f8;
+}
+
+.notification-detail-link {
+  display: block;
+  margin-top: 6px;
+  color: #1f8299;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.appointment-item:target {
+  outline: 2px solid #1f8299;
+  outline-offset: 3px;
+  scroll-margin-top: 24px;
+}

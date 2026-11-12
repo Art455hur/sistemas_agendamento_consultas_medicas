@@ -2,7 +2,7 @@
 
 O **AgendaSaúde** é um projeto acadêmico desenvolvido na disciplina de Programação Web.
 
-> **N2 — primeira integração das consultas:** fluxo Supabase preparado nesta branch para agendar, listar, cancelar e remarcar. Veja [como executar e testar](docs/consultas-supabase.md). O modo simulado continua sendo o padrão até configurar e validar o ambiente de teste. As seções de MVP abaixo descrevem a etapa inicial.
+> **N2 — estado do código em 12/11/2026:** consultas, perfil do paciente e gestão de funcionários já possuem integração com Supabase. O modo simulado permanece como padrão. A integração real exige configuração em ambiente de teste e validação antes da liberação em produção. Consulte a [documentação técnica](docs/documentacao-tecnica.md).
 
 A aplicação tem como objetivo facilitar o acesso a profissionais da saúde, permitindo que pacientes consultem especialidades, escolham horários e gerenciem seus agendamentos em uma interface simples e navegável.
 
@@ -21,19 +21,7 @@ Essas dificuldades podem tornar o processo demorado, confuso e dependente de ate
 
 ## Público-alvo
 
-### Público principal
-
-Pacientes que desejam pesquisar profissionais, agendar consultas e acompanhar seus atendimentos.
-
-### Públicos futuros
-
-Em versões futuras, o sistema poderá atender também:
-
-- Médicos;
-- Recepcionistas;
-- Clínicas;
-- Consultórios médicos;
-- Administradores.
+O fluxo principal atende pacientes. A N2 também inclui gestão de médicos e secretárias pelo administrador. Os painéis próprios de médico e secretaria ainda estão pendentes. O banco atual considera um único estabelecimento: **Hospital Sapiens**.
 
 ## Proposta de solução
 
@@ -50,35 +38,32 @@ Desenvolver uma aplicação web que permita ao paciente:
 
 ## Objetivo do MVP
 
-O MVP tem como objetivo entregar uma aplicação visual, navegável e funcional para demonstrar o fluxo principal do paciente.
+A N1 entregou um fluxo visual navegável do paciente, com dados simulados no navegador. A N2 acrescenta persistência e autorização com Supabase, mantendo o modo de demonstração para desenvolvimento.
 
-Nesta etapa, os dados são simulados e armazenados no navegador por meio do `localStorage` e `sessionStorage`.
+| Modo | Ativação | Armazenamento |
+| --- | --- | --- |
+| Demonstração | Padrão, com Auth desligada | `localStorage` e `sessionStorage`; sem isolamento seguro entre contas reais |
+| Supabase | Flag `true`, URL e chave publicável configuradas | Supabase Auth, perfis e consultas no banco; autorização no servidor e por RLS |
+
+Os dados locais não são importados automaticamente. Código integrado à `main` não comprova que a funcionalidade foi liberada no site publicado.
 
 ## Funcionalidades implementadas
 
-- Home pública;
-- Detalhes das especialidades;
-- Cadastro de pacientes;
-- Login e recuperação simulada de senha;
-- Opção “Lembrar de mim”;
-- Proteção das páginas privadas;
-- Dashboard do paciente;
-- Indicadores de consultas;
-- Visualização da próxima consulta;
-- Listagem de especialidades;
-- Listagem de profissionais;
-- Escolha de data e horário;
-- Identificação de horários indisponíveis;
-- Prevenção de conflitos entre consultas;
-- Confirmação do agendamento;
-- Visualização dos agendamentos;
-- Separação por status;
-- Cancelamento de consultas;
-- Remarcação de consultas;
-- Atualização automática para consulta concluída;
-- Sistema de notificações;
-- Perfil do paciente;
-- Encerramento da sessão.
+| Área | Implementação disponível na N2 |
+| --- | --- |
+| Páginas públicas | Home e apresentação das especialidades |
+| Autenticação | Cadastro de paciente, login, confirmação de e-mail, recuperação de senha e logout com Supabase; modo simulado preservado |
+| Consultas | Agendamento, confirmação, listagem, cancelamento e remarcação das próprias consultas |
+| Disponibilidade | Catálogo de médicos ativos, grade fixa e atualização dos horários ao retornar à aba ou acionar o botão |
+| Conflitos | Proteção no banco contra duas consultas ativas do mesmo médico ou paciente no mesmo instante |
+| Dashboard e notificações | Indicadores, próxima consulta e avisos na interface derivados dos agendamentos |
+| Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
+| Administração | Painel restrito a administrador ativo, listagem, vínculo, edição, desativação e reativação de médicos e secretárias |
+| Banco e testes | Oito migrações versionadas e testes de regras, persistência, RLS e sessão |
+
+A gestão de funcionários exige contas previamente existentes no Supabase Auth. Não cria contas Auth nem concede papel de administrador. Notificações na interface não representam envio de e-mail, SMS ou push.
+
+Veja [limites, permissões e critérios de validação](docs/documentacao-tecnica.md).
 
 ## Requisitos funcionais
 
@@ -176,6 +161,9 @@ Como paciente, quero consultar e atualizar meus dados pessoais para manter minha
 | React | Criação de componentes reutilizáveis e gerenciamento de estado. |
 | Next.js 16.3.5 | Organização das rotas, páginas e estrutura principal da aplicação. |
 | Node.js e npm | Execução do ambiente e gerenciamento das dependências. |
+| Supabase Auth | Autenticação real quando habilitada em ambiente configurado. |
+| PostgreSQL / Supabase | Persistência, funções SQL e políticas RLS da N2. |
+| PGlite / Node Test Runner | Testes automatizados com banco descartável. |
 | LocalStorage | Armazenamento simulado dos dados do MVP. |
 | SessionStorage | Controle simulado de sessões temporárias. |
 | Git | Controle de versão local. |
@@ -185,54 +173,28 @@ Como paciente, quero consultar e atualizar meus dados pessoais para manter minha
 
 ## Arquitetura inicial
 
-O projeto utiliza a estrutura do Next.js com App Router.
+O projeto usa Next.js com App Router. As responsabilidades atuais estão organizadas em:
 
-```text
-src/
-├── app/
-│   ├── page.js
-│   ├── dashboard/
-│   ├── login/
-│   ├── cadastro/
-│   ├── agendar/
-│   ├── agendamentos/
-│   ├── confirmacao/
-│   ├── perfil/
-│   ├── layout.js
-│   └── globals.css
-└── components/
-    ├── AuthGuard.js
-    ├── DashboardData.js
-    ├── Navbar.js
-    └── UserMenu.js
-```
+| Caminho | Responsabilidade |
+| --- | --- |
+| `src/app` | Páginas, callback de autenticação e ações administrativas no servidor |
+| `src/components` | Proteção visual, menu, navegação e dados do dashboard |
+| `src/lib/appointments.js` | Operações de consulta, catálogo e disponibilidade; escolhe modo local ou Supabase |
+| `src/lib/patient-profile.js` | Leitura e atualização do perfil pela identidade da sessão |
+| `src/lib/supabase` | Clientes Supabase do navegador e servidor |
+| `src/proxy.js` | Renovação de sessão e redirecionamento de rotas protegidas |
+| `supabase/migrations` | Histórico versionado do banco |
+| `tests` | Testes automatizados |
+| `docs` | Guias técnicos, regras e roteiros manuais |
+| `landing-nextech` | Aplicação institucional independente, com configuração própria |
 
-### Responsabilidades principais
-
-- `app/page.js`: Home pública;
-- `app/dashboard`: painel do paciente;
-- `app/login`: autenticação simulada;
-- `app/cadastro`: cadastro do paciente;
-- `app/agendar`: agendamento e remarcação;
-- `app/agendamentos`: gerenciamento das consultas;
-- `app/confirmacao`: confirmação do agendamento;
-- `app/perfil`: dados do paciente;
-- `components/AuthGuard.js`: proteção das rotas;
-- `components/DashboardData.js`: indicadores do Dashboard;
-- `components/UserMenu.js`: usuário, notificações e saída da conta.
+O [guia técnico](docs/documentacao-tecnica.md) detalha rotas, banco e permissões.
 
 ## Armazenamento dos dados
 
-Nesta etapa, o projeto utiliza dados simulados no navegador.
+Com Supabase habilitado, `profiles` guarda dados cadastrais e papéis; `appointments` guarda consultas; `hospital` e `hospital_staff` representam o hospital e seus vínculos. As contas e credenciais são gerenciadas pelo Supabase Auth.
 
-São armazenados:
-
-- Dados do usuário;
-- Informações do Perfil;
-- Consultas;
-- Status dos agendamentos;
-- Sessão de acesso.
-
+Com a flag desligada, os fluxos simulados continuam usando o navegador. Não utilizar esse modo para dados reais de pacientes. A edição do perfil já foi integrada ao banco; não há importação automática de cadastros e consultas locais.
 
 ## Protótipo
 
@@ -255,7 +217,7 @@ A **NexTech Soluções** é a software house responsável pelo desenvolvimento a
 A landing page institucional apresenta a identidade visual da equipe, os serviços oferecidos, os integrantes e o projeto desenvolvido.
 
 * **Landing page:** [Acessar NexTech Soluções](https://alert-author-78887172.figma.site)
-* **Contato da equipe:** [prgweb.sh@gmail.com](prgweb.sh@gmail.com)
+* **Contato da equipe:** [prgweb.sh@gmail.com](mailto:prgweb.sh@gmail.com)
 * **Repositório:** [AgendaSaúde no GitHub](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas)
 
 
@@ -281,53 +243,37 @@ Cada card deve possuir:
 
 ## Como executar o projeto
 
-### Pré-requisitos
-
-- Node.js instalado;
-- Git instalado;
-- Visual Studio Code ou outro editor.
-
-### Clonar o repositório
+Use Node.js compatível com as dependências do projeto e npm. A partir de uma conta com acesso ao repositório:
 
 ```bash
 git clone https://github.com/Art455hur/sistemas_agendamento_consultas_medicas.git
-```
-
-### Entrar na pasta
-
-```bash
 cd sistemas_agendamento_consultas_medicas
-```
-
-### Instalar as dependências
-
-```bash
-npm install
-```
-
-No PowerShell, caso o comando `npm` seja bloqueado:
-
-```powershell
-npm.cmd install
-```
-
-### Executar o projeto
-
-```bash
+npm ci
 npm run dev
 ```
 
-No PowerShell:
+Abra `http://localhost:3000`. No PowerShell, se `npm` estiver bloqueado, use `npm.cmd ci` e `npm.cmd run dev`.
 
-```powershell
-npm.cmd run dev
+O modo de demonstração funciona com a autenticação real desligada. Para testar Supabase, copie `.env.example` para `.env.local` e siga [o guia de configuração](docs/autenticacao-supabase.md). Não habilite Auth na Vercel antes da revisão e dos testes completos.
+
+```bash
+npm test
+npm run build
 ```
 
-### Abrir no navegador
+Os testes automatizados usam dados fictícios e banco descartável; não acessam o Supabase hospedado. O teste opcional com duas conexões está em [conflitos de horários](docs/conflitos-horarios.md).
 
-```text
-http://localhost:3000
-```
+## Documentação técnica
+
+- [Guia técnico e estado da N2](docs/documentacao-tecnica.md)
+- [Autenticação e configuração](docs/autenticacao-supabase.md)
+- [Perfis e permissões](docs/perfis-e-permissoes.md)
+- [Consultas e perfil do paciente](docs/consultas-supabase.md)
+- [Painel administrativo](docs/painel-administrador.md)
+- [Gestão de funcionários](docs/gestao-funcionarios.md)
+- [Conflitos e teste de concorrência](docs/conflitos-horarios.md)
+- [Modelagem inicial e evolução](docs/modelagem-inicial-n2.md)
+- [Hospital e vínculos](docs/vinculos-hospital.md)
 
 ## Integrantes
 
@@ -341,35 +287,20 @@ http://localhost:3000
 
 ## Situação atual
 
-- Landing page institucional da NexTech Soluções publicada;
-- Links públicos do protótipo, da landing page e do repositório adicionados.
+A N1 entregou o protótipo e os fluxos simulados do paciente. A N2 já possui autenticação preparada, persistência de consultas e perfil, gestão de equipe e proteção contra conflitos na `main`.
 
-O MVP visual está navegável e possui os principais fluxos do paciente.
-
-Já foram implementados:
-
-- Home pública;
-- Cadastro e Login simulados;
-- Dashboard;
-- Agendamento e confirmação;
-- Cancelamento e remarcação;
-- Gerenciamento das consultas;
-- Notificações;
-- Perfil;
-- Proteção das rotas;
-- Integração entre as páginas.
+O modo simulado permanece o padrão. A configuração atual da Vercel e o estado do banco hospedado devem ser conferidos no ambiente correspondente; esta documentação descreve o código versionado. A ativação em produção continua condicionada à revisão e aos testes de ponta a ponta.
 
 ## Próximos passos
 
-- Manter a documentação do projeto atualizada;
-- Registrar os papéis da equipe;
-- Concluir os cards e checklists;
-- Realizar testes de usabilidade;
-- Realizar testes de integração;
-- Revisar o código;
-- Preparar a apresentação;
-- Planejar banco de dados e API;
-- Implementar autenticação real com JWT em uma etapa futura.
+- Concluir painéis do médico e da secretaria.
+- Implementar gestão de disponibilidade por profissional, especialidades e demais cadastros previstos no backlog.
+- Completar os módulos de agenda e serviços do administrador.
+- Ampliar validações: CPF ainda é conferido por formato e tamanho, sem cálculo dos dígitos verificadores.
+- Definir o destino dos dados simulados e validar isolamento entre contas.
+- Executar os roteiros manuais com contas de teste, inclusive disputa de horário em duas sessões.
+- Revisar autenticação, permissões e configuração antes da publicação funcional da N2.
+- Atualizar documentação e evidências nas PRs que alterarem comportamento, banco ou configuração.
 
 ## Referências
 
@@ -377,3 +308,4 @@ As seguintes plataformas foram utilizadas como referência para estudar fluxos e
 
 - [Hospital Samar](https://hospitalsamar.com.br/)
 - [MedPrev](https://agendamento.medprev.online/)
+

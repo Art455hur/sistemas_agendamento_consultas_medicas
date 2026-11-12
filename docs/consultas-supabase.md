@@ -6,12 +6,13 @@ local continua disponível. Dados antigos do navegador não são importados.
 
 ## Como começar no seu computador
 
-1. Abra esta branch no VS Code e rode `npm ci`.
+1. Atualize a `main`, crie a branch do seu card e rode `npm ci`. As entregas de consultas e perfil já foram integradas.
 2. Rode `npm test` e `npm run build`. Os testes usam Postgres descartável (PGlite),
    aplicam todas as migrações e não acessam o banco hospedado.
 3. Em um ambiente de desenvolvimento do Supabase, aplique as migrações pendentes,
-   na ordem dos nomes em `supabase/migrations`. A nova migração termina em
-   `_consultas_paciente.sql`. No projeto `rgggijnypvvdkskyalip`, ela já foi aplicada
+   na ordem dos nomes em `supabase/migrations`. A migração inicial desse fluxo termina em
+   `_consultas_paciente.sql`; as migrações posteriores também são necessárias
+   para o estado atual. Consulte a [lista completa](documentacao-tecnica.md#migrações-versionadas). No projeto `rgggijnypvvdkskyalip`, ela já foi aplicada
    e verificada em 11/11/2026 (versão `20261111213338`); não execute novamente nesse projeto.
 4. Cadastre um paciente e um profissional pelo Supabase Auth, com contas de teste.
    Entre como administrador ativo em `/administracao` e preencha e-mail, nome,
@@ -54,8 +55,8 @@ disponíveis. Nenhuma conta real é promovida ou criada automaticamente por esta
 
 ## Limites e publicação
 
-O card completo de persistência ainda inclui perfil e outros cadastros. A edição do
-perfil continua local; os painéis de médico/secretaria continuam em cards próprios.
+Consultas e edição do perfil já persistem no Supabase quando Auth está habilitada.
+Os demais cadastros e os painéis de médico/secretaria continuam em cards próprios.
 A gestão de funcionários foi integrada com nome e especialidade. Esta entrega não ativa Auth na Vercel nem
 publica a aplicação. Revisar esses fluxos antes de liberar uso real.
 
@@ -73,7 +74,7 @@ A migração `20261112025202_especialidade_funcionarios.sql` também já foi apl
 no projeto de testes `rgggijnypvvdkskyalip`; ela permite salvar o nome e a especialidade
 pelo administrador sem promover contas automaticamente.
 
-Execute `npm test` (33 testes) e `npm run build`. Além do roteiro do paciente,
+Execute `npm test` e `npm run build`. A PR #17 registra 41 testes aprovados após as entregas de perfil e conflitos. Além do roteiro do paciente,
 valide o formulário administrativo e o catálogo seguindo `gestao-funcionarios.md`.
 Não publique antes da revisão da interface integrada.
 
@@ -90,7 +91,8 @@ o nome do banco. As políticas existentes limitam leitura e atualização ao tit
 Não há nova migração: os campos e permissões já estão na migração
 `20261112014111_perfil_paciente_e_fuso_sao_paulo.sql`.
 
-Para validar em uma prévia desta branch: salve dados de teste no perfil, entre
+Para validar em um ambiente de teste configurado: salve dados de teste no perfil, entre
 com a mesma conta em outra sessão e confira os quatro campos. Depois entre
 com outro paciente e confirme que os dados dele permanecem separados.
 CPF duplicado deve exibir erro sem indicar sucesso.
+

@@ -58,8 +58,8 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Conflitos | Proteção no banco contra duas consultas ativas do mesmo médico ou paciente no mesmo instante |
 | Dashboard e notificações | Indicadores, próxima consulta e avisos na interface derivados dos agendamentos |
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
-| Administração | Painel restrito a administrador ativo, listagem, vínculo, edição, desativação e reativação de médicos e secretárias |
-| Banco e testes | Nove migrações versionadas e testes de regras, persistência, RLS e sessão |
+| Administração | Painel restrito a administrador ativo, gestão de funcionários e leitura diária da agenda da clínica |
+| Banco e testes | Dez migrações versionadas (a última pendente no banco compartilhado) e testes de regras, persistência, RLS e sessão |
 
 A gestão de funcionários exige contas previamente existentes no Supabase Auth. Não cria contas Auth nem concede papel de administrador. Notificações na interface não representam envio de e-mail, SMS ou push.
 
@@ -299,7 +299,7 @@ O modo simulado permanece o padrão. A configuração atual da Vercel e o estado
 
 - Concluir painéis do médico e da secretaria.
 - Implementar gestão de disponibilidade por profissional, especialidades e demais cadastros previstos no backlog.
-- Completar os módulos de agenda e serviços do administrador.
+- Completar edição da agenda pelo administrador e o módulo de serviços; a agenda diária já permite leitura.
 - Ampliar as validações dos demais campos; formulários e banco já conferem os dígitos verificadores do CPF em novas gravações e alterações do número. Veja [escopo e testes](docs/validacao-cpf.md).
 - Definir o destino dos dados simulados e validar isolamento entre contas.
 - Executar os roteiros manuais com contas de teste, inclusive disputa de horário em duas sessões.

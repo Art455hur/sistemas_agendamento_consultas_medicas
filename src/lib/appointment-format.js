@@ -1,5 +1,5 @@
 // Todos os horários da clínica usam o mesmo fuso, inclusive em outro aparelho.
-export const CLINIC_TIME_ZONE = "America/Manaus";
+export const CLINIC_TIME_ZONE = "America/Sao_Paulo";
 
 export function clinicDateTime(value) {
   const parts = new Intl.DateTimeFormat("en-CA", {

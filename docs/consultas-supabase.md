@@ -13,11 +13,10 @@ local continua disponível. Dados antigos do navegador não são importados.
    na ordem dos nomes em `supabase/migrations`. A nova migração termina em
    `_consultas_paciente.sql`. No projeto `rgggijnypvvdkskyalip`, ela já foi aplicada
    e verificada em 11/11/2026 (versão `20261111213338`); não execute novamente nesse projeto.
-4. Cadastre um paciente e um profissional pelo Supabase Auth, com e-mails de teste
-   que vocês controlam. No SQL Editor, como administrador, altere somente o perfil
-   do profissional para `role = 'doctor'`, preencha `specialty` e `full_name` e crie
-   seu vínculo ativo em `hospital_staff`. Use o ID real da conta criada, nunca IDs
-   fictícios. A interface administrativa para isso pertence ao card de funcionários.
+4. Cadastre um paciente e um profissional pelo Supabase Auth, com contas de teste.
+   Entre como administrador ativo em `/administracao` e preencha e-mail, nome,
+   função e especialidade do médico. Salvar cria/reativa o vínculo no hospital.
+   A conta usada para agendar precisa ter o papel de paciente.
 5. Copie `.env.example` para `.env.local`, preencha a URL e a chave **publishable**
    e configure `NEXT_PUBLIC_ENABLE_SUPABASE_AUTH=true` somente nesse ambiente de teste.
    A chave secreta/service_role não é necessária. Configure as URLs de confirmação
@@ -40,8 +39,8 @@ disponíveis. Nenhuma conta real é promovida ou criada automaticamente por esta
 
 ## Regras desta primeira versão
 
-- Fuso da clínica: `America/Manaus` (UTC−4), consistente no banco e nas telas,
-  independentemente do fuso do aparelho. Confirmar com a equipe antes de publicar.
+- Fuso da clínica: `America/Sao_Paulo` (UTC−3), consistente no banco e nas telas,
+  independentemente do fuso do aparelho, alinhado à atualização já aplicada no banco.
 - Grade inicial: 08:00, 09:00, 10:30, 14:00 e 15:30, em qualquer dia. Feriados,
   duração variável e configuração da agenda por médico pertencem ao card de horários.
 - Banco impede consulta no passado, profissional sem vínculo ativo, reserva duplicada
@@ -56,10 +55,24 @@ disponíveis. Nenhuma conta real é promovida ou criada automaticamente por esta
 ## Limites e publicação
 
 O card completo de persistência ainda inclui perfil e outros cadastros. A edição do
-perfil continua local; os painéis de médico/secretaria e a gestão administrativa de
-funcionários continuam em cards próprios. Esta entrega não ativa Auth na Vercel nem
+perfil continua local; os painéis de médico/secretaria continuam em cards próprios.
+A gestão de funcionários foi integrada com nome e especialidade. Esta entrega não ativa Auth na Vercel nem
 publica a aplicação. Revisar esses fluxos antes de liberar uso real.
 
 No Kanban, mantenha **Implementar persistência de dados** em andamento e registre
 esta entrega no checklist como **Consultas integradas ao Supabase**. Mova esse item
 para revisão após executar o roteiro com as contas de teste.
+
+## Integração com a gestão administrativa
+
+O PR #15 incorpora o PR #14, preservando formulário administrativo, verificação de
+vínculo ativo, RLS de médico desativado e tratamento de sessão vazia.
+A migração `20261112014111_perfil_paciente_e_fuso_sao_paulo.sql` foi recuperada do
+histórico remoto: já existia no banco e não deve ser aplicada novamente nesse projeto.
+A migração `20261112025202_especialidade_funcionarios.sql` também já foi aplicada
+no projeto de testes `rgggijnypvvdkskyalip`; ela permite salvar o nome e a especialidade
+pelo administrador sem promover contas automaticamente.
+
+Execute `npm test` (31 testes) e `npm run build`. Além do roteiro do paciente,
+valide o formulário administrativo e o catálogo seguindo `gestao-funcionarios.md`.
+Não publique antes da revisão da interface integrada.

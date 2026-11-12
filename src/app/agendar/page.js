@@ -162,7 +162,7 @@ export default function AgendarConsulta() {
           {loading && <p role="status">Carregando profissionais...</p>}
           {error && <p role="alert">{error}</p>}
           {!loading && !error && doctors.length === 0 && <p role="status">Nenhum profissional disponível para agendamento no momento. Entre em contato com a clínica.</p>}
-          {isSupabaseConfigured() && <p>Horários da clínica: Manaus (UTC−4).</p>}
+          {isSupabaseConfigured() && <p>Horários da clínica: Brasília (UTC−3).</p>}
           <div className="booking-layout">
             <section className="booking-card">
               <h2>Dados da consulta</h2>

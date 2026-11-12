@@ -11,7 +11,7 @@ test("CRUD, RLS, horários e papéis no Postgres", async (t) => {
     create role anon nologin;
     create role authenticated nologin;
     create schema auth;
-    create table auth.users (id uuid primary key, raw_user_meta_data jsonb default '{}');
+    create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb default '{}');
     create function auth.uid() returns uuid language sql stable as $$
       select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;
     $$;
@@ -32,8 +32,8 @@ test("CRUD, RLS, horários e papéis no Postgres", async (t) => {
     await db.query("insert into public.hospital_staff(profile_id,active) values ($1,$2)", [ids[key], key !== "inactive"]);
   }
   await db.query("update public.profiles set role='admin' where id=$1", [ids.admin]);
-  const tomorrow = (await db.query("select ((now() at time zone 'America/Manaus')::date + 1)::text as day")).rows[0].day;
-  const at = (time) => `${tomorrow}T${time}:00-04:00`;
+  const tomorrow = (await db.query("select ((now() at time zone 'America/Sao_Paulo')::date + 1)::text as day")).rows[0].day;
+  const at = (time) => `${tomorrow}T${time}:00-03:00`;
   const asUser = async (id) => {
     await db.exec("reset role");
     await db.query("select set_config('request.jwt.claim.sub', $1, false)", [id || ""]);

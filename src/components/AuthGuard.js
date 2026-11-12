@@ -55,7 +55,8 @@ export default function AuthGuard({
     if (isSupabaseConfigured()) {
       let active = true;
       const supabase = createClient();
-      supabase.auth.getUser().then(({ data: { user }, error }) => {
+      supabase.auth.getUser().then(({ data, error }) => {
+        const user = data?.user;
         if (!active) return;
         if (error || !user) {
           if (isProtectedRoute) {

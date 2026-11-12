@@ -1,46 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+import { createAppointmentsStore, EMPTY_APPOINTMENTS_STATE } from "../appointments-store.js";
 import { subscribeAppointmentRefresh } from "../subscribe-refresh.js";
 import { getAppointments } from "../services/appointments.js";
 import { createClient, isSupabaseConfigured } from "../../../lib/supabase/client.js";
 
+const store = createAppointmentsStore(getAppointments, (refresh, invalidate) => {
+  let active = true;
+  const unsubscribeRefresh = subscribeAppointmentRefresh(window, refresh);
+  const subscription = isSupabaseConfigured() ? createClient().auth.onAuthStateChange(() => {
+    // Invalida respostas antigas antes de consultar a nova sessão.
+    invalidate();
+    queueMicrotask(() => { if (active) refresh(); });
+  }).data.subscription : null;
+  return () => {
+    active = false;
+    subscription?.unsubscribe();
+    unsubscribeRefresh();
+  };
+});
+const getServerSnapshot = () => EMPTY_APPOINTMENTS_STATE;
+
 export function useAppointments() {
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    let request = 0;
-    async function load() {
-      const current = ++request;
-      setLoading(true);
-      try {
-        const items = await getAppointments();
-        if (active && current === request) { setAppointments(items); setError(""); }
-      } catch (failure) {
-        if (active && current === request) { setAppointments([]); setError(failure.message); }
-      } finally {
-        if (active && current === request) setLoading(false);
-      }
-    }
-    load();
-    const unsubscribeRefresh = subscribeAppointmentRefresh(window, load);
-    const subscription = isSupabaseConfigured() ? createClient().auth.onAuthStateChange(() => {
-      // Sem consultas dentro do callback síncrono de Auth; limpa o usuário anterior.
-      ++request;
-      setAppointments([]);
-      setLoading(true);
-      setError("");
-      queueMicrotask(() => { if (active) load(); });
-    }).data.subscription : null;
-    return () => {
-      active = false;
-      subscription?.unsubscribe();
-      unsubscribeRefresh();
-    };
-  }, []);
-
-  return { appointments, loading, error };
+  return useSyncExternalStore(store.subscribe, store.getSnapshot, getServerSnapshot);
 }

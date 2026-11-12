@@ -1,12 +1,14 @@
 // Todos os horários da clínica usam o mesmo fuso, inclusive em outro aparelho.
 export const CLINIC_TIME_ZONE = "America/Sao_Paulo";
 
-export function clinicDateTime(value) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
+const clinicFormatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: CLINIC_TIME_ZONE,
     year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit", hourCycle: "h23",
-  }).formatToParts(new Date(value));
+  });
+
+export function clinicDateTime(value) {
+  const parts = clinicFormatter.formatToParts(new Date(value));
   const get = (type) => parts.find((part) => part.type === type).value;
   return { date: `${get("year")}-${get("month")}-${get("day")}`, time: `${get("hour")}:${get("minute")}` };
 }

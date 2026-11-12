@@ -21,25 +21,60 @@ CPFs antigos armazenados não são reescritos ou removidos. Ao editar o perfil,
 um CPF que não passe na regra deve ser corrigido antes de salvar, inclusive quando
 apenas outro campo estiver sendo alterado. Use dados fictícios nos testes.
 
-## Limites
+## Validação no Supabase
 
-Esta entrega cobre a aplicação e não modifica o esquema ou as migrações. O banco
-mantém as restrições existentes de formato e unicidade, sem cálculo de dígitos
-verificadores. Chamadas diretas à API que ignorem o cliente não recebem essa nova
-proteção matemática no banco; sua implementação exige outro incremento e migração.
-Esta entrega também não altera os campos enviados pelo cadastro ao Supabase Auth.
+A migração `20261112173011_validar_cpf_perfis.sql` acrescenta
+`private.is_valid_cpf(text)` e o trigger `profiles_validate_cpf` em `public.profiles`.
+Ambas as funções usam `SECURITY INVOKER` e `search_path` vazio; não concedem acesso
+adicional a dados ou papéis. A função matemática não é uma RPC no esquema público.
+
+O trigger rejeita com SQLSTATE `23514` e mensagem “CPF inválido.” qualquer CPF novo
+ou alterado com dígitos incorretos ou números repetidos, inclusive em chamadas
+que ignorem os formulários. O banco espera 11 números sem máscara. O trigger de
+criação de perfis a partir do Auth também passa por essa validação ao inserir o perfil.
+CPF nulo continua permitido para contas ainda sem o dado; formato e unicidade existentes
+permanecem em vigor.
+
+Um CPF inválido antigo pode permanecer quando o número não muda. Isso permite editar
+outros dados diretamente no banco/API e gerir funcionários sem alterar o legado.
+Um novo valor inválido continua proibido; depois de corrigido, o antigo valor inválido
+não pode ser restaurado. O formulário de perfil mantém sua validação mais estrita:
+exige corrigir o CPF antes de salvar, mesmo ao editar outro campo.
+
+Foi escolhido um trigger que considera a mudança do número, em vez de uma restrição
+CHECK sobre todas as linhas, para preservar os dados fictícios existentes. Não há
+limpeza automática nem garantia de que todos os CPFs históricos sejam válidos.
+
+## Aplicação e limites
+
+A migração já foi aplicada no projeto de testes `rgggijnypvvdkskyalip` e consta no
+histórico remoto com versão `20261112173011`. O arquivo criado pela CLI foi alinhado
+a essa versão. Não executar novamente nesse projeto. Em outro ambiente, aplicar
+somente migrações pendentes na ordem de versão.
+
+Verificação em 12/11/2026: 52 testes automatizados aprovados. No banco hospedado,
+a atualização como `authenticated` rejeitou CPF inválido e aceitou um CPF de teste
+matematicamente válido; a transação foi revertida. Os 11 perfis e o único CPF antigo
+preenchido foram preservados. O trigger foi conferido ativo, com funções invoker e
+sem execução da função matemática por anônimos. Os avisos de segurança existentes
+permanecem sem novos avisos desta entrega.
+
+Esta entrega não altera os campos enviados pelo cadastro ao Supabase Auth, tarefa
+que permanece com o integrante responsável por “Criar usuários”. Também não habilita
+Auth no site publicado nem muda as configurações da Vercel.
 
 ## Verificação
 
 ```bash
-node --test tests/cpf.test.js tests/patient-profile.test.js
+node --test tests/cpf.test.js tests/patient-profile.test.js tests/cpf-database.test.js
 npm test
 npm run build
 ```
 
 Os testes conferem máscara, zero à esquerda, entradas inválidas, todos os números
 repetidos, erros em cada dígito verificador e bloqueio de atualização de perfil
-inválido antes de acessar o banco.
+inválido antes de acessar o banco. Os testes SQL também cobrem gravação direta,
+metadados Auth, preservação do legado, CPF opcional, unicidade e isolamento por RLS.
 
 Roteiro manual para revisão:
 

@@ -1,6 +1,6 @@
 # Documentação técnica — AgendaSaúde N2
 
-Atualizada em 12/11/2026 com base nas entregas até a PR #17 e no incremento de validação do CPF descrito neste guia.
+Atualizada em 12/11/2026 com base nas entregas até a PR #17 e nos incrementos de validação do CPF na aplicação e no banco descritos neste guia.
 Este guia descreve implementação e limites; não certifica o estado da Vercel ou do banco hospedado.
 
 ## Objetivo e modos de execução
@@ -105,8 +105,9 @@ Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 | `20261112014111` | `20261112014111_perfil_paciente_e_fuso_sao_paulo.sql` | CPF, nascimento e fuso da clínica |
 | `20261112025202` | `20261112025202_especialidade_funcionarios.sql` | Nome e especialidade na gestão da equipe |
 | `20261112131100` | `20261112131100_reativar_funcionario.sql` | Reativação preservando dados |
+| `20261112173011` | `20261112173011_validar_cpf_perfis.sql` | Validação matemática de CPF novo ou alterado, preservando o legado |
 
-Os registros das entregas informam aplicação no projeto compartilhado de testes.
+As nove migrações constam no histórico do projeto compartilhado de testes. A versão `20261112173011` foi aplicada e verificada em 12/11/2026; não a execute novamente nesse projeto.
 Confira o histórico remoto antes de qualquer execução. Não reaplique arquivos já
 registrados nem altere migrações antigas para introduzir novas mudanças. Mudanças
 futuras devem entrar em nova migração e PR; avise a equipe antes de aplicá-las no
@@ -153,8 +154,10 @@ Nome, telefone, CPF e nascimento são lidos e gravados em `profiles` pelo ID da
 sessão validada. E-mail vem do Auth e é somente leitura. Falha na leitura bloqueia
 o salvamento; CPF duplicado apresenta erro. Cadastro, tela de perfil e serviço de
 atualização usam `isValidCpf` para conferir formato e dígitos verificadores e
-rejeitar números repetidos. O banco continua com formato/unicidade, sem cálculo
-dos dígitos. Veja [limites e roteiro de teste](validacao-cpf.md).
+rejeitar números repetidos. O banco também valida os dígitos em inclusões e
+alterações de CPF por trigger invoker, mantendo formato/unicidade. Um CPF inválido
+antigo é preservado quando o número não muda; o formulário continua exigindo CPF
+válido para salvar. Veja [limites e roteiro de teste](validacao-cpf.md).
 
 ### Equipe
 
@@ -171,8 +174,9 @@ npm test
 npm run build
 ```
 
-A PR #17 registra 41 testes aprovados e build concluído. Essa é uma evidência da
-entrega, não uma execução nova desta documentação. PGlite aplica as migrações em
+A PR #17 registra 41 testes aprovados e build concluído. Após a validação de CPF
+na aplicação e no banco, `npm test` foi executado com 52 testes aprovados. A mudança
+de banco também foi verificada no projeto hospedado com transação revertida. PGlite aplica as migrações em
 banco descartável para testar persistência, isolamento e regras. A concorrência
 com duas conexões usa um script opcional descrito em [conflitos](conflitos-horarios.md).
 

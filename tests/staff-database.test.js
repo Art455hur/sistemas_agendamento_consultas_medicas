@@ -44,11 +44,26 @@ test("gestão administrativa integrada ao catálogo e consultas", async (t) => {
     }
   });
   await actor("admin");
+  for (const specialty of ["Cardiologia", "Dermatologia", "Clínica Geral"]) {
+    await db.query("select public.admin_create_specialty($1)", [specialty]);
+  }
   await t.test("valida nome e especialidade no banco, inclusive pelo endpoint antigo", async () => {
     await fails(save("candidate", "doctor", "Doutora Teste", " "), "22023");
     await fails(save("candidate", "doctor", "", "Cardiologia"), "22023");
     await fails(db.query("select public.admin_assign_staff($1,'doctor')", ["candidate@example.test"]), "22023");
     assert.equal((await db.query("select * from public.admin_list_staff()")).rows.length, 1);
+  });
+  await t.test("CRUD de especialidades exige admin e evita duplicidade", async () => {
+    const list = (await db.query("select * from public.admin_list_specialties()")).rows;
+    assert.equal(list.length, 3);
+    await fails(db.query("select public.admin_create_specialty($1)", ["cardiologia"]), "23505");
+    const cardio = list.find((item) => item.name === "Cardiologia");
+    await db.query("select public.admin_update_specialty($1,$2)", [cardio.id, "Cardiologia Clínica"]);
+    assert.equal((await db.query("select name from public.admin_list_specialties() where id=$1", [cardio.id])).rows[0].name, "Cardiologia Clínica");
+    await db.query("select public.admin_update_specialty($1,$2)", [cardio.id, "Cardiologia"]);
+    await db.query("select public.admin_set_specialty_active($1,false)", [cardio.id]);
+    assert.equal((await db.query("select active from public.admin_list_specialties() where id=$1", [cardio.id])).rows[0].active, false);
+    await db.query("select public.admin_set_specialty_active($1,true)", [cardio.id]);
   });
   await t.test("médico salvo pelo admin aparece no catálogo do paciente", async () => {
     await save("doctor", "doctor", "Doutora Teste", "Cardiologia");

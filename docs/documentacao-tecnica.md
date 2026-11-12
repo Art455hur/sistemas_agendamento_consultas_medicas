@@ -85,11 +85,13 @@ recuperação conforme [autenticação](autenticacao-supabase.md). Não colocar
 | `public.appointments` | Paciente e médico ligados a `profiles`; nome do médico preservado, especialidade, instante, motivo e status |
 | `public.hospital` | Hospital Sapiens, ID fixo 1 |
 | `public.hospital_staff` | Um vínculo por perfil; referência ao hospital e indicador `active` |
+| `public.specialties` | Catálogo de especialidades ativas/inativas administrado pelo painel |
 
 O cadastro público cria perfil `patient` por trigger. CPF não nulo é único e deve
 ter 11 números; nascimento não pode estar no futuro. O papel não é editável pelo
-paciente. A implementação atual não tem tabelas próprias de especialidades e
-disponibilidade: a especialidade fica no perfil e a grade é fixa.
+paciente. A branch do CRUD de especialidades adiciona `public.specialties` e mantém `profiles.specialty`
+como compatibilidade para os médicos e `appointments.specialty` como histórico. A gestão de
+disponibilidade continua pendente e a grade ainda é fixa.
 
 O esquema `private` contém funções auxiliares e operações privilegiadas. Deve
 permanecer fora dos esquemas expostos pela Data API.
@@ -109,6 +111,7 @@ Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 | `20261112025202` | `20261112025202_especialidade_funcionarios.sql` | Nome e especialidade na gestão da equipe |
 | `20261112131100` | `20261112131100_reativar_funcionario.sql` | Reativação preservando dados |
 | `20261112173011` | `20261112173011_validar_cpf_perfis.sql` | Validação matemática de CPF novo ou alterado, preservando o legado |
+| `20261112183000` | `20261112183000_crud_especialidades.sql` | Catálogo e CRUD administrativo de especialidades; integrar somente após revisão |
 
 As nove migrações constam no histórico do projeto compartilhado de testes. A versão `20261112173011` foi aplicada e verificada em 12/11/2026; não a execute novamente nesse projeto.
 Confira o histórico remoto antes de qualquer execução. Não reaplique arquivos já
@@ -201,9 +204,9 @@ segurança do ambiente. Merge e testes automatizados não substituem esse roteir
 
 ## Pendências e manutenção
 
-Painéis de médico/secretaria, grade individual de disponibilidade, gestão completa
-de especialidades/cadastros, módulos administrativos de agenda/serviços e validações
-adicionais continuam no backlog. Não marcar um card inteiro como concluído pela
+Painéis de médico/secretaria, grade individual de disponibilidade, demais cadastros,
+módulos administrativos de agenda/serviços e validações adicionais continuam no backlog.
+O CRUD de especialidades está implementado nesta branch e deve ser validado antes do merge. Não marcar um card inteiro como concluído pela
 entrega de uma parte.
 
 Cada PR que mudar comportamento, banco ou configuração deve atualizar a documentação

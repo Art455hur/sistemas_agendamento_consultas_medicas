@@ -75,6 +75,7 @@
 .module h3 { margin: 24px 0 7px; font-size: 17px; }
 .module p { font-size: 13px; }
 .moduleFoot { margin-top: auto; border-top: 1px solid #ecf0f3; padding-top: 17px; color: #91a3af; font-size: 12px; font-weight: 600; }
+.moduleFoot[href] { color: #087c96; text-decoration: none; }
 .nextStep { margin-top: 32px; background: #fff; border: 1px solid #e3ebef; border-radius: 16px; padding: 23px; display: flex; gap: 18px; }
 .nextIcon { display: grid; place-items: center; flex-shrink: 0; background: #ebf5f8; color: #11829b; border-radius: 12px; width: 42px; height: 42px; font-size: 23px; }
 .nextStep h2 { font-size: 15px; margin-top: 2px; }

@@ -25,7 +25,8 @@ const modules = [
     number: "02",
     title: "Horários disponíveis",
     description: "Configure a grade de atendimento individual dos profissionais.",
-    status: "Aguardando integração",
+    status: "Configurar",
+    href: "/administracao/horarios",
   },
 ];
 
@@ -182,7 +183,7 @@ export default async function AdministracaoPage({ searchParams }) {
             <div className={styles.noticeIcon}>i</div>
             <div>
               <strong>Equipe, especialidades e agenda em ambiente de testes</strong>
-              <p>Especialidades desativadas ficam preservadas no histórico. A agenda permite apenas consulta; a gestão de horários ainda aguarda integração.</p>
+              <p>Especialidades desativadas ficam preservadas no histórico. A agenda permite apenas consulta; os horários dos médicos têm configuração própria.</p>
             </div>
           </section>
 
@@ -358,7 +359,7 @@ export default async function AdministracaoPage({ searchParams }) {
                   </div>
                   <h3>{module.title}</h3>
                   <p>{module.description}</p>
-                  <div className={styles.moduleFoot}>Disponível após integração</div>
+                  <Link className={styles.moduleFoot} href={module.href}>Abrir horários →</Link>
                 </article>
               ))}
             </div>
@@ -368,7 +369,7 @@ export default async function AdministracaoPage({ searchParams }) {
             <div className={styles.nextIcon}>↗</div>
             <div>
               <h2 id="next-heading">Próximo passo</h2>
-              <p>Validar agenda e especialidades com contas fictícias, concluir a gestão de horários e só então revisar a ativação do login no site publicado.</p>
+              <p>Após revisar e aplicar a migração de horários, validar com contas fictícias antes de ativar o login no site publicado.</p>
             </div>
           </section>
         </div>

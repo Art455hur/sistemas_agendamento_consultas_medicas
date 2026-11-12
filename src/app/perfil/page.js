@@ -8,6 +8,8 @@ import {
 import UserMenu, {
   SidebarUser,
 } from "../../components/UserMenu";
+import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
+import { loadPatientProfile, savePatientProfile } from "../../lib/patient-profile";
 
 function formatPhone(value) {
   const numbers = value
@@ -73,24 +75,34 @@ export default function Perfil() {
   const [messageType, setMessageType] =
     useState("");
 
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [profile, setProfile] =
     useState({
-      name: "João Silva",
-      email: "joao@email.com",
-      phone: "(11) 99999-9999",
-      birthDate: "1995-05-20",
-      cpf: "123.456.789-00",
+      name: "", email: "", phone: "", birthDate: "", cpf: "",
     });
 
   useEffect(() => {
-    const savedProfile =
-      localStorage.getItem("profile");
-
-    if (savedProfile) {
-      setProfile(
-        JSON.parse(savedProfile)
-      );
+    let active = true;
+    async function load() {
+      try {
+        const saved = isSupabaseConfigured()
+          ? await loadPatientProfile(createClient())
+          : JSON.parse(localStorage.getItem("profile") || "null");
+        if (active && saved) setProfile({ ...saved, phone: formatPhone(saved.phone || ""), cpf: formatCpf(saved.cpf || "") });
+      } catch {
+        if (active) {
+          setLoadError(true);
+          setMessage("Não foi possível carregar o perfil. Atualize a página para tentar novamente.");
+          setMessageType("error");
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
     }
+    load();
+    return () => { active = false; };
   }, []);
 
   const today = new Date();
@@ -127,8 +139,9 @@ export default function Perfil() {
     }));
   }
 
-  function saveProfile(event) {
+  async function saveProfile(event) {
     event.preventDefault();
+    if (loading || saving || loadError) return;
 
     setMessage("");
     setMessageType("");
@@ -165,6 +178,23 @@ export default function Perfil() {
         .trim()
         .toLowerCase(),
     };
+
+    if (isSupabaseConfigured()) {
+      setSaving(true);
+      try {
+        const saved = await savePatientProfile(createClient(), updatedProfile);
+        setProfile({ ...saved, phone: formatPhone(saved.phone), cpf: formatCpf(saved.cpf) });
+        window.dispatchEvent(new Event("profileUpdated"));
+        setMessage("Perfil atualizado com sucesso!");
+        setMessageType("success");
+      } catch (error) {
+        setMessage(error.message);
+        setMessageType("error");
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
 
     setProfile(updatedProfile);
 
@@ -315,6 +345,7 @@ export default function Perfil() {
                 className="profile-form"
                 onSubmit={saveProfile}
               >
+                {loading && <p role="status">Carregando perfil...</p>}
                 <div className="profile-field profile-field-full">
                   <label htmlFor="name">
                     Nome completo
@@ -324,7 +355,9 @@ export default function Perfil() {
                     id="name"
                     name="name"
                     type="text"
+                    maxLength={120}
                     value={profile.name}
+                    disabled={loading || saving || loadError}
                     onChange={updateField}
                     required
                   />
@@ -340,11 +373,15 @@ export default function Perfil() {
                     name="email"
                     type="email"
                     value={profile.email}
+                    readOnly={isSupabaseConfigured()}
+                    aria-describedby={isSupabaseConfigured() ? "email-help" : undefined}
+                    disabled={loading || saving || loadError}
                     onChange={updateField}
                     required
                   />
                 </div>
 
+                {isSupabaseConfigured() && <p id="email-help">O e-mail de acesso não é alterado nesta tela.</p>}
                 <div className="profile-field">
                   <label htmlFor="phone">
                     Telefone
@@ -355,6 +392,7 @@ export default function Perfil() {
                     name="phone"
                     type="tel"
                     value={profile.phone}
+                    disabled={loading || saving || loadError}
                     onChange={updateField}
                     placeholder="(11) 99999-9999"
                     required
@@ -374,6 +412,7 @@ export default function Perfil() {
                     value={
                       profile.birthDate
                     }
+                    disabled={loading || saving || loadError}
                     onChange={updateField}
                     required
                   />
@@ -391,6 +430,7 @@ export default function Perfil() {
                     inputMode="numeric"
                     maxLength="14"
                     value={profile.cpf}
+                    disabled={loading || saving || loadError}
                     onChange={updateField}
                     placeholder="000.000.000-00"
                     required
@@ -399,6 +439,7 @@ export default function Perfil() {
 
                 {message && (
                   <p
+                    role={messageType === "error" ? "alert" : "status"}
                     className={`profile-message ${messageType}`}
                   >
                     {message}
@@ -408,8 +449,9 @@ export default function Perfil() {
                 <button
                   type="submit"
                   className="profile-button"
+                  disabled={loading || saving || loadError}
                 >
-                  Salvar alterações
+                  {saving ? "Salvando..." : "Salvar alterações"}
                 </button>
               </form>
             </section>

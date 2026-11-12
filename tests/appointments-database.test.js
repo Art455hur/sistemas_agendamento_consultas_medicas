@@ -56,6 +56,23 @@ test("CRUD, RLS, horários e papéis no Postgres", async (t) => {
     assert.equal((await db.query("select * from public.profiles")).rows.length, 1);
     await fails("update public.profiles set role='admin' where id=$1", [ids.patient], "42501");
   });
+  await t.test("perfil persiste entre sessões e só permite os campos cadastrais do titular", async () => {
+    const updated = await db.query(
+      "update public.profiles set full_name=$1, phone=$2, cpf=$3, birth_date=$4 where id=$5 returning full_name, phone, cpf, birth_date::text",
+      ["Paciente atualizado", "11999999999", "12345678901", "1995-05-20", ids.patient]);
+    assert.equal(updated.rows.length, 1);
+    await asUser(ids.patient);
+    const saved = (await db.query("select full_name, phone, cpf, birth_date::text from public.profiles where id=$1", [ids.patient])).rows[0];
+    assert.deepEqual(saved, updated.rows[0]);
+    await asUser(ids.other);
+    assert.equal((await db.query("select * from public.profiles where id=$1", [ids.patient])).rows.length, 0);
+    assert.equal((await db.query("update public.profiles set full_name='Intruso' where id=$1 returning id", [ids.patient])).rows.length, 0);
+    await fails("update public.profiles set cpf='12345678901' where id=$1", [ids.other], "23505");
+    await fails("update public.profiles set birth_date=current_date+1 where id=$1", [ids.other], "23514");
+    await fails("update public.profiles set role='admin' where id=$1", [ids.other], "42501");
+    await asUser(ids.patient);
+    assert.equal((await db.query("select full_name from public.profiles where id=$1", [ids.patient])).rows[0].full_name, "Paciente atualizado");
+  });
   let appointment;
   await t.test("consulta deriva paciente e profissional no servidor e fica persistida", async () => {
     appointment = (await create(ids.doctor, "08:00")).rows[0];

@@ -79,3 +79,18 @@ Não publique antes da revisão da interface integrada.
 
 A migração `20261112131100_reativar_funcionario.sql` já foi aplicada no banco de
 testes. Funcionários inativos agora têm botão **Reativar** no painel administrativo.
+
+## Persistência do perfil
+
+Com a autenticação Supabase habilitada, `/perfil` lê e atualiza `public.profiles`
+pelo ID da sessão validada. Nome, telefone, CPF e nascimento são persistidos;
+o e-mail exibido vem do Auth e é somente leitura. Nenhum dado do armazenamento
+local é importado automaticamente para a conta autenticada. O menu também lê
+o nome do banco. As políticas existentes limitam leitura e atualização ao titular.
+Não há nova migração: os campos e permissões já estão na migração
+`20261112014111_perfil_paciente_e_fuso_sao_paulo.sql`.
+
+Para validar em uma prévia desta branch: salve dados de teste no perfil, entre
+com a mesma conta em outra sessão e confira os quatro campos. Depois entre
+com outro paciente e confirme que os dados dele permanecem separados.
+CPF duplicado deve exibir erro sem indicar sucesso.

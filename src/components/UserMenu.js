@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { loadPatientProfile } from "../lib/patient-profile";
 import { useAppointments } from "../lib/useAppointments";
 import { createClient, isSupabaseConfigured } from "../lib/supabase/client";
 
@@ -18,14 +19,15 @@ function useSavedProfile() {
     });
 
   useEffect(() => {
-    function loadProfile() {
-      const savedProfile =
-        localStorage.getItem("profile");
-
-      if (savedProfile) {
-        setProfile(
-          JSON.parse(savedProfile)
-        );
+    let active = true;
+    async function loadProfile() {
+      try {
+        const savedProfile = isSupabaseConfigured()
+          ? await loadPatientProfile(createClient())
+          : JSON.parse(localStorage.getItem("profile") || "null");
+        if (active) setProfile(savedProfile || { name: "Usuário", email: "", phone: "" });
+      } catch {
+        if (active) setProfile({ name: "Usuário", email: "", phone: "" });
       }
     }
 
@@ -42,6 +44,7 @@ function useSavedProfile() {
     );
 
     return () => {
+      active = false;
       window.removeEventListener(
         "profileUpdated",
         loadProfile

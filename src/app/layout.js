@@ -1,5 +1,5 @@
 import "./globals.css";
-import AuthGuard from "@/components/AuthGuard";
+import AuthGuard from "@/features/auth/components/AuthGuard.js";
 
 export const metadata = {
   title: "Sistema de Agendamento Médico",

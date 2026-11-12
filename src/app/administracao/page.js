@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ROLES } from "@/lib/access-control";
+import { ROLES } from "@/features/auth/access-control.js";
 import { createClient } from "@/lib/supabase/server";
 import { assignStaff, deactivateStaff, reactivateStaff } from "@/app/administracao/actions";
 import styles from "@/app/administracao/page.module.css";

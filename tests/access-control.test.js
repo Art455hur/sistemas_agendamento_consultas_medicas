@@ -7,7 +7,7 @@ import {
   isAllowedRole,
   PERMISSIONS,
   ROLES,
-} from "../src/lib/access-control.js";
+} from "../src/features/auth/access-control.js";
 
 test("cada perfil tem um destino próprio", () => {
   assert.equal(homeForRole(ROLES.PATIENT), "/dashboard");

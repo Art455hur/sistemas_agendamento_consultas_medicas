@@ -32,6 +32,7 @@ test("CRUD, RLS, horários e papéis no Postgres", async (t) => {
     await db.query("insert into public.hospital_staff(profile_id,active) values ($1,$2)", [ids[key], key !== "inactive"]);
   }
   await db.query("update public.profiles set role='admin' where id=$1", [ids.admin]);
+  await db.query("insert into public.specialties(name) values ('Clínica Geral')");
   const tomorrow = (await db.query("select ((now() at time zone 'America/Sao_Paulo')::date + 1)::text as day")).rows[0].day;
   const at = (time) => `${tomorrow}T${time}:00-03:00`;
   const asUser = async (id) => {

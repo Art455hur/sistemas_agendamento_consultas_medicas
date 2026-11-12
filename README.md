@@ -58,8 +58,8 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Conflitos | Proteção no banco contra duas consultas ativas do mesmo médico ou paciente no mesmo instante |
 | Dashboard e notificações | Indicadores e avisos individuais de consultas futuras/canceladas, com links e atualização após alterações |
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
-| Administração | Painel restrito a administrador ativo, gestão de funcionários e leitura diária da agenda da clínica |
-| Banco e testes | Dez migrações versionadas (a última pendente no banco compartilhado) e testes de regras, persistência, RLS e sessão |
+| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades e leitura diária da agenda da clínica |
+| Banco e testes | Onze migrações versionadas no código; conferir o histórico remoto antes de aplicar migrações pendentes |
 
 A gestão de funcionários exige contas previamente existentes no Supabase Auth. Não cria contas Auth nem concede papel de administrador. Notificações na interface não representam envio de e-mail, SMS ou push.
 
@@ -195,7 +195,7 @@ compatibilidade para reduzir conflitos com o trabalho paralelo da equipe.
 
 ## Armazenamento dos dados
 
-Com Supabase habilitado, `profiles` guarda dados cadastrais e papéis; `appointments` guarda consultas; `hospital` e `hospital_staff` representam o hospital e seus vínculos. As contas e credenciais são gerenciadas pelo Supabase Auth.
+Com Supabase habilitado, `profiles` guarda dados cadastrais e papéis; `appointments` guarda consultas; `hospital` e `hospital_staff` representam o hospital e seus vínculos; `specialties` mantém o catálogo administrável de especialidades. As contas e credenciais são gerenciadas pelo Supabase Auth.
 
 Com a flag desligada, os fluxos simulados continuam usando o navegador. Não utilizar esse modo para dados reais de pacientes. A edição do perfil já foi integrada ao banco; não há importação automática de cadastros e consultas locais.
 
@@ -277,6 +277,7 @@ Os testes automatizados usam dados fictícios e banco descartável; não acessam
 - [Consultas e perfil do paciente](docs/consultas-supabase.md)
 - [Painel administrativo](docs/painel-administrador.md)
 - [Gestão de funcionários](docs/gestao-funcionarios.md)
+- [CRUD de especialidades](docs/especialidades.md)
 - [Conflitos e teste de concorrência](docs/conflitos-horarios.md)
 - [Modelagem inicial e evolução](docs/modelagem-inicial-n2.md)
 - [Hospital e vínculos](docs/vinculos-hospital.md)
@@ -300,7 +301,7 @@ O modo simulado permanece o padrão. A configuração atual da Vercel e o estado
 ## Próximos passos
 
 - Concluir painéis do médico e da secretaria.
-- Implementar gestão de disponibilidade por profissional, especialidades e demais cadastros previstos no backlog.
+- Implementar gestão de disponibilidade por profissional e demais cadastros previstos no backlog; o CRUD de especialidades está implementado nesta branch.
 - Completar edição da agenda pelo administrador e o módulo de serviços; a agenda diária já permite leitura.
 - Ampliar as validações dos demais campos; formulários e banco já conferem os dígitos verificadores do CPF em novas gravações e alterações do número. Veja [escopo e testes](docs/validacao-cpf.md).
 - Definir o destino dos dados simulados e validar isolamento entre contas.

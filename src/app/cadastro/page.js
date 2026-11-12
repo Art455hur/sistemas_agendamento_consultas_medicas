@@ -1,67 +1,13 @@
 "use client";
 
+import { formatPhone, formatCpf } from "@/shared/formatting/patient-fields.js";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { registrationFeedback, registrationConnectionFeedback } from "@/features/auth/registration-feedback.js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { isValidCpf } from "@/shared/validation/cpf.js";
-
-function formatPhone(value) {
-  const numbers = value
-    .replace(/\D/g, "")
-    .slice(0, 11);
-
-  if (numbers.length <= 2) {
-    return numbers
-      ? `(${numbers}`
-      : "";
-  }
-
-  if (numbers.length <= 6) {
-    return `(${numbers.slice(
-      0,
-      2
-    )}) ${numbers.slice(2)}`;
-  }
-
-  if (numbers.length <= 10) {
-    return `(${numbers.slice(
-      0,
-      2
-    )}) ${numbers.slice(
-      2,
-      6
-    )}-${numbers.slice(6)}`;
-  }
-
-  return `(${numbers.slice(
-    0,
-    2
-  )}) ${numbers.slice(
-    2,
-    7
-  )}-${numbers.slice(7)}`;
-}
-
-function formatCpf(value) {
-  const numbers = value
-    .replace(/\D/g, "")
-    .slice(0, 11);
-
-  return numbers
-    .replace(
-      /^(\d{3})(\d)/,
-      "$1.$2"
-    )
-    .replace(
-      /^(\d{3})\.(\d{3})(\d)/,
-      "$1.$2.$3"
-    )
-    .replace(
-      /\.(\d{3})(\d)/,
-      ".$1-$2"
-    );
-}
 
 export default function Cadastro() {
   const router = useRouter();
@@ -86,6 +32,11 @@ export default function Cadastro() {
 
   const [message, setMessage] =
     useState("");
+
+  const [messageType, setMessageType] = useState("error");
+  const [submitting, setSubmitting] = useState(false);
+  const [complete, setComplete] = useState(false);
+  const requestState = useRef("idle");
 
   const today = new Date();
 
@@ -122,7 +73,8 @@ export default function Cadastro() {
 
   async function handleRegister(event) {
     event.preventDefault();
-
+    if (requestState.current !== "idle") return;
+    setMessageType("error");
     setMessage("");
 
     if (
@@ -196,20 +148,33 @@ export default function Cadastro() {
     }
 
     if (isSupabaseConfigured()) {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signUp({
-        email: form.email.trim().toLowerCase(),
-        password: form.password,
-        options: {
-          data: { name: form.name.trim() },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) {
-        setMessage("Não foi possível criar a conta. Verifique os dados e tente novamente.");
-        return;
+      requestState.current = "submitting";
+      setSubmitting(true);
+      try {
+        const result = await createClient().auth.signUp({
+          email: form.email.trim().toLowerCase(),
+          password: form.password,
+          options: {
+            data: { name: form.name.trim() },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+        const feedback = registrationFeedback(result);
+        setMessage(feedback.message);
+        setMessageType(feedback.type);
+        if (feedback.complete) {
+          requestState.current = "complete";
+          setComplete(true);
+          setForm((current) => ({ ...current, password: "", confirmPassword: "" }));
+        }
+      } catch {
+        const feedback = registrationConnectionFeedback();
+        setMessage(feedback.message);
+        setMessageType(feedback.type);
+      } finally {
+        if (requestState.current !== "complete") requestState.current = "idle";
+        setSubmitting(false);
       }
-      setMessage("Cadastro enviado! Confirme seu e-mail, se solicitado, e depois entre na sua conta.");
       return;
     }
 
@@ -326,6 +291,7 @@ export default function Cadastro() {
                 name="name"
                 type="text"
                 value={form.name}
+                disabled={submitting || complete}
                 onChange={updateField}
                 placeholder="Digite seu nome completo"
                 autoComplete="name"
@@ -343,6 +309,7 @@ export default function Cadastro() {
                 name="email"
                 type="email"
                 value={form.email}
+                disabled={submitting || complete}
                 onChange={updateField}
                 placeholder="Digite seu e-mail"
                 autoComplete="email"
@@ -360,6 +327,7 @@ export default function Cadastro() {
                 name="phone"
                 type="tel"
                 value={form.phone}
+                disabled={submitting || complete}
                 onChange={updateField}
                 placeholder="(11) 99999-9999"
                 autoComplete="tel"
@@ -378,6 +346,7 @@ export default function Cadastro() {
                 type="date"
                 max={maximumBirthDate}
                 value={form.birthDate}
+                disabled={submitting || complete}
                 onChange={updateField}
                 autoComplete="bday"
                 required
@@ -395,6 +364,7 @@ export default function Cadastro() {
                 type="text"
                 inputMode="numeric"
                 value={form.cpf}
+                disabled={submitting || complete}
                 onChange={updateField}
                 placeholder="000.000.000-00"
                 maxLength="14"
@@ -417,6 +387,7 @@ export default function Cadastro() {
                       : "password"
                   }
                   value={form.password}
+                  disabled={submitting || complete}
                   onChange={updateField}
                   placeholder="Crie uma senha"
                   autoComplete="new-password"
@@ -457,6 +428,7 @@ export default function Cadastro() {
                   value={
                     form.confirmPassword
                   }
+                  disabled={submitting || complete}
                   onChange={updateField}
                   placeholder="Digite novamente"
                   autoComplete="new-password"
@@ -481,7 +453,7 @@ export default function Cadastro() {
             </div>
 
             {message && (
-              <p className="auth-message error">
+              <p className={`auth-message ${messageType}`} role={messageType === "error" ? "alert" : "status"}>
                 {message}
               </p>
             )}
@@ -489,8 +461,10 @@ export default function Cadastro() {
             <button
               type="submit"
               className="auth-submit-button"
+              disabled={submitting || complete}
+              aria-busy={submitting}
             >
-              Criar cadastro
+              {submitting ? "Enviando cadastro..." : complete ? "Cadastro enviado" : "Criar cadastro"}
             </button>
           </form>
 

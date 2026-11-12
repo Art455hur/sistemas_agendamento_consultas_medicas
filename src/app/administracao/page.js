@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ROLES } from "@/features/auth/access-control.js";
+import { clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { createClient } from "@/lib/supabase/server";
 import {
   assignStaff,
@@ -20,12 +21,6 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 const modules = [
-  {
-    number: "01",
-    title: "Agenda da clínica",
-    description: "Consulte a programação da equipe quando a gestão geral de agendamentos estiver integrada.",
-    status: "Aguardando integração",
-  },
   {
     number: "02",
     title: "Horários disponíveis",
@@ -57,7 +52,22 @@ const feedback = {
 
 const roleLabel = { admin: "Administrador", doctor: "Médico", receptionist: "Secretaria" };
 
+function selectedDay(value) {
+  const today = clinicDateTime(new Date()).date;
+  if (value === undefined) return today;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const parsed = new Date(`${value}T12:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? value : null;
+}
+
+function appointmentStatus(row) {
+  if (row.status === "cancelled") return "Cancelada";
+  if (row.status === "completed" || new Date(row.scheduled_at) < new Date()) return "Concluída";
+  return "Agendada";
+}
+
 export default async function AdministracaoPage({ searchParams }) {
+  // Não mostrar painel administrativo enquanto o Auth real estiver desligado.
   if (
     process.env.NEXT_PUBLIC_ENABLE_SUPABASE_AUTH !== "true" ||
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -83,6 +93,7 @@ export default async function AdministracaoPage({ searchParams }) {
     redirect("/login?redirect=%2Fadministracao");
   }
 
+  // O papel é lido no banco com a sessão do usuário e RLS; nunca do navegador.
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role, full_name")
@@ -121,16 +132,19 @@ export default async function AdministracaoPage({ searchParams }) {
     );
   }
 
+  const { resultado, dia } = await searchParams;
+  const day = selectedDay(dia);
   const [
     { data: staff, error: staffError },
     { data: specialties, error: specialtyError },
+    agendaResult,
   ] = await Promise.all([
     supabase.rpc("admin_list_staff"),
     supabase.rpc("admin_list_specialties"),
+    day ? supabase.rpc("admin_list_appointments", { p_day: day }) : Promise.resolve({ data: null, error: null }),
   ]);
-
   const activeSpecialties = specialties?.filter((specialty) => specialty.active) ?? [];
-  const { resultado } = await searchParams;
+  const appointments = agendaResult.data || [];
 
   return (
     <div className={styles.shell}>
@@ -141,7 +155,8 @@ export default async function AdministracaoPage({ searchParams }) {
           <span className={styles.current} aria-current="page">▦ Visão geral</span>
           <a className={styles.teamLink} href="#equipe">♧ Equipe</a>
           <a className={styles.teamLink} href="#especialidades">✚ Especialidades</a>
-          <span className={styles.upcoming}>▤ Agenda <small>Em breve</small></span>
+          <a className={styles.teamLink} href="#agenda">▤ Agenda</a>
+          <span className={styles.upcoming}>✚ Serviços <small>Em breve</small></span>
         </nav>
         <div className={styles.sidebarFooter}>Área administrativa · N2</div>
       </aside>
@@ -157,7 +172,7 @@ export default async function AdministracaoPage({ searchParams }) {
             <div>
               <span className={styles.eyebrow}>VISÃO GERAL DA CLÍNICA</span>
               <h1>Olá, {profile.full_name?.trim() || "administrador"}.</h1>
-              <p>Gerencie equipe e especialidades do Hospital Sapiens.</p>
+              <p>Gerencie equipe, especialidades e consulte a agenda do Hospital Sapiens.</p>
             </div>
             <span className={styles.phase}>Painel em construção</span>
           </div>
@@ -165,8 +180,8 @@ export default async function AdministracaoPage({ searchParams }) {
           <section className={styles.notice} aria-label="Estado da integração">
             <div className={styles.noticeIcon}>i</div>
             <div>
-              <strong>Especialidades integradas ao cadastro de médicos</strong>
-              <p>Especialidades desativadas ficam preservadas no histórico, mas deixam de aceitar novos vínculos e novos agendamentos.</p>
+              <strong>Equipe, especialidades e agenda em ambiente de testes</strong>
+              <p>Especialidades desativadas ficam preservadas no histórico. A agenda permite apenas consulta; a gestão de horários ainda aguarda integração.</p>
             </div>
           </section>
 
@@ -180,7 +195,6 @@ export default async function AdministracaoPage({ searchParams }) {
               </div>
               <span>{specialties?.length ?? 0} cadastradas</span>
             </div>
-
             {specialtyError ? (
               <p role="alert" className={styles.feedback}>Não foi possível carregar as especialidades. Aplique a migration deste card antes de testar a tela.</p>
             ) : (
@@ -190,26 +204,13 @@ export default async function AdministracaoPage({ searchParams }) {
                     <form action={updateSpecialty} className={styles.specialtyEditForm}>
                       <input type="hidden" name="specialtyId" value={specialty.id} />
                       <label className={styles.srOnly} htmlFor={`specialty-${specialty.id}`}>Nome da especialidade</label>
-                      <input
-                        id={`specialty-${specialty.id}`}
-                        name="name"
-                        type="text"
-                        minLength={2}
-                        maxLength={120}
-                        required
-                        defaultValue={specialty.name}
-                      />
+                      <input id={`specialty-${specialty.id}`} name="name" type="text" minLength={2} maxLength={120} required defaultValue={specialty.name} />
                       <button type="submit">Salvar</button>
                     </form>
-                    <span className={specialty.active ? styles.active : styles.inactive}>
-                      {specialty.active ? "Ativa" : "Inativa"}
-                    </span>
+                    <span className={specialty.active ? styles.active : styles.inactive}>{specialty.active ? "Ativa" : "Inativa"}</span>
                     <form action={specialty.active ? deactivateSpecialty : reactivateSpecialty}>
                       <input type="hidden" name="specialtyId" value={specialty.id} />
-                      <button
-                        className={specialty.active ? styles.deactivate : styles.reactivate}
-                        type="submit"
-                      >
+                      <button className={specialty.active ? styles.deactivate : styles.reactivate} type="submit">
                         {specialty.active ? "Desativar" : "Reativar"}
                       </button>
                     </form>
@@ -218,19 +219,10 @@ export default async function AdministracaoPage({ searchParams }) {
                 {specialties?.length === 0 && <p>Ainda não há especialidades cadastradas.</p>}
               </div>
             )}
-
             <form action={createSpecialty} className={styles.specialtyCreateForm}>
               <div>
                 <label htmlFor="new-specialty">Nova especialidade</label>
-                <input
-                  id="new-specialty"
-                  name="name"
-                  type="text"
-                  minLength={2}
-                  maxLength={120}
-                  required
-                  placeholder="Ex.: Cardiologia"
-                />
+                <input id="new-specialty" name="name" type="text" minLength={2} maxLength={120} required placeholder="Ex.: Cardiologia" />
               </div>
               <button type="submit">Cadastrar especialidade</button>
             </form>
@@ -247,7 +239,7 @@ export default async function AdministracaoPage({ searchParams }) {
             </div>
 
             {staffError ? (
-              <p role="alert" className={styles.feedback}>Não foi possível carregar a equipe. Verifique se as migrations de permissões foram aplicadas.</p>
+              <p role="alert" className={styles.feedback}>Não foi possível carregar a equipe. Verifique se a migration de permissões foi aplicada.</p>
             ) : (
               <div className={styles.staffList}>
                 {staff?.map((member) => (
@@ -308,13 +300,53 @@ export default async function AdministracaoPage({ searchParams }) {
             <p className={styles.staffHint}>Para atualizar nome, função ou especialidade, preencha o formulário com o mesmo e-mail. Desativar não exclui o usuário nem cancela consultas existentes.</p>
           </section>
 
+          <section id="agenda" className={styles.agendaSection} aria-labelledby="agenda-heading">
+            <div className={styles.sectionHeading}>
+              <div>
+                <h2 id="agenda-heading">Agenda da clínica</h2>
+                <p>Consultas do Hospital Sapiens no horário da clínica (São Paulo). Somente leitura.</p>
+              </div>
+              <span>Até 200 consultas por dia</span>
+            </div>
+            <form action="/administracao" method="get" className={styles.agendaFilter}>
+              <label htmlFor="agenda-day">Dia da agenda</label>
+              <input id="agenda-day" type="date" name="dia" defaultValue={day || ""} required />
+              <button type="submit">Consultar</button>
+            </form>
+            {!day ? (
+              <p role="alert" className={styles.feedback}>Escolha uma data válida para consultar a agenda.</p>
+            ) : agendaResult.error ? (
+              <p role="alert" className={styles.feedback}>Não foi possível carregar a agenda. Confira se a migração de leitura administrativa foi aplicada.</p>
+            ) : appointments.length === 0 ? (
+              <p className={styles.agendaEmpty}>Nenhuma consulta encontrada neste dia.</p>
+            ) : (
+              <div className={styles.agendaList}>
+                {appointments.map((appointment) => {
+                  const status = appointmentStatus(appointment);
+                  return (
+                    <article className={styles.agendaRow} key={appointment.id}>
+                      <time dateTime={appointment.scheduled_at} className={styles.agendaTime}>
+                        {clinicDateTime(appointment.scheduled_at).time}
+                      </time>
+                      <div className={styles.agendaDetails}>
+                        <strong>{appointment.patient_name?.trim() || "Paciente sem nome"}</strong>
+                        <span>{appointment.doctor_name?.trim() || "Médico sem nome"} · {appointment.specialty}</span>
+                      </div>
+                      <span className={status === "Agendada" ? styles.active : styles.inactive}>{status}</span>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
           <section aria-labelledby="modules-heading">
             <div className={styles.sectionHeading}>
               <div>
-                <h2 id="modules-heading">Próximos módulos</h2>
-                <p>Funcionalidades administrativas ainda pendentes no backlog.</p>
+                <h2 id="modules-heading">Módulos de gestão</h2>
+                <p>Funcionalidades planejadas para o administrador.</p>
               </div>
-              <span>{modules.length} módulos</span>
+              <span>1 módulo</span>
             </div>
             <div className={styles.grid}>
               {modules.map((module) => (
@@ -335,7 +367,7 @@ export default async function AdministracaoPage({ searchParams }) {
             <div className={styles.nextIcon}>↗</div>
             <div>
               <h2 id="next-heading">Próximo passo</h2>
-              <p>Aplicar e validar a migration em ambiente coordenado pela equipe, testar o CRUD e só depois integrar à main.</p>
+              <p>Validar agenda e especialidades com contas fictícias, concluir a gestão de horários e só então revisar a ativação do login no site publicado.</p>
             </div>
           </section>
         </div>

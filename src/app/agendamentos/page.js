@@ -1,12 +1,12 @@
 "use client";
 
+import AppointmentListItem from "@/features/appointments/components/AppointmentListItem.js";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAppointments } from "@/features/appointments/hooks/useAppointments.js";
 import { cancelAppointment as cancelSavedAppointment } from "@/features/appointments/services/appointments.js";
-import UserMenu, {
-  SidebarUser,
-} from "@/components/navigation/UserMenu.js";
+import PatientShell from "@/components/layout/PatientShell.js";
 
 export default function MeusAgendamentos() {
   const { appointments, loading, error } = useAppointments();
@@ -64,27 +64,6 @@ export default function MeusAgendamentos() {
   const currentEmptyMessage =
     emptyMessages[activeTab];
 
-  function formatDate(date) {
-    if (!date || !date.includes("-")) {
-      return date;
-    }
-
-    const [year, month, day] = date.split("-");
-    return `${day}/${month}/${year}`;
-  }
-
-  function getStatusClass(status) {
-    if (status === "Cancelada") {
-      return "status status-cancelled";
-    }
-
-    if (status === "Concluída") {
-      return "status status-completed";
-    }
-
-    return "status status-scheduled";
-  }
-
   async function cancelAppointment(appointmentId) {
     if (cancelling || !window.confirm("Deseja realmente cancelar esta consulta?")) return;
     setCancelling(appointmentId);
@@ -95,43 +74,7 @@ export default function MeusAgendamentos() {
   }
 
   return (
-    <div className="dashboard">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <span>+</span>
-          <strong>AgendaSaúde</strong>
-        </div>
-
-        <nav className="sidebar-menu">
-          <Link href="/dashboard">
-          🏠 Início
-          </Link>
-
-          <Link href="/agendar">
-            🗓️ Agendar consulta
-          </Link>
-
-          <Link
-            href="/agendamentos"
-            className="active"
-          >
-            📋 Meus agendamentos
-          </Link>
-
-          <Link href="/perfil">👤 Perfil</Link>
-        </nav>
-
-        <SidebarUser />
-      </aside>
-
-      <main className="dashboard-content">
-        <header className="topbar">
-          <div className="topbar-title">
-            Meus agendamentos
-          </div>
-
-          <UserMenu />
-        </header>
+    <PatientShell title="Meus agendamentos" activePath="/agendamentos">
 
         <div className="appointments-content">
           <header className="appointments-heading">
@@ -227,86 +170,17 @@ export default function MeusAgendamentos() {
             <section className="appointments-list">
               {filteredAppointments.map(
                 (appointment) => (
-                  <article
-                    className="appointment-item"
+                  <AppointmentListItem
                     key={appointment.id}
-                  >
-                    <div className="appointment-item-icon">
-                      🩺
-                    </div>
-
-                    <div className="appointment-item-info">
-                      <span
-                        className={getStatusClass(
-                          appointment.status
-                        )}
-                      >
-                        {appointment.status ||
-                          "Agendada"}
-                      </span>
-
-                      <h2>
-                        {appointment.specialty}
-                      </h2>
-
-                      <p className="appointment-doctor">
-                        {appointment.doctor}
-                      </p>
-
-                      <div className="appointment-details">
-                        <span>
-                          🗓️{" "}
-                          {formatDate(
-                            appointment.date
-                          )}
-                        </span>
-
-                        <span>
-                          🕐 {appointment.time}
-                        </span>
-                      </div>
-
-                      {appointment.reason && (
-                        <p className="appointment-reason">
-                          <strong>Motivo:</strong>{" "}
-                          {appointment.reason}
-                        </p>
-                      )}
-                    </div>
-
-                    {appointment.status !==
-                      "Cancelada" &&
-                      appointment.status !==
-                        "Concluída" && (
-                        <div className="appointment-actions">
-                          <Link
-                            href={`/agendar?remarcar=${appointment.id}`}
-                            className="reschedule-appointment"
-                          >
-                            Remarcar
-                          </Link>
-
-                          <button
-                            type="button"
-                            className="cancel-appointment"
-                            disabled={Boolean(cancelling)}
-                            onClick={() =>
-                              cancelAppointment(
-                                appointment.id
-                              )
-                            }
-                          >
-                            {cancelling === appointment.id ? "Cancelando..." : "Cancelar consulta"}
-                          </button>
-                        </div>
-                      )}
-                  </article>
+                    appointment={appointment}
+                    cancelling={cancelling}
+                    onCancel={cancelAppointment}
+                  />
                 )
               )}
             </section>
           )}
         </div>
-      </main>
-    </div>
+    </PatientShell>
   );
 }

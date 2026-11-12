@@ -224,3 +224,16 @@ Após revisar as alterações, selecione os arquivos do card com `git add`, faç
 commit com sua conta pessoal e envie a branch com `git push -u origin docs/seu-card`.
 Abra a PR para `main`, descreva a entrega e a validação e peça revisão a outro
 integrante. Para um card de código, use um nome como `feat/validacao-cpf`.
+
+## Retorno do cadastro
+
+O envio ao Auth diferencia sucesso, orientação e erro. Uma resposta de sucesso
+sem sessão pede a confirmação do e-mail em um aviso verde. Limites de envio,
+conta existente e respostas inconclusivas do servidor ou da rede recebem
+orientação para conferir o e-mail e fazer login, sem declarar um sucesso que
+não foi confirmado. Erros de dados continuam destacados como erro.
+
+O botão fica desativado durante o envio e depois de um cadastro aceito. Uma
+trava imediata também impede duas chamadas antes da atualização visual do React.
+As senhas são limpas do formulário após sucesso. Essa alteração não muda os
+metadados enviados no cadastro nem configurações do Supabase.

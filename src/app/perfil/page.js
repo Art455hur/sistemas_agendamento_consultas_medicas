@@ -7,10 +7,10 @@ import {
 } from "react";
 import UserMenu, {
   SidebarUser,
-} from "../../components/UserMenu";
-import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
-import { loadPatientProfile, savePatientProfile } from "../../lib/patient-profile";
-import { isValidCpf } from "../../lib/cpf.js";
+} from "@/components/navigation/UserMenu.js";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { loadPatientProfile, savePatientProfile } from "@/features/profile/services/patient-profile.js";
+import { isValidCpf } from "@/shared/validation/cpf.js";
 
 function formatPhone(value) {
   const numbers = value

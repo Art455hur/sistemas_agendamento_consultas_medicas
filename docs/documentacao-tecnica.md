@@ -18,15 +18,18 @@ não comprovam identidade no Supabase. O modo de demonstração não serve para 
 
 ## Tecnologias e responsabilidades
 
+Consulte também o [guia de arquitetura](arquitetura.md), que orienta onde
+implementar novos cards e explica os reexports de compatibilidade.
+
 | Componente | Responsabilidade |
 | --- | --- |
 | Next.js / React | Rotas, páginas e componentes |
 | `src/proxy.js` | Atualização dos cookies da sessão e redirecionamento de visitante sem sessão |
-| `src/components/AuthGuard.js` | Verificação de acesso nas telas do paciente |
-| `src/lib/access-control.js` | Nomes de papéis, permissões previstas e destinos; não substitui autorização no banco |
-| `src/lib/appointments.js` | Seleção do modo de dados, leitura e chamadas RPC de consultas |
-| `src/lib/appointment-format.js` | Conversão de dados, horário da clínica e mensagens de erro |
-| `src/lib/patient-profile.js` | Valida dados e lê/atualiza o próprio perfil pela sessão |
+| `src/features/auth/components/AuthGuard.js` | Verificação de acesso nas telas do paciente |
+| `src/features/auth/access-control.js` | Nomes de papéis, permissões previstas e destinos; não substitui autorização no banco |
+| `src/features/appointments/services/appointments.js` | Seleção do modo de dados, leitura e chamadas RPC de consultas |
+| `src/features/appointments/appointment-format.js` | Conversão de dados, horário da clínica e mensagens de erro |
+| `src/features/profile/services/patient-profile.js` | Valida dados e lê/atualiza o próprio perfil pela sessão |
 | `src/lib/supabase/client.js` e `server.js` | Clientes Supabase no navegador e no servidor |
 | `src/app/administracao/actions.js` | Ações administrativas no servidor que chamam RPCs autorizadas |
 | `supabase/migrations` | Evolução do esquema, funções e políticas |

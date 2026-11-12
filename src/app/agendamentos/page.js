@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useAppointments } from "../../lib/useAppointments";
-import { cancelAppointment as cancelSavedAppointment } from "../../lib/appointments";
+import { useAppointments } from "@/features/appointments/hooks/useAppointments.js";
+import { cancelAppointment as cancelSavedAppointment } from "@/features/appointments/services/appointments.js";
 import UserMenu, {
   SidebarUser,
-} from "../../components/UserMenu";
+} from "@/components/navigation/UserMenu.js";
 
 export default function MeusAgendamentos() {
   const { appointments, loading, error } = useAppointments();

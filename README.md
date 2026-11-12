@@ -171,24 +171,27 @@ Como paciente, quero consultar e atualizar meus dados pessoais para manter minha
 | Figma Make | Criação e validação do protótipo navegável. |
 | PraxiLab | Organização do Kanban, backlog, responsáveis e prazos. |
 
-## Arquitetura inicial
+## Arquitetura do projeto
 
-O projeto usa Next.js com App Router. As responsabilidades atuais estão organizadas em:
+O Next.js usa App Router e módulos por funcionalidade. Consulte o
+[guia de arquitetura](docs/arquitetura.md) para caminhos, dependências,
+compatibilidade com branches existentes e orientação para novos cards.
 
 | Caminho | Responsabilidade |
 | --- | --- |
-| `src/app` | Páginas, callback de autenticação e ações administrativas no servidor |
-| `src/components` | Proteção visual, menu, navegação e dados do dashboard |
-| `src/lib/appointments.js` | Operações de consulta, catálogo e disponibilidade; escolhe modo local ou Supabase |
-| `src/lib/patient-profile.js` | Leitura e atualização do perfil pela identidade da sessão |
-| `src/lib/supabase` | Clientes Supabase do navegador e servidor |
-| `src/proxy.js` | Renovação de sessão e redirecionamento de rotas protegidas |
-| `supabase/migrations` | Histórico versionado do banco |
-| `tests` | Testes automatizados |
-| `docs` | Guias técnicos, regras e roteiros manuais |
-| `landing-nextech` | Aplicação institucional independente, com configuração própria |
+| `src/app` | Rotas, páginas, layouts e ações no servidor |
+| `src/features/auth` | Proteção visual e regras de acesso |
+| `src/features/appointments` | Serviços, hook, formatação e indicadores de consultas |
+| `src/features/profile` | Serviço do perfil do paciente |
+| `src/components/navigation` | Menus compartilhados |
+| `src/shared/validation` | Validações puras reutilizáveis |
+| `src/lib/supabase` | Clientes de navegador e servidor |
+| `src/proxy.js` | Sessão e redirecionamento no servidor |
+| `supabase/migrations`, `tests`, `docs` | Histórico SQL, validação e documentação |
+| `landing-nextech` | Aplicação institucional independente |
 
-O [guia técnico](docs/documentacao-tecnica.md) detalha rotas, banco e permissões.
+Os caminhos antigos dos módulos e componentes continuam como reexports de
+compatibilidade para reduzir conflitos com o trabalho paralelo da equipe.
 
 ## Armazenamento dos dados
 

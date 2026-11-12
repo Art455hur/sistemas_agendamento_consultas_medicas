@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
-import { isValidCpf } from "../src/lib/cpf.js";
+import { isValidCpf } from "../src/shared/validation/cpf.js";
 
 test("CPF validado no banco sem alterar cadastros antigos", async (t) => {
   const db = new PGlite();

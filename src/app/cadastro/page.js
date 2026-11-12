@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
-import { isValidCpf } from "../../lib/cpf.js";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { isValidCpf } from "@/shared/validation/cpf.js";
 
 function formatPhone(value) {
   const numbers = value

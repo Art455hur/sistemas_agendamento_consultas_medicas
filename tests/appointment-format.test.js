@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { clinicDateTime, fromAppointmentRow, appointmentError } from "../src/lib/appointment-format.js";
+import { clinicDateTime, fromAppointmentRow, appointmentError } from "../src/features/appointments/appointment-format.js";
 
 test("a data da clínica não muda com o fuso do aparelho", () => {
   assert.deepEqual(clinicDateTime("2026-11-12T02:30:00Z"), { date: "2026-11-11", time: "23:30" });

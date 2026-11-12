@@ -43,9 +43,9 @@ conferir os horários, pacientes, médicos e estados. Repetir com paciente,
 médico, secretaria, visitante e administrador desativado: nenhum deles deve
 conseguir chamar a RPC de agenda. O filtro usa o dia da clínica, não o do aparelho.
 
-Antes de testar horários em um ambiente compartilhado, revisar a migração
-`20261112194248_horarios_profissionais.sql` e aplicá-la uma única vez após
-a PR aprovada. Em seguida, escolher um médico ativo e um dia futuro, salvar
+Migração `20261112200018_horarios_profissionais.sql` já aplicada no Supabase
+compartilhado; não executar novamente. Para testar manualmente, escolher um
+médico ativo e um dia futuro, salvar
 uma seleção menor, confirmar as opções no agendamento do paciente e restaurar
 a grade. Conferir também que não é possível remover um horário com consulta
 marcada nem configurar como paciente, médico ou administrador sem vínculo ativo.

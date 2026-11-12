@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getAppointment } from "@/features/appointments/services/appointments.js";
-import UserMenu, {
-  SidebarUser,
-} from "@/components/navigation/UserMenu.js";
+import PatientShell from "@/components/layout/PatientShell.js";
 
 export default function Confirmacao() {
   const [appointment, setAppointment] =
@@ -30,40 +28,7 @@ export default function Confirmacao() {
   }
 
   return (
-    <div className="dashboard">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <span>+</span>
-          <strong>AgendaSaúde</strong>
-        </div>
-
-        <nav className="sidebar-menu">
-          <Link href="/">🏠 Início</Link>
-
-          <Link href="/agendar">
-            🗓️ Agendar consulta
-          </Link>
-
-          <Link href="/agendamentos">
-            📋 Meus agendamentos
-          </Link>
-
-          <Link href="/perfil">
-            👤 Perfil
-          </Link>
-        </nav>
-
-        <SidebarUser />
-      </aside>
-
-      <main className="dashboard-content">
-        <header className="topbar">
-          <div className="topbar-title">
-            Confirmação
-          </div>
-
-          <UserMenu />
-        </header>
+    <PatientShell title="Confirmação" homeHref="/">
 
         <div className="confirmation-content">
           {error ? <p role="alert">{error}</p> : appointment === undefined ? (
@@ -176,7 +141,6 @@ export default function Confirmacao() {
             </section>
           )}
         </div>
-      </main>
-    </div>
+    </PatientShell>
   );
 }

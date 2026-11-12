@@ -1,13 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import {
   useEffect,
   useState,
 } from "react";
-import UserMenu, {
-  SidebarUser,
-} from "@/components/navigation/UserMenu.js";
+import PatientShell from "@/components/layout/PatientShell.js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { loadPatientProfile, savePatientProfile } from "@/features/profile/services/patient-profile.js";
 import { isValidCpf } from "@/shared/validation/cpf.js";
@@ -260,45 +257,7 @@ export default function Perfil() {
       .toUpperCase() || "US";
 
   return (
-    <div className="dashboard">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <span>+</span>
-          <strong>AgendaSaúde</strong>
-        </div>
-
-        <nav className="sidebar-menu">
-          <Link href="/dashboard">
-            🏠 Início
-          </Link>
-
-          <Link href="/agendar">
-            🗓️ Agendar consulta
-          </Link>
-
-          <Link href="/agendamentos">
-            📋 Meus agendamentos
-          </Link>
-
-          <Link
-            href="/perfil"
-            className="active"
-          >
-            👤 Perfil
-          </Link>
-        </nav>
-
-        <SidebarUser />
-      </aside>
-
-      <main className="dashboard-content">
-        <header className="topbar">
-          <div className="topbar-title">
-            Perfil
-          </div>
-
-          <UserMenu />
-        </header>
+    <PatientShell title="Perfil" activePath="/perfil">
 
         <div className="profile-content">
           <div className="profile-heading">
@@ -459,7 +418,6 @@ export default function Perfil() {
             </section>
           </div>
         </div>
-      </main>
-    </div>
+    </PatientShell>
   );
 }

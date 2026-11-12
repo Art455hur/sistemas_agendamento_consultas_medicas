@@ -4,9 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAppointments } from "@/features/appointments/hooks/useAppointments.js";
 import { cancelAppointment as cancelSavedAppointment } from "@/features/appointments/services/appointments.js";
-import UserMenu, {
-  SidebarUser,
-} from "@/components/navigation/UserMenu.js";
+import PatientShell from "@/components/layout/PatientShell.js";
 
 export default function MeusAgendamentos() {
   const { appointments, loading, error } = useAppointments();
@@ -95,43 +93,7 @@ export default function MeusAgendamentos() {
   }
 
   return (
-    <div className="dashboard">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <span>+</span>
-          <strong>AgendaSaúde</strong>
-        </div>
-
-        <nav className="sidebar-menu">
-          <Link href="/dashboard">
-          🏠 Início
-          </Link>
-
-          <Link href="/agendar">
-            🗓️ Agendar consulta
-          </Link>
-
-          <Link
-            href="/agendamentos"
-            className="active"
-          >
-            📋 Meus agendamentos
-          </Link>
-
-          <Link href="/perfil">👤 Perfil</Link>
-        </nav>
-
-        <SidebarUser />
-      </aside>
-
-      <main className="dashboard-content">
-        <header className="topbar">
-          <div className="topbar-title">
-            Meus agendamentos
-          </div>
-
-          <UserMenu />
-        </header>
+    <PatientShell title="Meus agendamentos" activePath="/agendamentos">
 
         <div className="appointments-content">
           <header className="appointments-heading">
@@ -306,7 +268,6 @@ export default function MeusAgendamentos() {
             </section>
           )}
         </div>
-      </main>
-    </div>
+    </PatientShell>
   );
 }

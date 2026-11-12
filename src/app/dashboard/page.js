@@ -4,9 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getBookingDoctors } from "@/features/appointments/services/appointments.js";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import UserMenu, {
-  SidebarUser,
-} from "@/components/navigation/UserMenu.js";
+import PatientShell from "@/components/layout/PatientShell.js";
 import DashboardData from "@/features/appointments/components/DashboardData.js";
 
 const demoSpecialties = [
@@ -149,45 +147,7 @@ export default function Dashboard() {
       : doctors.slice(0, 3);
 
   return (
-    <div className="dashboard">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <span>+</span>
-          <strong>AgendaSaúde</strong>
-        </div>
-
-        <nav className="sidebar-menu">
-          <Link
-            href="/dashboard"
-            className="active"
-          >
-            🏠 Início
-          </Link>
-
-          <Link href="/agendar">
-            🗓️ Agendar consulta
-          </Link>
-
-          <Link href="/agendamentos">
-            📋 Meus agendamentos
-          </Link>
-
-          <Link href="/perfil">
-            👤 Perfil
-          </Link>
-        </nav>
-
-        <SidebarUser />
-      </aside>
-
-      <main className="dashboard-content">
-        <header className="topbar">
-          <div className="topbar-title">
-            Início
-          </div>
-
-          <UserMenu />
-        </header>
+    <PatientShell title="Início" activePath="/dashboard">
 
         <header className="dashboard-header">
           <div>
@@ -328,7 +288,6 @@ export default function Dashboard() {
             })}
           </div>
         </section>
-      </main>
-    </div>
+    </PatientShell>
   );
 }

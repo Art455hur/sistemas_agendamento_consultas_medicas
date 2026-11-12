@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { subscribeAppointmentRefresh } from "../subscribe-refresh.js";
 import { getAppointments } from "../services/appointments.js";
 import { createClient, isSupabaseConfigured } from "../../../lib/supabase/client.js";
 
@@ -25,19 +26,19 @@ export function useAppointments() {
       }
     }
     load();
-    window.addEventListener("appointmentsUpdated", load);
-    window.addEventListener("focus", load);
+    const unsubscribeRefresh = subscribeAppointmentRefresh(window, load);
     const subscription = isSupabaseConfigured() ? createClient().auth.onAuthStateChange(() => {
       // Sem consultas dentro do callback síncrono de Auth; limpa o usuário anterior.
       ++request;
       setAppointments([]);
+      setLoading(true);
+      setError("");
       queueMicrotask(() => { if (active) load(); });
     }).data.subscription : null;
     return () => {
       active = false;
       subscription?.unsubscribe();
-      window.removeEventListener("appointmentsUpdated", load);
-      window.removeEventListener("focus", load);
+      unsubscribeRefresh();
     };
   }, []);
 

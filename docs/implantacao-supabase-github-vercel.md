@@ -7,9 +7,9 @@ Este projeto já tem uma branch de trabalho `codex/supabase-integration`. O Supa
 O plano atual não permite branches de desenvolvimento do Supabase. Por isso, a migration 6 está salva no repositório, mas ainda não foi aplicada ao banco de produção. Quando estiver pronto para alterar esse banco, na pasta do projeto execute:
 
 ```powershell
-npx supabase login
-npx supabase link --project-ref rgggijnypvvdkskyalip
-npx supabase db push --linked
+npx supabase@latest login
+npx supabase@latest link --project-ref rgggijnypvvdkskyalip
+npx supabase@latest db push --remote
 ```
 
 Confira que a migration enviada é `20261112002810_perfil_paciente_e_fuso_sao_paulo.sql` e aceite a confirmação do CLI. Ela é aditiva: cria colunas, uma restrição de CPF único e ajusta as funções de horário. Os perfis e agendamentos atuais não são apagados. Não use `db reset` neste projeto.

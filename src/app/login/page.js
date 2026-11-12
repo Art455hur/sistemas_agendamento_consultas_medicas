@@ -70,9 +70,14 @@ export default function Login() {
       localStorage.removeItem("registeredUser");
       localStorage.removeItem("authToken");
       sessionStorage.removeItem("authToken");
+      const { data: savedProfile } = await supabase.from("profiles")
+        .select("full_name, phone")
+        .eq("id", data.user.id)
+        .maybeSingle();
       localStorage.setItem("profile", JSON.stringify({
-        name: data.user.user_metadata?.name || "Paciente",
-        email: data.user.email, phone: "", birthDate: "", cpf: "",
+        name: savedProfile?.full_name || data.user.user_metadata?.name || "Paciente",
+        email: data.user.email,
+        phone: savedProfile?.phone || "",
       }));
       const parameters = new URLSearchParams(window.location.search);
       const redirect = parameters.get("redirect");
@@ -438,3 +443,4 @@ export default function Login() {
     </main>
   );
 }
+

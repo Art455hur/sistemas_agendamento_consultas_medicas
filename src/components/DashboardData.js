@@ -2,11 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { createClient, isSupabaseConfigured } from "../lib/supabase/client";
+import { listPatientAppointments } from "../lib/appointments";
 
 export default function DashboardData() {
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
+    if (isSupabaseConfigured()) {
+      let active = true;
+      listPatientAppointments(createClient())
+        .then((rows) => { if (active) setAppointments(rows); })
+        .catch(() => { if (active) setAppointments([]); });
+      return () => { active = false; };
+    }
     const savedAppointments = JSON.parse(
       localStorage.getItem("appointments") || "[]"
     );
@@ -207,3 +216,4 @@ export default function DashboardData() {
     </>
   );
 }
+

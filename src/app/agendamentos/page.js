@@ -5,12 +5,25 @@ import { useEffect, useState } from "react";
 import UserMenu, {
   SidebarUser,
 } from "../../components/UserMenu";
+import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
+import { listPatientAppointments } from "../../lib/appointments";
 
 export default function MeusAgendamentos() {
   const [appointments, setAppointments] = useState([]);
   const [activeTab, setActiveTab] = useState("scheduled");
 
   useEffect(() => {
+    if (isSupabaseConfigured()) {
+      let active = true;
+      const supabase = createClient();
+      listPatientAppointments(supabase)
+        .then((rows) => { if (active) setAppointments(rows); })
+        .catch(() => { if (active) alert("Não foi possível carregar seus agendamentos."); });
+      const parameters = new URLSearchParams(window.location.search);
+      const requestedTab = parameters.get("aba");
+      if (["scheduled", "completed", "cancelled"].includes(requestedTab)) setActiveTab(requestedTab);
+      return () => { active = false; };
+    }
     const savedAppointments = JSON.parse(
       localStorage.getItem("appointments") || "[]"
     );
@@ -145,12 +158,29 @@ if (validTabs.includes(requestedTab)) {
     return "status status-scheduled";
   }
 
-  function cancelAppointment(appointmentId) {
+  async function cancelAppointment(appointmentId) {
     const confirmed = window.confirm(
       "Deseja realmente cancelar esta consulta?"
     );
 
     if (!confirmed) {
+      return;
+    }
+
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      const { data, error } = await supabase.rpc("cancel_patient_appointment", {
+        p_appointment_id: appointmentId,
+      });
+      if (error || !data?.length) {
+        alert("Não foi possível cancelar. Atualize a página e tente novamente.");
+        return;
+      }
+      try {
+        setAppointments(await listPatientAppointments(supabase));
+      } catch {
+        alert("A consulta foi cancelada, mas não foi possível atualizar a lista.");
+      }
       return;
     }
 
@@ -389,3 +419,4 @@ if (validTabs.includes(requestedTab)) {
     </div>
   );
 }
+

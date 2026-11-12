@@ -8,6 +8,7 @@ import {
 import UserMenu, {
   SidebarUser,
 } from "../../components/UserMenu";
+import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
 
 function formatPhone(value) {
   const numbers = value
@@ -75,14 +76,34 @@ export default function Perfil() {
 
   const [profile, setProfile] =
     useState({
-      name: "João Silva",
-      email: "joao@email.com",
-      phone: "(11) 99999-9999",
-      birthDate: "1995-05-20",
-      cpf: "123.456.789-00",
+      name: "",
+      email: "",
+      phone: "",
+      birthDate: "",
+      cpf: "",
     });
 
   useEffect(() => {
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      supabase.auth.getUser().then(async ({ data }) => {
+        if (!data.user) return;
+        const { data: saved, error } = await supabase.from("profiles")
+          .select("full_name, phone, birth_date, cpf")
+          .eq("id", data.user.id)
+          .maybeSingle();
+        if (!error && saved) {
+          setProfile({
+            name: saved.full_name || "",
+            email: data.user.email || "",
+            phone: saved.phone ? formatPhone(saved.phone) : "",
+            birthDate: saved.birth_date || "",
+            cpf: saved.cpf ? formatCpf(saved.cpf) : "",
+          });
+        }
+      });
+      return;
+    }
     const savedProfile =
       localStorage.getItem("profile");
 
@@ -127,7 +148,7 @@ export default function Perfil() {
     }));
   }
 
-  function saveProfile(event) {
+  async function saveProfile(event) {
     event.preventDefault();
 
     setMessage("");
@@ -165,6 +186,38 @@ export default function Perfil() {
         .trim()
         .toLowerCase(),
     };
+
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) {
+        setMessage("Entre novamente para atualizar seu perfil.");
+        setMessageType("error");
+        return;
+      }
+      const { error } = await supabase.from("profiles").update({
+        full_name: updatedProfile.name,
+        phone: phoneNumbers,
+        birth_date: updatedProfile.birthDate,
+        cpf: cpfNumbers,
+      }).eq("id", authData.user.id);
+      if (error) {
+        setMessage(error.code === "23505" ? "Este CPF já está cadastrado em outra conta." : "Não foi possível salvar. Confira os dados e tente novamente.");
+        setMessageType("error");
+        return;
+      }
+      const profileForDisplay = { ...updatedProfile, email: authData.user.email || "" };
+      setProfile(profileForDisplay);
+      localStorage.setItem("profile", JSON.stringify({
+        name: profileForDisplay.name,
+        email: profileForDisplay.email,
+        phone: profileForDisplay.phone,
+      }));
+      window.dispatchEvent(new Event("profileUpdated"));
+      setMessage("Perfil atualizado com sucesso!");
+      setMessageType("success");
+      return;
+    }
 
     setProfile(updatedProfile);
 
@@ -341,6 +394,7 @@ export default function Perfil() {
                     type="email"
                     value={profile.email}
                     onChange={updateField}
+                    readOnly={isSupabaseConfigured()}
                     required
                   />
                 </div>
@@ -419,3 +473,4 @@ export default function Perfil() {
     </div>
   );
 }
+

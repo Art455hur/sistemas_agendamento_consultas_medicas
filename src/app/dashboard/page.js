@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UserMenu, {
   SidebarUser,
 } from "../../components/UserMenu";
 import DashboardData from "../../components/DashboardData";
+import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
 
 const specialties = [
   {
@@ -110,11 +111,29 @@ const doctors = [
 ];
 
 export default function Dashboard() {
+  const [databaseDoctors, setDatabaseDoctors] = useState([]);
   const [showAllSpecialties, setShowAllSpecialties] =
     useState(false);
 
   const [showAllDoctors, setShowAllDoctors] =
     useState(false);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    let active = true;
+    createClient().rpc("booking_doctors").then(({ data, error }) => {
+      if (!active || error) return;
+      setDatabaseDoctors((data || []).map((doctor) => ({
+        name: doctor.full_name,
+        specialty: doctor.specialty,
+        initials: doctor.full_name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase(),
+        availability: "Consulte os horários",
+      })));
+    });
+    return () => { active = false; };
+  }, []);
+
+  const doctorsToDisplay = isSupabaseConfigured() ? databaseDoctors : doctors;
 
   const visibleSpecialties =
     showAllSpecialties
@@ -123,8 +142,8 @@ export default function Dashboard() {
 
   const visibleDoctors =
     showAllDoctors
-      ? doctors
-      : doctors.slice(0, 3);
+      ? doctorsToDisplay
+      : doctorsToDisplay.slice(0, 3);
 
   return (
     <div className="dashboard">
@@ -285,9 +304,7 @@ export default function Dashboard() {
                       {doctor.specialty}
                     </p>
 
-                    <span className="doctor-rating">
-                      ⭐ {doctor.rating}
-                    </span>
+                    {!isSupabaseConfigured() && <span className="doctor-rating">⭐ {doctor.rating}</span>}
 
                     <small className="doctor-availability">
                       {doctor.availability}
@@ -309,3 +326,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

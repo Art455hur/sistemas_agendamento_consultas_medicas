@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import UserMenu, {
   SidebarUser,
 } from "../../components/UserMenu";
+import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
+import { listPatientAppointments, scheduledAtFromLocal } from "../../lib/appointments";
 
 const doctorsBySpecialty = {
   Cardiologia: ["Dra. Mariana Silva"],
@@ -38,16 +40,53 @@ export default function AgendarConsulta() {
   });
 
   const [appointments, setAppointments] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [bookingReady, setBookingReady] = useState(false);
   const [reschedulingId, setReschedulingId] =
     useState(null);
 
   useEffect(() => {
-    const savedAppointments = JSON.parse(
-      localStorage.getItem("appointments") || "[]"
-    );
+    let active = true;
+    async function loadBookingData() {
+      if (!isSupabaseConfigured()) {
+        const savedAppointments = JSON.parse(localStorage.getItem("appointments") || "[]");
+        if (active) {
+          setAppointments(savedAppointments);
+          setBookingReady(true);
+        }
+        return;
+      }
 
-    setAppointments(savedAppointments);
+      const supabase = createClient();
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        router.replace("/login?redirect=/agendar");
+        return;
+      }
+      const [{ data: doctorRows, error: doctorError }, patientAppointments] = await Promise.all([
+        supabase.rpc("booking_doctors"),
+        listPatientAppointments(supabase),
+      ]);
+      if (doctorError) {
+        alert("Não foi possível carregar os profissionais. Tente novamente.");
+        return;
+      }
+      if (active) {
+        setDoctors(doctorRows || []);
+        setAppointments(patientAppointments);
+        setBookingReady(true);
+      }
+    }
+    loadBookingData().catch(() => alert("Não foi possível carregar os dados do agendamento."));
 
+    return () => { active = false; };
+  }, [router]);
+
+  useEffect(() => {
+    if (!bookingReady) return;
+    const savedAppointments = JSON.parse(localStorage.getItem("appointments") || "[]");
     const parameters = new URLSearchParams(
       window.location.search
     );
@@ -64,27 +103,26 @@ export default function AgendarConsulta() {
     if (!appointmentId) {
       if (
         selectedSpecialty &&
-        doctorsBySpecialty[selectedSpecialty]
+        (isSupabaseConfigured()
+          ? doctors.some((doctor) => doctor.specialty === selectedSpecialty)
+          : Boolean(doctorsBySpecialty[selectedSpecialty]))
       ) {
-        const validDoctor =
-          doctorsBySpecialty[selectedSpecialty].includes(
-            selectedDoctor
-          );
+        const matchingDoctor = doctors.find((doctor) => doctor.full_name === selectedDoctor);
+        const validDoctor = matchingDoctor || (!isSupabaseConfigured() && (doctorsBySpecialty[selectedSpecialty] || []).includes(selectedDoctor));
 
         setForm((currentForm) => ({
           ...currentForm,
           specialty: selectedSpecialty,
-          doctor: validDoctor
-            ? selectedDoctor
-            : "",
+          doctor: matchingDoctor ? matchingDoctor.id : validDoctor ? selectedDoctor : "",
         }));
       }
 
       return;
     }
 
+    const currentAppointments = isSupabaseConfigured() ? appointments : savedAppointments;
     const appointmentToReschedule =
-      savedAppointments.find(
+      currentAppointments.find(
         (appointment) =>
           String(appointment.id) ===
           String(appointmentId)
@@ -117,7 +155,7 @@ export default function AgendarConsulta() {
       specialty:
         appointmentToReschedule.specialty || "",
       doctor:
-        appointmentToReschedule.doctor || "",
+        appointmentToReschedule.doctorId || appointmentToReschedule.doctor || "",
       date:
         appointmentToReschedule.date || "",
       time:
@@ -125,7 +163,42 @@ export default function AgendarConsulta() {
       reason:
         appointmentToReschedule.reason || "",
     });
-  }, [router]);
+  }, [bookingReady, doctors, appointments, router]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !form.doctor || !form.date) {
+      setAvailableSlots([]);
+      return;
+    }
+    let active = true;
+    setLoadingSlots(true);
+    const supabase = createClient();
+    supabase.rpc("booking_slots", {
+      p_doctor_id: form.doctor,
+      p_date: form.date,
+      p_appointment_id: reschedulingId || null,
+    }).then(({ data, error }) => {
+      if (!active) return;
+      if (error) {
+        setAvailableSlots([]);
+        alert("Não foi possível carregar os horários disponíveis.");
+      } else {
+        const slots = (data || []).map((row) => {
+          const date = new Date(row.scheduled_at);
+          const parts = new Intl.DateTimeFormat("en-GB", {
+            timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+          }).format(date);
+          return { time: parts, scheduledAt: row.scheduled_at };
+        });
+        setAvailableSlots(slots);
+        if (form.time && !slots.some((slot) => slot.time === form.time)) {
+          setForm((current) => ({ ...current, time: "" }));
+        }
+      }
+      setLoadingSlots(false);
+    });
+    return () => { active = false; };
+  }, [form.doctor, form.date, reschedulingId]);
 
   const today = new Date();
 
@@ -165,7 +238,7 @@ export default function AgendarConsulta() {
     }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     if (
@@ -196,6 +269,27 @@ export default function AgendarConsulta() {
     const savedAppointments = JSON.parse(
       localStorage.getItem("appointments") || "[]"
     );
+
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      const doctorId = doctors.find((doctor) => doctor.id === form.doctor)?.id || form.doctor;
+      const scheduledAt = availableSlots.find((slot) => slot.time === form.time)?.scheduledAt || scheduledAtFromLocal(form.date, form.time);
+      const rpc = reschedulingId ? "reschedule_patient_appointment" : "create_patient_appointment";
+      const args = reschedulingId
+        ? { p_appointment_id: reschedulingId, p_scheduled_at: scheduledAt }
+        : { p_doctor_id: doctorId, p_scheduled_at: scheduledAt, p_reason: form.reason.trim() || null };
+      const { data, error } = await supabase.rpc(rpc, args);
+      if (error || !data?.length) {
+        alert("Não foi possível salvar. O horário pode ter sido ocupado; atualize a página e escolha outro.");
+        return;
+      }
+      if (reschedulingId) {
+        router.push("/agendamentos");
+      } else {
+        router.push(`/confirmacao?id=${data[0].id}`);
+      }
+      return;
+    }
 
     const duplicatedAppointment =
       savedAppointments.some(
@@ -344,8 +438,9 @@ export default function AgendarConsulta() {
                       Selecione uma especialidade
                     </option>
 
-                    {Object.keys(
-                      doctorsBySpecialty
+                    {(isSupabaseConfigured()
+                      ? [...new Set(doctors.map((doctor) => doctor.specialty))]
+                      : Object.keys(doctorsBySpecialty)
                     ).map((specialty) => (
                       <option
                         key={specialty}
@@ -378,16 +473,15 @@ export default function AgendarConsulta() {
                         : "Escolha primeiro a especialidade"}
                     </option>
 
-                    {(
-                      doctorsBySpecialty[
-                        form.specialty
-                      ] || []
+                    {(isSupabaseConfigured()
+                      ? doctors.filter((doctor) => doctor.specialty === form.specialty).map((doctor) => ({ id: doctor.id, name: doctor.full_name }))
+                      : (doctorsBySpecialty[form.specialty] || []).map((name) => ({ id: name, name }))
                     ).map((doctor) => (
                       <option
-                        key={doctor}
-                        value={doctor}
+                        key={doctor.id}
+                        value={doctor.id}
                       >
-                        {doctor}
+                        {doctor.name}
                       </option>
                     ))}
                   </select>
@@ -426,9 +520,12 @@ export default function AgendarConsulta() {
                         : "Escolha primeiro a data"}
                     </option>
 
-                    {availableTimes.map((time) => {
+                    {(isSupabaseConfigured()
+                      ? availableSlots.map((slot) => slot.time)
+                      : availableTimes
+                    ).map((time) => {
                       const unavailable =
-                        unavailableTimes.includes(
+                        !isSupabaseConfigured() && unavailableTimes.includes(
                           time
                         );
 
@@ -445,6 +542,7 @@ export default function AgendarConsulta() {
                         </option>
                       );
                     })}
+                    {loadingSlots && <option disabled>Carregando horários...</option>}
                   </select>
                 </div>
 
@@ -512,3 +610,4 @@ export default function AgendarConsulta() {
     </div>
   );
 }
+

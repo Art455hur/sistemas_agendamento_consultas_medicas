@@ -203,7 +203,12 @@ export default function Cadastro() {
         email: form.email.trim().toLowerCase(),
         password: form.password,
         options: {
-          data: { name: form.name.trim() },
+          data: {
+            name: form.name.trim(),
+            phone: phoneNumbers,
+            birth_date: form.birthDate,
+            cpf: cpfNumbers,
+          },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
@@ -507,3 +512,4 @@ export default function Cadastro() {
     </main>
   );
 }
+

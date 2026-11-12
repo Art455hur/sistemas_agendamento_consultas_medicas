@@ -5,18 +5,33 @@ import { useEffect, useState } from "react";
 import UserMenu, {
   SidebarUser,
 } from "../../components/UserMenu";
+import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
+import { appointmentFromRow } from "../../lib/appointments";
 
 export default function Confirmacao() {
   const [appointment, setAppointment] =
     useState(undefined);
 
   useEffect(() => {
+    let active = true;
     const parameters = new URLSearchParams(
       window.location.search
     );
 
     const appointmentId =
       parameters.get("id");
+
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      supabase.from("appointments")
+        .select("id, doctor_id, specialty, doctor_name, scheduled_at, reason, status")
+        .eq("id", appointmentId)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (active) setAppointment(!error && data ? appointmentFromRow(data) : null);
+        });
+      return () => { active = false; };
+    }
 
     const savedAppointments = JSON.parse(
       localStorage.getItem("appointments") || "[]"
@@ -32,6 +47,7 @@ export default function Confirmacao() {
     setAppointment(
       confirmedAppointment || null
     );
+    return () => { active = false; };
   }, []);
 
   function formatDate(date) {
@@ -194,3 +210,4 @@ export default function Confirmacao() {
     </div>
   );
 }
+

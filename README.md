@@ -50,7 +50,7 @@ Desenvolver uma aplicação web que permita ao paciente:
 
 O MVP tem como objetivo entregar uma aplicação visual, navegável e funcional para demonstrar o fluxo principal do paciente.
 
-Nesta etapa, os dados são simulados e armazenados no navegador por meio do `localStorage` e `sessionStorage`.
+O projeto possui modo de demonstração local e integração opcional com Supabase. Com as variáveis de ambiente configuradas, o Supabase Auth controla as sessões, o perfil e o fluxo de agendamentos usa o banco com políticas RLS e funções RPC.
 
 ## Funcionalidades implementadas
 
@@ -77,6 +77,10 @@ Nesta etapa, os dados são simulados e armazenados no navegador por meio do `loc
 - Sistema de notificações;
 - Perfil do paciente;
 - Encerramento da sessão.
+
+## Configurar Supabase, GitHub e Vercel
+
+O passo a passo de configuração, migrations, variáveis de ambiente e publicação está em [`docs/implantacao-supabase-github-vercel.md`](docs/implantacao-supabase-github-vercel.md). A migration mais recente acrescenta CPF e data de nascimento ao perfil com acesso individual por RLS e ajusta os horários para o fuso de São Paulo.
 
 ## Requisitos funcionais
 
@@ -375,3 +379,4 @@ As seguintes plataformas foram utilizadas como referência para estudar fluxos e
 
 - [Hospital Samar](https://hospitalsamar.com.br/)
 - [MedPrev](https://agendamento.medprev.online/)
+

@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { createClient, isSupabaseConfigured } from "../lib/supabase/client";
+import { listPatientAppointments } from "../lib/appointments";
 
 function useSavedProfile() {
   const [profile, setProfile] =
@@ -92,6 +93,13 @@ export default function UserMenu() {
   ] = useState(false);
 
   useEffect(() => {
+    if (isSupabaseConfigured()) {
+      let active = true;
+      listPatientAppointments(createClient())
+        .then((rows) => { if (active) setAppointments(rows); })
+        .catch(() => { if (active) setAppointments([]); });
+      return () => { active = false; };
+    }
     const savedAppointments = JSON.parse(
       localStorage.getItem(
         "appointments"
@@ -373,3 +381,4 @@ export function SidebarUser() {
     </div>
   );
 }
+

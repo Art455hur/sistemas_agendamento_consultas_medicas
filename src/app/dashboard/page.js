@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getBookingDoctors } from "@/lib/appointments";
+import { getBookingDoctors } from "@/features/appointments/services/appointments.js";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import UserMenu, {
   SidebarUser,

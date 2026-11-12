@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getAppointment } from "@/lib/appointments";
+import { getAppointment } from "@/features/appointments/services/appointments.js";
 import UserMenu, {
   SidebarUser,
 } from "@/components/UserMenu";

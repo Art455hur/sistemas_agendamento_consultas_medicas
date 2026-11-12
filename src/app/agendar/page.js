@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getAppointment, getBookingDoctors, getBookingSlots, saveAppointment } from "@/lib/appointments";
+import { getAppointment, getBookingDoctors, getBookingSlots, saveAppointment } from "@/features/appointments/services/appointments.js";
 import { clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import UserMenu, {

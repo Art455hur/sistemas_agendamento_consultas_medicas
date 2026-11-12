@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAppointments } from "@/lib/useAppointments";
-import { cancelAppointment as cancelSavedAppointment } from "@/lib/appointments";
+import { cancelAppointment as cancelSavedAppointment } from "@/features/appointments/services/appointments.js";
 import UserMenu, {
   SidebarUser,
 } from "@/components/UserMenu";

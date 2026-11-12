@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAppointments } from "./appointments.js";
+import { getAppointments } from "../features/appointments/services/appointments.js";
 import { createClient, isSupabaseConfigured } from "./supabase/client.js";
 
 export function useAppointments() {

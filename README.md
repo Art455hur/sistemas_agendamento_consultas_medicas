@@ -275,6 +275,7 @@ Os testes automatizados usam dados fictícios e banco descartável; não acessam
 - [Consultas e perfil do paciente](docs/consultas-supabase.md)
 - [Painel administrativo](docs/painel-administrador.md)
 - [Gestão de funcionários](docs/gestao-funcionarios.md)
+- [CRUD de especialidades](docs/especialidades.md)
 - [Conflitos e teste de concorrência](docs/conflitos-horarios.md)
 - [Modelagem inicial e evolução](docs/modelagem-inicial-n2.md)
 - [Hospital e vínculos](docs/vinculos-hospital.md)
@@ -298,7 +299,7 @@ O modo simulado permanece o padrão. A configuração atual da Vercel e o estado
 ## Próximos passos
 
 - Concluir painéis do médico e da secretaria.
-- Implementar gestão de disponibilidade por profissional, especialidades e demais cadastros previstos no backlog.
+- Implementar gestão de disponibilidade por profissional e demais cadastros previstos no backlog; o CRUD de especialidades está implementado na branch deste card.
 - Completar os módulos de agenda e serviços do administrador.
 - Ampliar as validações dos demais campos; formulários e banco já conferem os dígitos verificadores do CPF em novas gravações e alterações do número. Veja [escopo e testes](docs/validacao-cpf.md).
 - Definir o destino dos dados simulados e validar isolamento entre contas.

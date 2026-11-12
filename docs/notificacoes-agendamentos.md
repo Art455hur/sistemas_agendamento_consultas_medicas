@@ -34,8 +34,8 @@ O hook `useAppointments` recarrega os dados:
   passaram e permite perceber alterações feitas em outra sessão Supabase.
 
 Não é Supabase Realtime: alterações externas podem levar até um minuto para
-aparecer na aba visível. Cada instância montada do hook mantém seu próprio
-intervalo. Aba oculta não executa consultas periódicas; listeners e intervalo
+aparecer na aba visível. Os consumidores do hook compartilham uma única consulta e um único
+intervalo por aplicação aberta. Aba oculta não executa consultas periódicas; listeners e intervalo
 são removidos na desmontagem. O controle já existente de respostas antigas é
 preservado e os dados são limpos em mudanças de sessão Supabase.
 

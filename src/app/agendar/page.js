@@ -69,11 +69,28 @@ export default function AgendarConsulta() {
     if (!form.doctorId || !form.date) { setSlotsLoading(false); return; }
     setSlotsLoading(true);
     getBookingSlots(form.doctorId, form.date, reschedulingId)
-      .then((items) => { if (active) setSlots(items); })
+      .then((items) => {
+        if (!active) return;
+        setSlots(items);
+        setForm((current) => items.some((slot) => slot.time === current.time)
+          ? current : { ...current, time: "" });
+      })
       .catch((failure) => { if (active) setSlotError(failure.message); })
       .finally(() => { if (active) setSlotsLoading(false); });
     return () => { active = false; };
   }, [form.doctorId, form.date, reschedulingId, refreshSlots]);
+
+  useEffect(() => {
+    function refreshAvailability() {
+      if (document.visibilityState === "visible") setRefreshSlots((current) => current + 1);
+    }
+    window.addEventListener("focus", refreshAvailability);
+    document.addEventListener("visibilitychange", refreshAvailability);
+    return () => {
+      window.removeEventListener("focus", refreshAvailability);
+      document.removeEventListener("visibilitychange", refreshAvailability);
+    };
+  }, []);
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -245,6 +262,7 @@ export default function AgendarConsulta() {
                     id="date"
                     name="date"
                     type="date"
+                    disabled={loading || saving}
                     min={minimumDate}
                     value={form.date}
                     onChange={updateField}
@@ -275,6 +293,17 @@ export default function AgendarConsulta() {
                   </select>
                 </div>
 
+                <div className="booking-field booking-field-full">
+                  <button
+                    type="button"
+                    className="reschedule-appointment"
+                    disabled={!form.doctorId || !form.date || loading || saving || slotsLoading}
+                    onClick={() => setRefreshSlots((current) => current + 1)}
+                  >
+                    Atualizar horários
+                  </button>
+                  <small>A disponibilidade será conferida novamente ao confirmar.</small>
+                </div>
                 {slotsLoading && <p role="status">Consultando horários...</p>}
                 {slotError && <p role="alert">{slotError}</p>}
                 {!slotsLoading && form.doctorId && form.date && slots.length === 0 && !slotError && <p role="status">Nenhum horário disponível nesta data. Escolha outra data.</p>}

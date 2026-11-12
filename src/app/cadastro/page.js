@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
+import { isValidCpf } from "../../lib/cpf.js";
 
 function formatPhone(value) {
   const numbers = value
@@ -159,12 +160,9 @@ export default function Cadastro() {
       return;
     }
 
-    const cpfNumbers =
-      form.cpf.replace(/\D/g, "");
-
-    if (cpfNumbers.length !== 11) {
+    if (!isValidCpf(form.cpf)) {
       setMessage(
-        "Digite um CPF com 11 números."
+        "Digite um CPF válido."
       );
       return;
     }

@@ -1,6 +1,6 @@
 # Documentação técnica — AgendaSaúde N2
 
-Atualizada em 12/11/2026 com base no código integrado à `main` até a PR #17.
+Atualizada em 12/11/2026 com base nas entregas até a PR #17 e no incremento de validação do CPF descrito neste guia.
 Este guia descreve implementação e limites; não certifica o estado da Vercel ou do banco hospedado.
 
 ## Objetivo e modos de execução
@@ -151,8 +151,10 @@ horários disponíveis. A confirmação só ocorre após a operação ser aceita
 
 Nome, telefone, CPF e nascimento são lidos e gravados em `profiles` pelo ID da
 sessão validada. E-mail vem do Auth e é somente leitura. Falha na leitura bloqueia
-o salvamento; CPF duplicado apresenta erro. O código valida formato/tamanho do
-CPF, mas ainda não calcula dígitos verificadores: essa melhoria permanece pendente.
+o salvamento; CPF duplicado apresenta erro. Cadastro, tela de perfil e serviço de
+atualização usam `isValidCpf` para conferir formato e dígitos verificadores e
+rejeitar números repetidos. O banco continua com formato/unicidade, sem cálculo
+dos dígitos. Veja [limites e roteiro de teste](validacao-cpf.md).
 
 ### Equipe
 

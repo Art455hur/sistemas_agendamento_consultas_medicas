@@ -10,6 +10,7 @@ import UserMenu, {
 } from "../../components/UserMenu";
 import { createClient, isSupabaseConfigured } from "../../lib/supabase/client";
 import { loadPatientProfile, savePatientProfile } from "../../lib/patient-profile";
+import { isValidCpf } from "../../lib/cpf.js";
 
 function formatPhone(value) {
   const numbers = value
@@ -149,9 +150,6 @@ export default function Perfil() {
     const phoneNumbers =
       profile.phone.replace(/\D/g, "");
 
-    const cpfNumbers =
-      profile.cpf.replace(/\D/g, "");
-
     if (
       phoneNumbers.length < 10 ||
       phoneNumbers.length > 11
@@ -163,9 +161,9 @@ export default function Perfil() {
       return;
     }
 
-    if (cpfNumbers.length !== 11) {
+    if (!isValidCpf(profile.cpf)) {
       setMessage(
-        "Digite um CPF com 11 números."
+        "Digite um CPF válido."
       );
       setMessageType("error");
       return;

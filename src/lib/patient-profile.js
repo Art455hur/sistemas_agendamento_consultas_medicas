@@ -1,3 +1,5 @@
+import { isValidCpf } from "./cpf.js";
+
 const fields = "full_name,phone,birth_date,cpf";
 
 async function currentUser(client) {
@@ -26,7 +28,7 @@ export async function savePatientProfile(client, profile) {
   const cpf = profile.cpf.replace(/\D/g, "");
   if (!name || name.length > 120) throw new Error("Informe um nome de até 120 caracteres.");
   if (phone.length < 10 || phone.length > 11) throw new Error("Digite um telefone válido.");
-  if (cpf.length !== 11) throw new Error("Digite um CPF com 11 números.");
+  if (!isValidCpf(profile.cpf)) throw new Error("Digite um CPF válido.");
   const today = new Date();
   const maximum = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const birthDate = profile.birthDate;

@@ -109,7 +109,7 @@ Veja [limites, permissões e critérios de validação](docs/documentacao-tecnic
 | RN07 | A remarcação deve atualizar a consulta original. |
 | RN08 | Na remarcação, somente data e horário podem ser alterados. |
 | RN09 | Consultas passadas devem ser marcadas como concluídas. |
-| RN10 | O CPF deve possuir onze números. |
+| RN10 | Nos formulários de cadastro e perfil, o CPF deve possuir onze números, dígitos verificadores corretos e não pode ser uma sequência de números iguais. |
 | RN11 | A senha deve possuir pelo menos seis caracteres. |
 | RN12 | A data de nascimento não pode estar no futuro. |
 
@@ -266,6 +266,7 @@ Os testes automatizados usam dados fictícios e banco descartável; não acessam
 ## Documentação técnica
 
 - [Guia técnico e estado da N2](docs/documentacao-tecnica.md)
+- [Validação do CPF e dados fictícios para testes](docs/validacao-cpf.md)
 - [Autenticação e configuração](docs/autenticacao-supabase.md)
 - [Perfis e permissões](docs/perfis-e-permissoes.md)
 - [Consultas e perfil do paciente](docs/consultas-supabase.md)
@@ -296,7 +297,7 @@ O modo simulado permanece o padrão. A configuração atual da Vercel e o estado
 - Concluir painéis do médico e da secretaria.
 - Implementar gestão de disponibilidade por profissional, especialidades e demais cadastros previstos no backlog.
 - Completar os módulos de agenda e serviços do administrador.
-- Ampliar validações: CPF ainda é conferido por formato e tamanho, sem cálculo dos dígitos verificadores.
+- Ampliar as validações dos demais campos e avaliar a validação matemática do CPF no banco; os formulários já conferem os dígitos verificadores. Veja [escopo e testes](docs/validacao-cpf.md).
 - Definir o destino dos dados simulados e validar isolamento entre contas.
 - Executar os roteiros manuais com contas de teste, inclusive disputa de horário em duas sessões.
 - Revisar autenticação, permissões e configuração antes da publicação funcional da N2.

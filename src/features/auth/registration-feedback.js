@@ -6,6 +6,9 @@ const uncertain = {
 
 export function registrationFeedback({ data, error } = {}) {
   if (error) {
+    if (error.code === "over_email_send_rate_limit" || /email rate limit exceeded/i.test(error.message || "")) {
+      return { type: "info", complete: false, message: "O serviço atingiu o limite de envio de e-mails. Tente mais tarde. Se já recebeu uma confirmação, use o link mais recente e faça login. Não é necessário apagar sua conta." };
+    }
     if (error.status === 429 || ["over_email_send_rate_limit", "over_request_rate_limit"].includes(error.code)) {
       return { type: "info", complete: false, message: "Aguarde antes de tentar novamente. Se o e-mail de confirmação já chegou, abra o link e depois faça login." };
     }

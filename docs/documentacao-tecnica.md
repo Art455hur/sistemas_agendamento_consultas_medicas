@@ -112,8 +112,9 @@ Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 | `20261112131100` | `20261112131100_reativar_funcionario.sql` | Reativação preservando dados |
 | `20261112173011` | `20261112173011_validar_cpf_perfis.sql` | Validação matemática de CPF novo ou alterado, preservando o legado |
 | `20261112182236` | `20261112182236_agenda_administrativa_leitura.sql` | Leitura limitada da agenda por administrador ativo |
+| `20261112190336` | `20261112190336_crud_especialidades.sql` | CRUD administrativo de especialidades e integração com médicos |
 
-As nove migrações anteriores constam no histórico do projeto compartilhado de testes. A versão `20261112173011` foi aplicada e verificada em 12/11/2026; não a execute novamente nesse projeto. A décima migração de leitura da agenda ainda não foi aplicada ao projeto compartilhado.
+As onze migrações acima constam no histórico do projeto compartilhado de testes. As versões `20261112182236` (agenda administrativa) e `20261112190336` (CRUD de especialidades) já foram aplicadas e testadas em 12/11/2026; não execute esses arquivos novamente nesse projeto.
 Confira o histórico remoto antes de qualquer execução. Não reaplique arquivos já
 registrados nem altere migrações antigas para introduzir novas mudanças. Mudanças
 futuras devem entrar em nova migração e PR; avise a equipe antes de aplicá-las no
@@ -207,7 +208,7 @@ segurança do ambiente. Merge e testes automatizados não substituem esse roteir
 ## Pendências e manutenção
 
 Painéis de médico/secretaria, grade individual de disponibilidade, gestão completa
-de especialidades/cadastros, edição administrativa de consultas, módulo de serviços e validações
+dos demais cadastros, edição administrativa de consultas, módulo de serviços e validações
 adicionais continuam no backlog. Não marcar um card inteiro como concluído pela
 entrega de uma parte.
 

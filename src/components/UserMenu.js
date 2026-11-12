@@ -6,7 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { loadPatientProfile } from "../lib/patient-profile";
+import { loadPatientProfile } from "../features/profile/services/patient-profile.js";
 import { useAppointments } from "../features/appointments/hooks/useAppointments.js";
 import { createClient, isSupabaseConfigured } from "../lib/supabase/client";
 

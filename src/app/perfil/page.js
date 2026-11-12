@@ -9,7 +9,7 @@ import UserMenu, {
   SidebarUser,
 } from "@/components/UserMenu";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { loadPatientProfile, savePatientProfile } from "@/lib/patient-profile";
+import { loadPatientProfile, savePatientProfile } from "@/features/profile/services/patient-profile.js";
 import { isValidCpf } from "@/shared/validation/cpf.js";
 
 function formatPhone(value) {

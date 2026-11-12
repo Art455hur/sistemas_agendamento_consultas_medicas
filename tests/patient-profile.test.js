@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { loadPatientProfile, savePatientProfile } from "../src/lib/patient-profile.js";
+import { loadPatientProfile, savePatientProfile } from "../src/features/profile/services/patient-profile.js";
 
 function clientFor({ user = { id: "session-user", email: "patient@example.test" }, row = {}, error = null } = {}) {
   const calls = [];

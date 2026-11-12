@@ -7,7 +7,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/client";
 import UserMenu, {
   SidebarUser,
 } from "@/components/UserMenu";
-import DashboardData from "@/components/DashboardData";
+import DashboardData from "@/features/appointments/components/DashboardData.js";
 
 const demoSpecialties = [
   {

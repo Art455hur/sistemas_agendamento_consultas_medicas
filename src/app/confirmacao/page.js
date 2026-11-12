@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/shared/formatting/date.js";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getAppointment } from "@/features/appointments/services/appointments.js";
@@ -18,14 +20,6 @@ export default function Confirmacao() {
     return () => { active = false; };
   }, []);
 
-  function formatDate(date) {
-    if (!date || !date.includes("-")) {
-      return date;
-    }
-
-    const [year, month, day] = date.split("-");
-    return `${day}/${month}/${year}`;
-  }
 
   return (
     <PatientShell title="Confirmação" homeHref="/">

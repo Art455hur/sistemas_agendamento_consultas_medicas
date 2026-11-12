@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/shared/formatting/date.js";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAppointments } from "@/features/appointments/hooks/useAppointments.js";
@@ -62,14 +64,6 @@ export default function MeusAgendamentos() {
   const currentEmptyMessage =
     emptyMessages[activeTab];
 
-  function formatDate(date) {
-    if (!date || !date.includes("-")) {
-      return date;
-    }
-
-    const [year, month, day] = date.split("-");
-    return `${day}/${month}/${year}`;
-  }
 
   function getStatusClass(status) {
     if (status === "Cancelada") {

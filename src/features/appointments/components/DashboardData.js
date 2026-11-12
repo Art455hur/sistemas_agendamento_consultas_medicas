@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "../../../shared/formatting/date.js";
+
 import Link from "next/link";
 import { useAppointments } from "../hooks/useAppointments.js";
 
@@ -40,14 +42,6 @@ export default function DashboardData() {
     }
   )[0];
 
-  function formatDate(date) {
-    if (!date || !date.includes("-")) {
-      return date;
-    }
-
-    const [year, month, day] = date.split("-");
-    return `${day}/${month}/${year}`;
-  }
 
   if (loading) return <p role="status">Carregando consultas...</p>;
   if (error) return <p role="alert">{error}</p>;

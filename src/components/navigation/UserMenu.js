@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "../../shared/formatting/date.js";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -72,16 +74,6 @@ function getInitials(name) {
   );
 }
 
-function formatDate(date) {
-  if (!date || !date.includes("-")) {
-    return date;
-  }
-
-  const [year, month, day] =
-    date.split("-");
-
-  return `${day}/${month}/${year}`;
-}
 
 export default function UserMenu() {
   const router = useRouter();

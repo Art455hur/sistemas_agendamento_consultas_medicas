@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAppointments } from "../lib/useAppointments";
+import { useAppointments } from "../features/appointments/hooks/useAppointments.js";
 
 export default function DashboardData() {
   const { appointments, loading, error } = useAppointments();

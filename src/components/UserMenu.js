@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { loadPatientProfile } from "../lib/patient-profile";
-import { useAppointments } from "../lib/useAppointments";
+import { useAppointments } from "../features/appointments/hooks/useAppointments.js";
 import { createClient, isSupabaseConfigured } from "../lib/supabase/client";
 
 function useSavedProfile() {

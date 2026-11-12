@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useAppointments } from "@/lib/useAppointments";
+import { useAppointments } from "@/features/appointments/hooks/useAppointments.js";
 import { cancelAppointment as cancelSavedAppointment } from "@/features/appointments/services/appointments.js";
 import UserMenu, {
   SidebarUser,

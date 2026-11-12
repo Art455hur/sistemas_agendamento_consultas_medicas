@@ -6,7 +6,7 @@ import { getBookingDoctors } from "@/features/appointments/services/appointments
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import UserMenu, {
   SidebarUser,
-} from "@/components/UserMenu";
+} from "@/components/navigation/UserMenu.js";
 import DashboardData from "@/features/appointments/components/DashboardData.js";
 
 const demoSpecialties = [

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { getAppointment } from "@/features/appointments/services/appointments.js";
 import UserMenu, {
   SidebarUser,
-} from "@/components/UserMenu";
+} from "@/components/navigation/UserMenu.js";
 
 export default function Confirmacao() {
   const [appointment, setAppointment] =

@@ -8,7 +8,7 @@ import { clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import UserMenu, {
   SidebarUser,
-} from "@/components/UserMenu";
+} from "@/components/navigation/UserMenu.js";
 
 export default function AgendarConsulta() {
   const router = useRouter();

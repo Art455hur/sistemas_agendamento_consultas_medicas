@@ -7,7 +7,7 @@ import {
 } from "react";
 import UserMenu, {
   SidebarUser,
-} from "@/components/UserMenu";
+} from "@/components/navigation/UserMenu.js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { loadPatientProfile, savePatientProfile } from "@/features/profile/services/patient-profile.js";
 import { isValidCpf } from "@/shared/validation/cpf.js";

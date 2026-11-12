@@ -6,7 +6,7 @@ import { useAppointments } from "@/features/appointments/hooks/useAppointments.j
 import { cancelAppointment as cancelSavedAppointment } from "@/features/appointments/services/appointments.js";
 import UserMenu, {
   SidebarUser,
-} from "@/components/UserMenu";
+} from "@/components/navigation/UserMenu.js";
 
 export default function MeusAgendamentos() {
   const { appointments, loading, error } = useAppointments();

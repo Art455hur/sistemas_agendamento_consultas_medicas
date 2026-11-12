@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isValidCpf } from "../src/lib/cpf.js";
+import { isValidCpf } from "../src/shared/validation/cpf.js";
 
 // Vetores numéricos de teste, sem associação a pessoas ou consulta cadastral.
 test("aceita dígitos verificadores corretos, máscara e zero à esquerda", () => {

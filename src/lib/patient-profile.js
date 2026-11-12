@@ -1,4 +1,4 @@
-import { isValidCpf } from "./cpf.js";
+import { isValidCpf } from "../shared/validation/cpf.js";
 
 const fields = "full_name,phone,birth_date,cpf";
 

@@ -2,7 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ROLES } from "@/features/auth/access-control.js";
 import { createClient } from "@/lib/supabase/server";
-import { assignStaff, deactivateStaff, reactivateStaff } from "@/app/administracao/actions";
+import {
+  assignStaff,
+  createSpecialty,
+  deactivateSpecialty,
+  deactivateStaff,
+  reactivateSpecialty,
+  reactivateStaff,
+  updateSpecialty,
+} from "@/app/administracao/actions";
 import styles from "@/app/administracao/page.module.css";
 
 export const metadata = {
@@ -13,15 +21,15 @@ export const dynamic = "force-dynamic";
 
 const modules = [
   {
-    number: "02",
+    number: "01",
     title: "Agenda da clínica",
-    description: "Consulte a programação da equipe quando os agendamentos estiverem integrados.",
+    description: "Consulte a programação da equipe quando a gestão geral de agendamentos estiver integrada.",
     status: "Aguardando integração",
   },
   {
-    number: "03",
-    title: "Especialidades e horários",
-    description: "Organize os serviços e os horários disponíveis para pacientes.",
+    number: "02",
+    title: "Horários disponíveis",
+    description: "Configure a grade de atendimento individual dos profissionais.",
     status: "Aguardando integração",
   },
 ];
@@ -30,20 +38,26 @@ const feedback = {
   atribuido: "Dados do funcionário salvos e vínculo ativado no Hospital Sapiens.",
   desativado: "Vínculo desativado. A conta permanece no Supabase Auth.",
   reativado: "Funcionário reativado com sucesso.",
-  "dados-incompletos": "Preencha o nome e, para médicos, a especialidade no formulário antes de reativar.",
+  "dados-incompletos": "Preencha o nome e, para médicos, selecione uma especialidade ativa antes de reativar.",
   "vinculo-nao-encontrado": "O vínculo deste funcionário não foi encontrado. Atualize a página.",
   "nao-encontrado": "Conta não encontrada. Crie o usuário em Auth antes de vinculá-lo.",
   consultas: "Esta conta tem consultas vinculadas e não pode trocar de função.",
-  negado: "Ação negada: somente um administrador ativo pode gerenciar a equipe.",
+  negado: "Ação negada: somente um administrador ativo pode gerenciar estes dados.",
   invalido: "Confira o e-mail, o nome e a função. Médicos também precisam de especialidade.",
   erro: "Não foi possível concluir a operação. Confira o banco e tente novamente.",
   indisponivel: "A autenticação ainda não está ativada.",
+  "especialidade-criada": "Especialidade cadastrada com sucesso.",
+  "especialidade-atualizada": "Especialidade atualizada. Médicos vinculados também receberam o novo nome.",
+  "especialidade-desativada": "Especialidade desativada. Ela não será usada em novos cadastros ou agendamentos.",
+  "especialidade-reativada": "Especialidade reativada com sucesso.",
+  "especialidade-duplicada": "Já existe uma especialidade com esse nome.",
+  "especialidade-nao-encontrada": "Especialidade não encontrada. Atualize a página.",
+  "especialidade-invalida": "Selecione ou informe uma especialidade ativa e válida.",
 };
 
 const roleLabel = { admin: "Administrador", doctor: "Médico", receptionist: "Secretaria" };
 
 export default async function AdministracaoPage({ searchParams }) {
-  // Não mostrar painel administrativo enquanto o Auth real estiver desligado.
   if (
     process.env.NEXT_PUBLIC_ENABLE_SUPABASE_AUTH !== "true" ||
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -69,7 +83,6 @@ export default async function AdministracaoPage({ searchParams }) {
     redirect("/login?redirect=%2Fadministracao");
   }
 
-  // O papel é lido no banco com a sessão do usuário e RLS; nunca do navegador.
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role, full_name")
@@ -108,7 +121,15 @@ export default async function AdministracaoPage({ searchParams }) {
     );
   }
 
-  const { data: staff, error: staffError } = await supabase.rpc("admin_list_staff");
+  const [
+    { data: staff, error: staffError },
+    { data: specialties, error: specialtyError },
+  ] = await Promise.all([
+    supabase.rpc("admin_list_staff"),
+    supabase.rpc("admin_list_specialties"),
+  ]);
+
+  const activeSpecialties = specialties?.filter((specialty) => specialty.active) ?? [];
   const { resultado } = await searchParams;
 
   return (
@@ -119,8 +140,8 @@ export default async function AdministracaoPage({ searchParams }) {
         <nav aria-label="Navegação administrativa" className={styles.navigation}>
           <span className={styles.current} aria-current="page">▦ Visão geral</span>
           <a className={styles.teamLink} href="#equipe">♧ Equipe</a>
+          <a className={styles.teamLink} href="#especialidades">✚ Especialidades</a>
           <span className={styles.upcoming}>▤ Agenda <small>Em breve</small></span>
-          <span className={styles.upcoming}>✚ Serviços <small>Em breve</small></span>
         </nav>
         <div className={styles.sidebarFooter}>Área administrativa · N2</div>
       </aside>
@@ -136,7 +157,7 @@ export default async function AdministracaoPage({ searchParams }) {
             <div>
               <span className={styles.eyebrow}>VISÃO GERAL DA CLÍNICA</span>
               <h1>Olá, {profile.full_name?.trim() || "administrador"}.</h1>
-              <p>Gerencie os vínculos da equipe do Hospital Sapiens.</p>
+              <p>Gerencie equipe e especialidades do Hospital Sapiens.</p>
             </div>
             <span className={styles.phase}>Painel em construção</span>
           </div>
@@ -144,23 +165,89 @@ export default async function AdministracaoPage({ searchParams }) {
           <section className={styles.notice} aria-label="Estado da integração">
             <div className={styles.noticeIcon}>i</div>
             <div>
-              <strong>Gestão de equipe em ambiente de testes</strong>
-              <p>É necessário criar previamente a conta do funcionário no Supabase Auth. A agenda e os horários continuam aguardando integração.</p>
+              <strong>Especialidades integradas ao cadastro de médicos</strong>
+              <p>Especialidades desativadas ficam preservadas no histórico, mas deixam de aceitar novos vínculos e novos agendamentos.</p>
             </div>
+          </section>
+
+          {feedback[resultado] && <p role="status" className={styles.feedback}>{feedback[resultado]}</p>}
+
+          <section id="especialidades" className={styles.specialtySection} aria-labelledby="specialties-heading">
+            <div className={styles.sectionHeading}>
+              <div>
+                <h2 id="specialties-heading">Especialidades</h2>
+                <p>Cadastre, renomeie, desative ou reative especialidades disponíveis na clínica.</p>
+              </div>
+              <span>{specialties?.length ?? 0} cadastradas</span>
+            </div>
+
+            {specialtyError ? (
+              <p role="alert" className={styles.feedback}>Não foi possível carregar as especialidades. Aplique a migration deste card antes de testar a tela.</p>
+            ) : (
+              <div className={styles.specialtyList}>
+                {specialties?.map((specialty) => (
+                  <div className={styles.specialtyRow} key={specialty.id}>
+                    <form action={updateSpecialty} className={styles.specialtyEditForm}>
+                      <input type="hidden" name="specialtyId" value={specialty.id} />
+                      <label className={styles.srOnly} htmlFor={`specialty-${specialty.id}`}>Nome da especialidade</label>
+                      <input
+                        id={`specialty-${specialty.id}`}
+                        name="name"
+                        type="text"
+                        minLength={2}
+                        maxLength={120}
+                        required
+                        defaultValue={specialty.name}
+                      />
+                      <button type="submit">Salvar</button>
+                    </form>
+                    <span className={specialty.active ? styles.active : styles.inactive}>
+                      {specialty.active ? "Ativa" : "Inativa"}
+                    </span>
+                    <form action={specialty.active ? deactivateSpecialty : reactivateSpecialty}>
+                      <input type="hidden" name="specialtyId" value={specialty.id} />
+                      <button
+                        className={specialty.active ? styles.deactivate : styles.reactivate}
+                        type="submit"
+                      >
+                        {specialty.active ? "Desativar" : "Reativar"}
+                      </button>
+                    </form>
+                  </div>
+                ))}
+                {specialties?.length === 0 && <p>Ainda não há especialidades cadastradas.</p>}
+              </div>
+            )}
+
+            <form action={createSpecialty} className={styles.specialtyCreateForm}>
+              <div>
+                <label htmlFor="new-specialty">Nova especialidade</label>
+                <input
+                  id="new-specialty"
+                  name="name"
+                  type="text"
+                  minLength={2}
+                  maxLength={120}
+                  required
+                  placeholder="Ex.: Cardiologia"
+                />
+              </div>
+              <button type="submit">Cadastrar especialidade</button>
+            </form>
+            <p className={styles.staffHint}>Desativar não apaga consultas antigas. Médicos de uma especialidade inativa deixam de aparecer para novos agendamentos até a reativação.</p>
           </section>
 
           <section id="equipe" className={styles.staffSection} aria-labelledby="staff-heading">
             <div className={styles.sectionHeading}>
               <div>
                 <h2 id="staff-heading">Equipe do Hospital Sapiens</h2>
-                <p>Vincule contas existentes e preencha os dados profissionais. Médicos com especialidade e vínculo ativo aparecem no agendamento.</p>
+                <p>Vincule contas existentes e selecione uma especialidade ativa para médicos.</p>
               </div>
               <span>{staff?.length ?? 0} vínculos</span>
             </div>
 
-            {feedback[resultado] && <p role="status" className={styles.feedback}>{feedback[resultado]}</p>}
             {staffError ? (
-              <p role="alert" className={styles.feedback}>Não foi possível carregar a equipe. Verifique se a migration de permissões foi aplicada.</p>
+              <p role="alert" className={styles.feedback}>Não foi possível carregar a equipe. Verifique se as migrations de permissões foram aplicadas.</p>
             ) : (
               <div className={styles.staffList}>
                 {staff?.map((member) => (
@@ -200,9 +287,14 @@ export default async function AdministracaoPage({ searchParams }) {
                 <input id="staff-name" name="fullName" type="text" minLength={3} maxLength={120} required placeholder="Nome completo" />
               </div>
               <div>
-                <label htmlFor="staff-specialty">Especialidade (obrigatória para médicos)</label>
-                <input id="staff-specialty" name="specialty" type="text" maxLength={120} placeholder="Ex.: Clínica Geral" aria-describedby="staff-specialty-help" />
-                <small id="staff-specialty-help">Para secretaria, deixe em branco.</small>
+                <label htmlFor="staff-specialty">Especialidade</label>
+                <select id="staff-specialty" name="specialty" defaultValue="">
+                  <option value="">Selecione para médicos</option>
+                  {activeSpecialties.map((specialty) => (
+                    <option key={specialty.id} value={specialty.name}>{specialty.name}</option>
+                  ))}
+                </select>
+                <small>Obrigatória para médicos; para secretaria, deixe em branco.</small>
               </div>
               <div>
                 <label htmlFor="staff-role">Função</label>
@@ -213,16 +305,16 @@ export default async function AdministracaoPage({ searchParams }) {
               </div>
               <button type="submit">Salvar e ativar vínculo</button>
             </form>
-            <p className={styles.staffHint}>Use Reativar ao lado de um funcionário inativo para recuperar o vínculo com os mesmos dados. Para atualizar nome, função ou especialidade, preencha o formulário com o mesmo e-mail. Desativar não exclui o usuário nem cancela consultas existentes. A conta administrativa não pode ser alterada por este formulário.</p>
+            <p className={styles.staffHint}>Para atualizar nome, função ou especialidade, preencha o formulário com o mesmo e-mail. Desativar não exclui o usuário nem cancela consultas existentes.</p>
           </section>
 
           <section aria-labelledby="modules-heading">
             <div className={styles.sectionHeading}>
               <div>
-                <h2 id="modules-heading">Módulos de gestão</h2>
-                <p>Funcionalidades planejadas para o administrador.</p>
+                <h2 id="modules-heading">Próximos módulos</h2>
+                <p>Funcionalidades administrativas ainda pendentes no backlog.</p>
               </div>
-              <span>2 módulos</span>
+              <span>{modules.length} módulos</span>
             </div>
             <div className={styles.grid}>
               {modules.map((module) => (
@@ -243,7 +335,7 @@ export default async function AdministracaoPage({ searchParams }) {
             <div className={styles.nextIcon}>↗</div>
             <div>
               <h2 id="next-heading">Próximo passo</h2>
-              <p>Testar os perfis com contas de demonstração, integrar a agenda e, só então, ativar o login no site publicado.</p>
+              <p>Aplicar e validar a migration em ambiente coordenado pela equipe, testar o CRUD e só depois integrar à main.</p>
             </div>
           </section>
         </div>

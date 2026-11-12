@@ -1,5 +1,5 @@
 import { createClient, isSupabaseConfigured } from "./supabase/client.js";
-import { appointmentError, clinicDateTime, fromAppointmentRow } from "./appointment-format.js";
+import { appointmentError, clinicDateTime, fromAppointmentRow } from "../features/appointments/appointment-format.js";
 
 const legacyDoctors = {
   Cardiologia: "Dra. Mariana Silva", Ortopedia: "Dr. Lucas Ferreira",

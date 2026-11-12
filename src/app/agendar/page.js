@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAppointment, getBookingDoctors, getBookingSlots, saveAppointment } from "@/lib/appointments";
-import { clinicDateTime } from "@/lib/appointment-format";
+import { clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import UserMenu, {
   SidebarUser,

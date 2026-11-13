@@ -16,9 +16,12 @@ Com a flag desligada, informa indisponibilidade. Dados locais não concedem aces
   de médicos vinculados ao Hospital Sapiens, inclusive histórico de inativos.
   A RPC `admin_list_appointments` retorna somente horário, nomes, especialidade
   e status (até 200 linhas por dia); não retorna CPF, telefone nem motivo.
-- Página `/administracao/horarios` para configurar os cinco horários da grade
-  por médico ativo e dia (hoje até 365 dias). Sem configuração vale a grade
-  padrão; desmarcar todos fecha o dia e restaurar remove a personalização.
+- Remarcação e cancelamento de consultas futuras na própria agenda. A remarcação
+  respeita a disponibilidade do profissional, conflitos de paciente/médico e o
+  fuso de São Paulo. Cancelar preserva o histórico da consulta.
+- Página `/administracao/horarios` para configurar horários de 30 em 30 minutos,
+  das 08:00 às 17:30, por médico ativo e dia (hoje até 365 dias). Sem configuração
+  vale a grade padrão; desmarcar todos fecha o dia e restaurar remove a personalização.
   O banco bloqueia a remoção de horários com consultas agendadas e usa a mesma
   grade ao listar opções e validar criação/remarcação de consultas.
 
@@ -28,9 +31,8 @@ Os detalhes e restrições estão em [gestão de funcionários](gestao-funcionar
 
 ## Pendente
 
-- Escrita/alteração de consultas pelo administrador e módulo de serviços.
-- Grade semanal recorrente e inclusão de horários fora dos cinco horários
-  atuais; esta etapa configura datas individuais.
+- Criação de consultas pelo administrador e módulo de serviços.
+- Grade semanal recorrente; esta etapa configura datas individuais.
 - Reorganização visual do painel em telas próprias para Agenda, Equipe e outros módulos.
 - Validação manual dos formulários, contas e tentativas negadas antes da publicação.
 

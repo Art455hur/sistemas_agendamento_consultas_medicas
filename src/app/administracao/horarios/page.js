@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { clinicDateTime } from "@/features/appointments/appointment-format.js";
+import { AVAILABILITY_SLOTS } from "@/features/appointments/availability.js";
 import { createClient } from "@/lib/supabase/server";
 import { resetAvailability, saveAvailability } from "./actions";
 import styles from "./page.module.css";
@@ -8,7 +9,6 @@ import styles from "./page.module.css";
 export const metadata = { title: "Horários dos médicos | AgendaSaúde" };
 export const dynamic = "force-dynamic";
 
-const times = ["08:00", "09:00", "10:30", "14:00", "15:30"];
 const messages = {
   salvo: "Horários deste médico e dia atualizados.",
   restaurado: "Grade padrão restaurada para este dia.",
@@ -81,7 +81,7 @@ export default async function DoctorHoursPage({ searchParams }) {
                 <input type="hidden" name="doctorId" value={doctor.profile_id} />
                 <input type="hidden" name="day" value={day} />
                 <div className={styles.slots}>
-                  {times.map((time) => <label key={`${doctor.profile_id}-${day}-${time}`}>
+                  {AVAILABILITY_SLOTS.map((time) => <label key={`${doctor.profile_id}-${day}-${time}`}>
                     <input type="checkbox" name="slots" value={time} defaultChecked={selectedSlots.includes(time)} />
                     <span>{time}</span>{booked.includes(time) && <small>Consulta agendada</small>}
                   </label>)}
@@ -93,7 +93,7 @@ export default async function DoctorHoursPage({ searchParams }) {
                 <input type="hidden" name="day" value={day} />
                 <button type="submit">Restaurar grade padrão</button>
               </form>}
-              <p className={styles.hint}>Consultas já agendadas não são canceladas. Horários ocupados precisam permanecer selecionados.</p>
+              <p className={styles.hint}>Escolha horários de 30 em 30 minutos, das 08:00 às 17:30. Consultas já agendadas não são canceladas; horários ocupados precisam permanecer selecionados.</p>
             </section>
           </>}
         </>}

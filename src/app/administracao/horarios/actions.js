@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { AVAILABILITY_SLOTS } from "@/features/appointments/availability.js";
 
-const availableSlots = ["08:00", "09:00", "10:30", "14:00", "15:30"];
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function target(doctorId, day, status) {
@@ -20,8 +20,8 @@ async function changeAvailability(formData, operation) {
   const day = String(formData.get("day") || "");
   const slots = formData.getAll("slots").map(String);
   if (!uuid.test(doctorId) || !/^\d{4}-\d{2}-\d{2}$/.test(day) ||
-    slots.length > availableSlots.length || new Set(slots).size !== slots.length ||
-    slots.some((slot) => !availableSlots.includes(slot))) {
+    slots.length > AVAILABILITY_SLOTS.length || new Set(slots).size !== slots.length ||
+    slots.some((slot) => !AVAILABILITY_SLOTS.includes(slot))) {
     redirect(target(doctorId, day, "invalido"));
   }
   if (process.env.NEXT_PUBLIC_ENABLE_SUPABASE_AUTH !== "true") {

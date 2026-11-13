@@ -11,6 +11,7 @@ import ConfirmationResend from "@/features/auth/ConfirmationResend";
 import { canResendConfirmation } from "@/features/auth/confirmation-resend.js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { isValidCpf } from "@/shared/validation/cpf.js";
+import { patientNameError } from "@/shared/validation/patient-name.js";
 
 export default function Cadastro() {
   const router = useRouter();
@@ -98,10 +99,9 @@ export default function Cadastro() {
       return;
     }
 
-    if (form.name.trim().length < 3) {
-      setMessage(
-        "Digite seu nome completo."
-      );
+    const nameError = patientNameError(form.name);
+    if (nameError) {
+      setMessage(nameError);
       return;
     }
 

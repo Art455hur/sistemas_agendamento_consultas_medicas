@@ -112,6 +112,7 @@ Veja [limites, permissões e critérios de validação](docs/documentacao-tecnic
 | RN10 | Nos formulários de cadastro e perfil, o CPF deve possuir onze números, dígitos verificadores corretos e não pode ser uma sequência de números iguais. |
 | RN11 | A senha deve possuir pelo menos seis caracteres. |
 | RN12 | A data de nascimento não pode estar no futuro. |
+| RN13 | No cadastro e perfil, o nome do paciente deve ter de 3 a 120 caracteres, desconsiderando espaços no início e no fim. |
 
 ## Histórias de usuário
 
@@ -272,6 +273,7 @@ Os testes automatizados usam dados fictícios e banco descartável; não acessam
 - [Refatoração de código e componentes](docs/refatoracao-componentes.md)
 - [Notificações integradas aos agendamentos](docs/notificacoes-agendamentos.md)
 - [Validação do CPF e dados fictícios para testes](docs/validacao-cpf.md)
+- [Validação compartilhada do nome do paciente](docs/validacao-nome.md)
 - [Autenticação e configuração](docs/autenticacao-supabase.md)
 - [Perfis e permissões](docs/perfis-e-permissoes.md)
 - [Consultas e perfil do paciente](docs/consultas-supabase.md)

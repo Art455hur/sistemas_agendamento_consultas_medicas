@@ -1289,6 +1289,12 @@ body {
   font-weight: bold;
 }
 
+.profile-message.error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 .profile-button {
   grid-column: 1 / -1;
   width: 100%;

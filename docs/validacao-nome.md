@@ -19,10 +19,17 @@ O cadastro já exigia no mínimo três caracteres, mas não verificava o limite 
 modo de demonstração não aplicava a mesma regra. Agora os fluxos usam a função
 compartilhada para evitar essas diferenças.
 
+## Retorno visual do perfil
+
+Mensagens de erro no perfil usam texto vermelho, fundo vermelho claro e borda
+vermelha clara (`.profile-message.error`). Isso inclui erros de validação,
+carregamento e salvamento. A confirmação de sucesso permanece verde. O texto e
+os papéis acessíveis `alert`/`status` continuam diferenciando os resultados.
+
 ## Escopo
 
-Esta entrega modifica somente a validação de nome do paciente na aplicação,
-seus testes e esta documentação. Mantém os campos e o fluxo de cadastro já
+Esta entrega modifica a validação de nome do paciente na aplicação, seus testes,
+o retorno visual de erro no perfil e esta documentação. Mantém os campos e o fluxo de cadastro já
 integrados pela equipe. Não altera serviços administrativos, dados existentes,
 SQL, permissões ou configurações de Auth/Vercel.
 

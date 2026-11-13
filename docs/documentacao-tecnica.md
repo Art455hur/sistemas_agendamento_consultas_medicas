@@ -1,6 +1,6 @@
 # Documentação técnica — AgendaSaúde N2
 
-Atualizada em 12/11/2026 com base nas entregas até a PR #17 e nos incrementos de validação do CPF na aplicação e no banco descritos neste guia.
+Atualizada em 13/11/2026 com base na `main` no commit `c158029`, após a PR #37. A revisão inclui testes, validações, cadastro integrado ao perfil e operações administrativas presentes no código.
 Este guia descreve implementação e limites; não certifica o estado da Vercel ou do banco hospedado.
 
 ## Objetivo e modos de execução
@@ -33,7 +33,7 @@ implementar novos cards e explica os reexports de compatibilidade.
 | `src/lib/supabase/client.js` e `server.js` | Clientes Supabase no navegador e no servidor |
 | `src/app/administracao/actions.js` | Ações administrativas no servidor que chamam RPCs autorizadas |
 | `supabase/migrations` | Evolução do esquema, funções e políticas |
-| `tests` | Verificações automatizadas com Node e PGlite |
+| `tests` e `tests/e2e` | Verificações com Node/PGlite e cenários de navegador com Playwright |
 
 A landing institucional em `landing-nextech` é uma aplicação independente.
 
@@ -49,7 +49,9 @@ A landing institucional em `landing-nextech` é uma aplicação independente.
 | `/agendamentos` | Lista e cancelamento de consultas |
 | `/confirmacao` | Resultado do agendamento |
 | `/perfil` | Dados do titular da conta |
-| `/administracao` | Gestão de equipe e leitura diária da agenda para administrador com vínculo ativo |
+| `/administracao` | Gestão de equipe e especialidades; leitura, remarcação e cancelamento da agenda por administrador ativo |
+| `/administracao/pacientes` | Listagem, edição, desativação e reativação de pacientes |
+| `/administracao/horarios` | Disponibilidade por médico e data |
 
 `/medico` e `/secretaria` aparecem no planejamento de navegação, mas ainda não
 têm páginas implementadas. Não considerar os painéis desses perfis concluídos.
@@ -81,11 +83,12 @@ recuperação conforme [autenticação](autenticacao-supabase.md). Não colocar
 | Tabela | Dados e relações principais |
 | --- | --- |
 | `auth.users` | Contas gerenciadas pelo Supabase Auth |
-| `public.profiles` | `id` ligado a `auth.users`; papel, nome, telefone, CPF, nascimento e especialidade do profissional |
+| `public.profiles` | `id` ligado a `auth.users`; papel, nome, telefone, CPF, nascimento, especialidade do profissional e indicador `patient_active` |
 | `public.appointments` | Paciente e médico ligados a `profiles`; nome do médico preservado, especialidade, instante, motivo e status |
 | `public.hospital` | Hospital Sapiens, ID fixo 1 |
 | `public.hospital_staff` | Um vínculo por perfil; referência ao hospital e indicador `active` |
 | `public.specialties` | Catálogo administrável de especialidades ativas/inativas |
+| `public.doctor_day_availability` | Configuração de horários por médico e data; ausência de configuração usa a grade padrão |
 
 O cadastro público cria perfil `patient` por trigger. CPF não nulo é único e deve
 ter 11 números; nascimento não pode estar no futuro. O papel não é editável pelo
@@ -99,7 +102,7 @@ permanecer fora dos esquemas expostos pela Data API.
 
 ## Migrações versionadas
 
-Aplicar em ordem de versão somente as pendentes no ambiente de destino.
+Há **15 migrações SQL** versionadas nesta base. Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 
 | Versão | Arquivo em `supabase/migrations` | Mudança |
 | --- | --- | --- |
@@ -115,10 +118,14 @@ Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 | `20261112182236` | `20261112182236_agenda_administrativa_leitura.sql` | Leitura limitada da agenda por administrador ativo |
 | `20261112190336` | `20261112190336_crud_especialidades.sql` | CRUD administrativo de especialidades e integração com médicos |
 | `20261112194614` | `20261112194614_crud_pacientes.sql` | Gestão administrativa de pacientes com desativação lógica |
+| `20261112200018` | `20261112200018_horarios_profissionais.sql` | Personalização da disponibilidade por médico e data |
 | `20261113134032` | `20261113134032_extend_doctor_day_slots.sql` | Amplia a grade diária de horários configuráveis para intervalos de meia hora |
 | `20261113134034` | `20261113134034_admin_manage_appointments.sql` | Permite ao administrador remarcar ou cancelar consultas futuras |
 
-As onze primeiras migrações constam no histórico do projeto compartilhado de testes. As versões `20261112182236` (agenda administrativa) e `20261112190336` (CRUD de especialidades) já foram aplicadas e testadas em 12/11/2026. A migration `20261112194614_crud_pacientes.sql` já foi aplicada no Supabase compartilhado e validada com teste transacional de listar, editar, desativar e reativar pacientes.
+O registro anterior da equipe informa a aplicação das migrações até
+`20261112200018`, inclusive o teste transacional do CRUD de pacientes.
+As duas versões de 13/11 estão no repositório; esta revisão não consultou nem
+alterou o histórico remoto e não certifica sua aplicação no projeto hospedado.
 Confira o histórico remoto antes de qualquer execução. Não reaplique arquivos já
 registrados nem altere migrações antigas para introduzir novas mudanças. Mudanças
 futuras devem entrar em nova migração e PR; avise a equipe antes de aplicá-las no
@@ -132,7 +139,7 @@ banco compartilhado. Esta atualização documental não executa SQL.
 | Paciente | Próprio perfil; ler, agendar, cancelar e remarcar suas consultas | Não altera papéis nem dados de outros pacientes |
 | Médico ativo | Leitura das consultas em que é o médico, conforme RLS | Painel próprio pendente; desativação revoga essa leitura |
 | Secretaria | Leitura do próprio perfil e vínculo | Agenda da clínica e painel próprios ainda pendentes |
-| Administrador ativo | Painel, gestão da equipe, especialidades, pacientes e leitura da agenda da clínica | Não promove administradores; CRUD de pacientes usa desativação lógica |
+| Administrador ativo | Painel, gestão da equipe, especialidades, pacientes, horários e leitura/remarcação/cancelamento da agenda da clínica | Não promove administradores; CRUD de pacientes usa desativação lógica |
 
 RLS restringe linhas e grants restringem operações/colunas. As RPCs de equipe
 validam administrador ativo no banco. A leitura administrativa da agenda também
@@ -175,6 +182,11 @@ alterações de CPF por trigger invoker, mantendo formato/unicidade. Um CPF inv�
 antigo é preservado quando o número não muda; o formulário continua exigindo CPF
 válido para salvar. Veja [limites e roteiro de teste](validacao-cpf.md).
 
+Cadastro, perfil e serviço de atualização também compartilham a regra de nome
+entre 3 e 120 caracteres após remover espaços externos. No perfil, erros de
+validação, leitura e salvamento aparecem em vermelho; sucesso permanece verde.
+Veja [validação do nome e retorno visual](validacao-nome.md).
+
 ### Pacientes
 
 O cadastro continua sendo feito pelo fluxo público do Supabase Auth. O administrador pode listar, editar, desativar e reativar pacientes em `/administracao/pacientes`. A desativação é lógica: preserva conta e histórico, cancela consultas futuras ainda agendadas e bloqueia os fluxos privados do paciente até a reativação.
@@ -194,11 +206,22 @@ npm test
 npm run build
 ```
 
-A PR #17 registra 41 testes aprovados e build concluído. Após a validação de CPF
-na aplicação e no banco, `npm test` foi executado com 52 testes aprovados. A mudança
-de banco também foi verificada no projeto hospedado com transação revertida. PGlite aplica as migrações em
-banco descartável para testar persistência, isolamento e regras. A concorrência
-com duas conexões usa um script opcional descrito em [conflitos](conflitos-horarios.md).
+Na revisão de 13/11/2026, `npm test` foi executado na base `c158029`:
+**104 testes passaram, sem falhas ou testes ignorados**. Esse comando executa
+Node/PGlite; não executa os testes de navegador nem acessa o Supabase hospedado.
+PGlite aplica as migrações em banco descartável para testar persistência,
+isolamento e regras, com o transporte Auth simulado nos cenários de integração.
+
+Os registros antigos de 41, 52 e 86 testes correspondem às respectivas entregas,
+não à contagem atual. A compilação já havia sido aprovada na entrega da PR #37;
+não foi repetida nesta revisão exclusivamente documental.
+
+Há 13 cenários de navegador na suíte Playwright, executada separadamente em
+modo de demonstração. Nesta sessão, o navegador foi bloqueado antes de abrir
+as páginas; esses cenários não contam como aprovados. O teste opcional de
+concorrência com duas conexões está em [conflitos](conflitos-horarios.md).
+Veja a [revisão de cobertura, contribuições e pendências](revisao-testes-funcionalidades.md)
+e o [guia de execução dos testes de navegador](testes-ponta-a-ponta.md).
 
 Antes de liberar Auth no site publicado, executar com contas fictícias:
 
@@ -252,8 +275,11 @@ não foi confirmado. Erros de dados continuam destacados como erro.
 
 O botão fica desativado durante o envio e depois de um cadastro aceito. Uma
 trava imediata também impede duas chamadas antes da atualização visual do React.
-As senhas são limpas do formulário após sucesso. Essa alteração não muda os
-metadados enviados no cadastro nem configurações do Supabase.
+As senhas são limpas do formulário após sucesso. A correção da PR #31 também
+faz o cadastro enviar nome, telefone, CPF e nascimento nos metadados esperados
+pelo trigger de perfil; senha e papel não são copiados para esses metadados.
+Contas antigas com dados omitidos não são preenchidas automaticamente. Veja
+[integração entre cadastro e perfil](testes-integracao-paciente.md).
 
 ## Notificações dos agendamentos
 

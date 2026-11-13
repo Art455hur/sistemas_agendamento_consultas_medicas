@@ -69,6 +69,18 @@ falharam no lançamento do navegador, antes de interagir com a aplicação. As
 configurações temporárias foram removidas. A validação da interface permanece
 pendente para o revisor em um ambiente que permita iniciar o navegador.
 
+## Conferência manual relatada em 13/11/2026
+
+Arthur confirmou pela interface a rejeição de nome com dois caracteres, o
+salvamento de `Ana` e sua permanência após F5 no modo de demonstração. Após
+abrir o novo preview da PR #37, também confirmou o retorno de erro em vermelho.
+Esses resultados foram relatados pelo usuário; não equivalem à execução da
+suíte automatizada de navegador nem validam gravação no Supabase hospedado.
+O limite superior de 120 caracteres está coberto pelos testes unitários, mas
+não recebeu confirmação manual nesta sessão.
+
+Veja a [revisão dos testes e contribuições](revisao-testes-funcionalidades.md).
+
 O card geral de validações permanece em andamento enquanto houver outros campos
 ou critérios pendentes. A conclusão desta subtarefa não conclui os cards de
 cadastro de usuários, painel administrativo ou testes de toda a aplicação.

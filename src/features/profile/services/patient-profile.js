@@ -1,4 +1,5 @@
 import { isValidCpf } from "../../../shared/validation/cpf.js";
+import { patientNameError } from "../../../shared/validation/patient-name.js";
 
 const fields = "full_name,phone,birth_date,cpf";
 
@@ -23,10 +24,11 @@ export async function loadPatientProfile(client) {
 }
 
 export async function savePatientProfile(client, profile) {
+  const nameError = patientNameError(profile.name);
+  if (nameError) throw new Error(nameError);
   const name = profile.name.trim();
   const phone = profile.phone.replace(/\D/g, "");
   const cpf = profile.cpf.replace(/\D/g, "");
-  if (!name || name.length > 120) throw new Error("Informe um nome de até 120 caracteres.");
   if (phone.length < 10 || phone.length > 11) throw new Error("Digite um telefone válido.");
   if (!isValidCpf(profile.cpf)) throw new Error("Digite um CPF válido.");
   const today = new Date();

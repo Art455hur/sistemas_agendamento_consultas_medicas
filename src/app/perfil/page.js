@@ -10,6 +10,7 @@ import PatientShell from "@/components/layout/PatientShell.js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { loadPatientProfile, savePatientProfile } from "@/features/profile/services/patient-profile.js";
 import { isValidCpf } from "@/shared/validation/cpf.js";
+import { patientNameError } from "@/shared/validation/patient-name.js";
 
 export default function Perfil() {
   const [message, setMessage] =
@@ -88,6 +89,13 @@ export default function Perfil() {
 
     setMessage("");
     setMessageType("");
+
+    const nameError = patientNameError(profile.name);
+    if (nameError) {
+      setMessage(nameError);
+      setMessageType("error");
+      return;
+    }
 
     const phoneNumbers =
       profile.phone.replace(/\D/g, "");

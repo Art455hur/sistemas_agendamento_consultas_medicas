@@ -27,6 +27,24 @@ test("sessão ausente e atualização sem linha não produzem sucesso", async ()
   await assert.rejects(savePatientProfile(clientFor({ row: null }), profile), /Não foi possível salvar/);
 });
 
+test("nome inválido não consulta sessão nem envia atualização do perfil", async () => {
+  for (const name of ["", "  ", "A", "  Al  ", "A".repeat(121), null]) {
+    const client = clientFor();
+    client.auth.getUser = () => assert.fail("Não deve consultar sessão para dados inválidos.");
+    await assert.rejects(savePatientProfile(client, { ...profile, name }), /nome entre 3 e 120/);
+    assert.deepEqual(client.calls, []);
+  }
+});
+
+test("nome nos limites é salvo sem espaços externos", async () => {
+  for (const name of ["Ana", "A".repeat(120)]) {
+    const client = clientFor({ row: { full_name: name } });
+    const result = await savePatientProfile(client, { ...profile, name: `  ${name}  ` });
+    assert.equal(client.calls[0].full_name, name);
+    assert.equal(result.name, name);
+  }
+});
+
 test("CPF duplicado tem mensagem útil e validações não enviam atualização", async () => {
   await assert.rejects(savePatientProfile(clientFor({ error: { code: "23505" } }), profile), /CPF já está cadastrado/);
   for (const changes of [{ name: " " }, { phone: "123" }, { cpf: "123" }, { cpf: "123.456.789-01" }, { cpf: "111.111.111-11" }, { birthDate: "2999-01-01" }, { birthDate: "2025-02-30" }]) {

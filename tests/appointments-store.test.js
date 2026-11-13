@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createAppointmentsStore, EMPTY_APPOINTMENTS_STATE } from "../src/features/appointments/appointments-store.js";
+import { createAppointmentsStore, EMPTY_APPOINTMENTS_STATE, APPOINTMENTS_ERROR } from "../src/features/appointments/appointments-store.js";
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
 test("dois consumidores compartilham consulta, atualização e limpeza", async () => {
@@ -52,11 +52,25 @@ test("erro limpa dados e atualização seguinte recupera o estado", async () => 
   let fail = true, refresh;
   const store = createAppointmentsStore(async () => { if (fail) throw new Error("Sem conexão"); return [{id: 1}]; }, load => {refresh = load; return () => {};});
   const stop = store.subscribe(() => {}); await flush();
-  assert.equal(store.getSnapshot().error, "Sem conexão");
+  assert.equal(store.getSnapshot().error, APPOINTMENTS_ERROR);
   assert.equal(store.getSnapshot().loading, false);
   assert.deepEqual(store.getSnapshot().appointments, []);
   fail = false; await refresh();
   assert.equal(store.getSnapshot().error, "");
   assert.equal(store.getSnapshot().appointments.length, 1);
   stop();
+});
+
+
+test("rejeições sem Error não quebram recuperação nem expõem conteúdo interno", async () => {
+  for (const failure of [null, undefined, "segredo interno", { message: "SQL privado" }]) {
+    let fail = true;
+    const store = createAppointmentsStore(async () => { if (fail) throw failure; return []; }, () => () => {});
+    const stop = store.subscribe(() => {}); await flush();
+    assert.equal(store.getSnapshot().error, APPOINTMENTS_ERROR);
+    assert.equal(store.getSnapshot().loading, false);
+    fail = false; await store.refresh();
+    assert.equal(store.getSnapshot().error, "");
+    stop();
+  }
 });

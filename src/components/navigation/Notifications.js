@@ -1,5 +1,7 @@
 "use client";
 
+import ErrorNotice from "@/components/feedback/ErrorNotice.js";
+
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useAppointments } from "../../features/appointments/hooks/useAppointments.js";
@@ -7,7 +9,7 @@ import { appointmentNotifications } from "../../features/notifications/appointme
 import { formatDate } from "../../shared/formatting/date.js";
 
 export default function Notifications() {
-  const { appointments, loading, error } = useAppointments();
+  const { appointments, loading, error, retry } = useAppointments();
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const wrapper = useRef(null);
@@ -60,7 +62,7 @@ export default function Notifications() {
           </div>
 
           {loading ? <p role="status">Carregando notificações...</p> : error ? (
-            <p role="alert">{error}</p>
+            <ErrorNotice message={error} onRetry={retry} />
           ) : count > 0 ? (
             <div className="notification-list">
               {notifications.map((notification) => (

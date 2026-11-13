@@ -23,5 +23,6 @@ const store = createAppointmentsStore(getAppointments, (refresh, invalidate) => 
 const getServerSnapshot = () => EMPTY_APPOINTMENTS_STATE;
 
 export function useAppointments() {
-  return useSyncExternalStore(store.subscribe, store.getSnapshot, getServerSnapshot);
+  const state = useSyncExternalStore(store.subscribe, store.getSnapshot, getServerSnapshot);
+  return { ...state, retry: store.refresh };
 }

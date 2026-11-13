@@ -1,8 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = 3100;
-const baseURL = `http://127.0.0.1:${port}`;
-
 export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: "**/*.spec.js",
@@ -12,21 +9,10 @@ export default defineConfig({
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
     ...devices["Desktop Chrome"],
-    baseURL,
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL ?? "http://127.0.0.1:3100",
     browserName: "chromium",
     headless: true,
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
-  },
-  webServer: {
-    command: `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    env: {
-      NEXT_PUBLIC_ENABLE_SUPABASE_AUTH: "false",
-      NEXT_PUBLIC_SUPABASE_URL: "",
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "",
-    },
   },
 });

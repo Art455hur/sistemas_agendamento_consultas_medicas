@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { registrationFeedback, registrationConnectionFeedback } from "@/features/auth/registration-feedback.js";
+import { registerPatient } from "@/features/auth/register-patient.js";
 import ConfirmationResend from "@/features/auth/ConfirmationResend";
 import { canResendConfirmation } from "@/features/auth/confirmation-resend.js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -156,14 +157,7 @@ export default function Cadastro() {
       requestState.current = "submitting";
       setSubmitting(true);
       try {
-        const result = await createClient().auth.signUp({
-          email: form.email.trim().toLowerCase(),
-          password: form.password,
-          options: {
-            data: { name: form.name.trim() },
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        });
+        const result = await registerPatient(createClient(), form, `${window.location.origin}/auth/callback`);
         const feedback = registrationFeedback(result);
         if (canResendConfirmation(result)) setConfirmationEmail(form.email.trim().toLowerCase());
         setMessage(feedback.message);

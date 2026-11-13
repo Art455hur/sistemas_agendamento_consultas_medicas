@@ -19,5 +19,32 @@ execução.
 - Um paciente fictício consegue percorrer cadastro e login no modo local;
 - Nenhuma chave ou arquivo `.env.local` é necessário para executar a suíte.
 
-As instruções de instalação e execução serão mantidas junto da configuração do
-Playwright nesta documentação.
+## Instalação e execução
+
+Na raiz do repositório, instale as dependências e o Chromium usado pela suíte:
+
+```bash
+npm ci
+npm run test:e2e:install
+```
+
+Execute os testes de navegador e, se precisar, abra o relatório HTML:
+
+```bash
+npm run test:e2e
+npm run test:e2e:report
+```
+
+O lançador escolhe uma porta local livre, inicia o Next em modo de teste e o
+encerra ao final. A suíte bloqueia requisições externas, força a autenticação
+Supabase a ficar desligada e não reutiliza outro servidor local.
+
+No PowerShell, use `npm.cmd` se a política do terminal bloquear `npm`.
+
+## Limites da validação
+
+Esta suíte confirma os caminhos de interface do modo de demonstração. Ela não
+comprova o fluxo real de Supabase Auth, confirmação e recuperação de e-mail,
+isolamento entre usuários por RLS nem o comportamento da versão publicada.
+Essas verificações continuam exigindo um ambiente de teste controlado e não
+devem ser feitas ativando Auth na Vercel de produção.

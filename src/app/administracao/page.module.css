@@ -62,6 +62,14 @@
 .agendaDetails strong, .agendaDetails span { display: block; overflow-wrap: anywhere; }
 .agendaDetails strong { font-size: 14px; }
 .agendaDetails span { color: #718699; font-size: 12px; margin-top: 5px; }
+.appointmentActions { flex: 1 1 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-left: 58px; }
+.appointmentActions form { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.appointmentActions label { display: block; }
+.appointmentActions input { min-height: 38px; border: 1px solid #cbdbe4; border-radius: 8px; background: #fff; color: #17324d; padding: 7px 9px; font: inherit; }
+.appointmentActions button { min-height: 38px; border: 0; border-radius: 8px; background: #087c96; color: #fff; padding: 7px 12px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.appointmentActions button:hover, .appointmentActions button:focus-visible { background: #07647b; }
+.appointmentActions button.deactivate { border: 1px solid #e9caca; background: #fff; color: #9a3f3f; }
+.appointmentActions button.deactivate:hover, .appointmentActions button.deactivate:focus-visible { background: #fff2f2; }
 .agendaEmpty { background: #fff; border: 1px solid #e3ebef; border-radius: 14px; padding: 22px; color: #718699; font-size: 14px; }
 .sectionHeading { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 21px; gap: 15px; }
 .sectionHeading h2, .nextStep h2 { font-size: 20px; margin: 0 0 4px; }
@@ -90,6 +98,7 @@
 @media (max-width: 700px) { .shell { display: block; } .sidebar { width: 100%; min-height: 0; padding: 14px 20px; } .workspaceLabel, .navigation, .sidebarFooter { display: none; } .topbar { min-height: 56px; } .content { padding-top: 34px; } .heading { flex-direction: column; } .grid { grid-template-columns: 1fr; } .module { min-height: 210px; } .sectionHeading { align-items: flex-start; } }
 @media (max-width: 700px) { .staffRow { flex-wrap: wrap; gap: 10px; } .staffRow > div { flex-basis: 100%; } }
 @media (max-width: 700px) { .agendaRow { flex-wrap: wrap; gap: 10px; } .agendaDetails { flex-basis: calc(100% - 80px); } }
+@media (max-width: 700px) { .appointmentActions { margin-left: 0; } }
 
 .staffForm > div { flex: 1 1 220px; min-width: 0; }
 .staffForm small { display: block; margin-top: 6px; color: #718699; font-size: 12px; }

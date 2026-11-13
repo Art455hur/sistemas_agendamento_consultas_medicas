@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isAvailabilitySlot } from "@/features/appointments/availability.js";
 
 function authEnabled() {
   return process.env.NEXT_PUBLIC_ENABLE_SUPABASE_AUTH === "true" &&
@@ -210,4 +211,63 @@ export async function deactivatePatient(formData) {
 
 export async function reactivatePatient(formData) {
   return setPatientActive(formData, true);
+}
+
+function appointmentResultUrl(result, day) {
+  const query = new URLSearchParams({ resultado: result });
+  if (typeof day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day)) query.set("dia", day);
+  return `/administracao?${query.toString()}#agenda`;
+}
+
+function appointmentErrorResult(error) {
+  if (error?.code === "42501") return "negado";
+  if (error?.code === "23505") return "consulta-conflito";
+  if (error?.code === "P0002") return "consulta-nao-encontrada";
+  if (error?.code === "22023") return "consulta-invalida";
+  return "erro";
+}
+
+function validAppointmentDate(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T12:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+export async function rescheduleAdminAppointment(formData) {
+  const id = String(formData.get("appointmentId") ?? "");
+  const day = String(formData.get("day") ?? "");
+  const time = String(formData.get("time") ?? "");
+  if (!validUuid(id) || !validAppointmentDate(day) || !isAvailabilitySlot(time)) {
+    redirect(appointmentResultUrl("consulta-invalida", day));
+  }
+
+  const supabase = await authenticatedClient();
+  const { error } = await supabase.rpc("admin_reschedule_appointment", {
+    p_id: id,
+    p_day: day,
+    p_time: time,
+  });
+  if (error) redirect(appointmentResultUrl(appointmentErrorResult(error), day));
+
+  revalidatePath("/administracao");
+  revalidatePath("/agendamentos");
+  revalidatePath("/dashboard");
+  redirect(appointmentResultUrl("consulta-atualizada", day));
+}
+
+export async function cancelAdminAppointment(formData) {
+  const id = String(formData.get("appointmentId") ?? "");
+  const day = String(formData.get("day") ?? "");
+  if (!validUuid(id) || !validAppointmentDate(day)) {
+    redirect(appointmentResultUrl("consulta-invalida", day));
+  }
+
+  const supabase = await authenticatedClient();
+  const { error } = await supabase.rpc("admin_cancel_appointment", { p_id: id });
+  if (error) redirect(appointmentResultUrl(appointmentErrorResult(error), day));
+
+  revalidatePath("/administracao");
+  revalidatePath("/agendamentos");
+  revalidatePath("/dashboard");
+  redirect(appointmentResultUrl("consulta-cancelada", day));
 }

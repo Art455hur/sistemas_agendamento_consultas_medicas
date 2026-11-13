@@ -90,8 +90,9 @@ recuperação conforme [autenticação](autenticacao-supabase.md). Não colocar
 O cadastro público cria perfil `patient` por trigger. CPF não nulo é único e deve
 ter 11 números; nascimento não pode estar no futuro. O papel não é editável pelo
 paciente. O CRUD de especialidades adiciona `public.specialties` e mantém `profiles.specialty`
-como compatibilidade para médicos e `appointments.specialty` como histórico. A gestão
-de disponibilidade continua pendente e a grade ainda é fixa.
+como compatibilidade para médicos e `appointments.specialty` como histórico. A
+disponibilidade é configurável por médico e data, em intervalos de 30 minutos das
+08:00 às 17:30; datas sem configuração usam a grade padrão da clínica.
 
 O esquema `private` contém funções auxiliares e operações privilegiadas. Deve
 permanecer fora dos esquemas expostos pela Data API.
@@ -114,6 +115,8 @@ Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 | `20261112182236` | `20261112182236_agenda_administrativa_leitura.sql` | Leitura limitada da agenda por administrador ativo |
 | `20261112190336` | `20261112190336_crud_especialidades.sql` | CRUD administrativo de especialidades e integração com médicos |
 | `20261112194614` | `20261112194614_crud_pacientes.sql` | Gestão administrativa de pacientes com desativação lógica |
+| `20261113134032` | `20261113134032_extend_doctor_day_slots.sql` | Amplia a grade diária de horários configuráveis para intervalos de meia hora |
+| `20261113134034` | `20261113134034_admin_manage_appointments.sql` | Permite ao administrador remarcar ou cancelar consultas futuras |
 
 As onze primeiras migrações constam no histórico do projeto compartilhado de testes. As versões `20261112182236` (agenda administrativa) e `20261112190336` (CRUD de especialidades) já foram aplicadas e testadas em 12/11/2026. A migration `20261112194614_crud_pacientes.sql` já foi aplicada no Supabase compartilhado e validada com teste transacional de listar, editar, desativar e reativar pacientes.
 Confira o histórico remoto antes de qualquer execução. Não reaplique arquivos já
@@ -148,10 +151,13 @@ horários disponíveis. A confirmação só ocorre após a operação ser aceita
 - RPCs: `booking_doctors`, `booking_slots`, `create_patient_appointment`,
   `reschedule_patient_appointment` e `cancel_patient_appointment`.
 - Fuso da clínica: `America/Sao_Paulo` (Brasília), independente do aparelho.
-- Grade: 08:00, 09:00, 10:30, 14:00 e 15:30, em qualquer dia.
+- Grade padrão: 08:00, 09:00, 10:30, 14:00 e 15:30. Administradores ativos
+  podem configurar cada data com horários de 30 em 30 minutos entre 08:00 e 17:30.
 - O banco rejeita passado, médico indisponível e conflito do médico ou paciente.
 - A remarcação preserva o ID, profissional, especialidade e motivo.
 - O cancelamento muda o status e libera o horário; não apaga o histórico.
+- A administração pode remarcar ou cancelar consultas futuras; a operação
+  valida novamente autorização, disponibilidade e conflitos no banco.
 - Índices únicos para status `scheduled` também protegem reservas concorrentes.
 - Consultas passadas aparecem como concluídas pela regra de exibição, sem
   comprovar atendimento nem escrever no banco durante uma leitura.
@@ -212,8 +218,8 @@ segurança do ambiente. Merge e testes automatizados não substituem esse roteir
 
 ## Pendências e manutenção
 
-Painéis de médico/secretaria, grade individual de disponibilidade, gestão completa
-dos demais cadastros, edição administrativa de consultas, módulo de serviços e validações
+Painéis de médico/secretaria, grade semanal recorrente, criação administrativa
+de consultas, gestão completa dos demais cadastros, módulo de serviços e validações
 adicionais continuam no backlog. Não marcar um card inteiro como concluído pela
 entrega de uma parte.
 

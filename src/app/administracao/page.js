@@ -6,10 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 import {
   assignStaff,
   createSpecialty,
+  cancelAdminAppointment,
   deactivateSpecialty,
   deactivateStaff,
   reactivateSpecialty,
   reactivateStaff,
+  rescheduleAdminAppointment,
   updateSpecialty,
 } from "@/app/administracao/actions";
 import styles from "@/app/administracao/page.module.css";
@@ -49,6 +51,11 @@ const feedback = {
   "especialidade-duplicada": "Já existe uma especialidade com esse nome.",
   "especialidade-nao-encontrada": "Especialidade não encontrada. Atualize a página.",
   "especialidade-invalida": "Selecione ou informe uma especialidade ativa e válida.",
+  "consulta-atualizada": "Consulta remarcada com sucesso.",
+  "consulta-cancelada": "Consulta cancelada; o registro histórico foi preservado.",
+  "consulta-conflito": "O paciente ou profissional já possui uma consulta nesse horário.",
+  "consulta-nao-encontrada": "A consulta não está mais disponível para alteração.",
+  "consulta-invalida": "Escolha uma data e um horário futuro disponível para esse profissional.",
 };
 
 const roleLabel = { admin: "Administrador", doctor: "Médico", receptionist: "Secretaria" };
@@ -306,7 +313,7 @@ export default async function AdministracaoPage({ searchParams }) {
             <div className={styles.sectionHeading}>
               <div>
                 <h2 id="agenda-heading">Agenda da clínica</h2>
-                <p>Consultas do Hospital Sapiens no horário da clínica (São Paulo). Somente leitura.</p>
+                <p>Consulte, remarque ou cancele consultas futuras do Hospital Sapiens. Os conflitos são validados novamente pelo banco.</p>
               </div>
               <span>Até 200 consultas por dia</span>
             </div>
@@ -325,16 +332,37 @@ export default async function AdministracaoPage({ searchParams }) {
               <div className={styles.agendaList}>
                 {appointments.map((appointment) => {
                   const status = appointmentStatus(appointment);
+                  const appointmentDateTime = clinicDateTime(appointment.scheduled_at);
+                  const canManage = status === "Agendada" && new Date(appointment.scheduled_at) > new Date();
                   return (
                     <article className={styles.agendaRow} key={appointment.id}>
                       <time dateTime={appointment.scheduled_at} className={styles.agendaTime}>
-                        {clinicDateTime(appointment.scheduled_at).time}
+                        {appointmentDateTime.time}
                       </time>
                       <div className={styles.agendaDetails}>
                         <strong>{appointment.patient_name?.trim() || "Paciente sem nome"}</strong>
                         <span>{appointment.doctor_name?.trim() || "Médico sem nome"} · {appointment.specialty}</span>
                       </div>
                       <span className={status === "Agendada" ? styles.active : styles.inactive}>{status}</span>
+                      {canManage && <div className={styles.appointmentActions}>
+                        <form action={rescheduleAdminAppointment}>
+                          <input type="hidden" name="appointmentId" value={appointment.id} />
+                          <label>
+                            <span className={styles.srOnly}>Nova data</span>
+                            <input type="date" name="day" defaultValue={appointmentDateTime.date} required />
+                          </label>
+                          <label>
+                            <span className={styles.srOnly}>Novo horário</span>
+                            <input type="time" name="time" min="08:00" max="17:30" step="1800" defaultValue={appointmentDateTime.time} required />
+                          </label>
+                          <button type="submit">Remarcar</button>
+                        </form>
+                        <form action={cancelAdminAppointment}>
+                          <input type="hidden" name="appointmentId" value={appointment.id} />
+                          <input type="hidden" name="day" value={appointmentDateTime.date} />
+                          <button type="submit" className={styles.deactivate}>Cancelar consulta</button>
+                        </form>
+                      </div>}
                     </article>
                   );
                 })}

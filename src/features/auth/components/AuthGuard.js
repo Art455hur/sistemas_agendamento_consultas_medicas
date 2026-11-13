@@ -1,5 +1,7 @@
 "use client";
 
+import ErrorNotice from "../../../components/feedback/ErrorNotice.js";
+
 import {
   usePathname,
   useRouter,
@@ -26,6 +28,7 @@ const guestOnlyRoutes = [
 export default function AuthGuard({
   children,
 }) {
+  const [sessionError, setSessionError] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -51,6 +54,7 @@ export default function AuthGuard({
     }
 
     setAllowedPath(null);
+    setSessionError(false);
 
     if (isSupabaseConfigured()) {
       let active = true;
@@ -70,7 +74,7 @@ export default function AuthGuard({
         } else {
           setAllowedPath(pathname);
         }
-      });
+      }).catch(() => { if (active) setSessionError(true); });
       return () => { active = false; };
     }
 
@@ -158,6 +162,8 @@ export default function AuthGuard({
   ) {
     return children;
   }
+
+  if (sessionError) return <ErrorNotice message="Não foi possível verificar sua sessão. Confira a conexão e tente novamente." onRetry={() => window.location.reload()} />;
 
   if (allowedPath !== pathname) {
     return (

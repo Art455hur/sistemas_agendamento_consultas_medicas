@@ -1,5 +1,7 @@
 "use client";
 
+import ErrorNotice from "@/components/feedback/ErrorNotice.js";
+
 import AppointmentListItem from "@/features/appointments/components/AppointmentListItem.js";
 
 import Link from "next/link";
@@ -13,7 +15,7 @@ function AppointmentsContent() {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("aba");
   const lastScrolledLocation = useRef("");
-  const { appointments, loading, error } = useAppointments();
+  const { appointments, loading, error, retry } = useAppointments();
   const [activeTab, setActiveTab] = useState("scheduled");
   const [cancelling, setCancelling] = useState(null);
   const [actionError, setActionError] = useState("");
@@ -165,7 +167,7 @@ function AppointmentsContent() {
           </section>
 
           {actionError && <p role="alert">{actionError}</p>}
-          {loading ? <p role="status">Carregando consultas...</p> : error ? <p role="alert">{error}</p> : filteredAppointments.length === 0 ? (
+          {loading ? <p role="status">Carregando consultas...</p> : error ? <ErrorNotice message={error} onRetry={retry} /> : filteredAppointments.length === 0 ? (
             <section className="empty-appointments">
               <div>🗓️</div>
 

@@ -1,3 +1,5 @@
+export const APPOINTMENTS_ERROR = "Não foi possível carregar suas consultas. Confira a conexão e tente novamente.";
+
 export const EMPTY_APPOINTMENTS_STATE = Object.freeze({ appointments: [], loading: true, error: "" });
 
 // Uma fonte por aplicação: começa no primeiro consumidor e para no último.
@@ -22,11 +24,12 @@ export function createAppointmentsStore(fetchAppointments, connect) {
       const appointments = await fetchAppointments();
       if (listeners.size && current === generation) publish({ appointments, loading: false, error: "" });
     } catch (error) {
-      if (listeners.size && current === generation) publish({ appointments: [], loading: false, error: error.message });
+      if (listeners.size && current === generation) publish({ appointments: [], loading: false, error: APPOINTMENTS_ERROR });
     }
   };
   return {
     getSnapshot: () => state,
+    refresh,
     subscribe(listener) {
       listeners.add(listener);
       if (listeners.size === 1) {

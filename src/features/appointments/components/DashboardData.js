@@ -1,12 +1,14 @@
 "use client";
 
+import ErrorNotice from "@/components/feedback/ErrorNotice.js";
+
 import { formatDate } from "../../../shared/formatting/date.js";
 
 import Link from "next/link";
 import { useAppointments } from "../hooks/useAppointments.js";
 
 export default function DashboardData() {
-  const { appointments, loading, error } = useAppointments();
+  const { appointments, loading, error, retry } = useAppointments();
 
   const now = new Date();
 
@@ -43,7 +45,7 @@ export default function DashboardData() {
   )[0];
 
   if (loading) return <p role="status">Carregando consultas...</p>;
-  if (error) return <p role="alert">{error}</p>;
+  if (error) return <ErrorNotice message={error} onRetry={retry} />;
   return (
     <>
       <section className="summary-cards">

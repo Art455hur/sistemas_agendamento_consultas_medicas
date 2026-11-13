@@ -58,8 +58,8 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Conflitos | Proteção no banco contra duas consultas ativas do mesmo médico ou paciente no mesmo instante |
 | Dashboard e notificações | Indicadores e avisos individuais de consultas futuras/canceladas, com links e atualização após alterações |
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
-| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes, leitura diária da agenda e horários por médico/dia |
-| Banco e testes | Treze migrações versionadas no código; conferir o histórico remoto antes de aplicar migrações pendentes |
+| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes, leitura diária da agenda, remarcação/cancelamento de consultas futuras e horários por médico/dia |
+| Banco e testes | Quinze migrações versionadas no código; conferir o histórico remoto antes de aplicar migrações pendentes |
 
 A gestão de funcionários exige contas previamente existentes no Supabase Auth. Não cria contas Auth nem concede papel de administrador. Notificações na interface não representam envio de e-mail, SMS ou push.
 
@@ -160,7 +160,7 @@ Como paciente, quero consultar e atualizar meus dados pessoais para manter minha
 | CSS | Estilização, identidade visual e organização das telas. |
 | JavaScript | Regras, validações e interatividade. |
 | React | Criação de componentes reutilizáveis e gerenciamento de estado. |
-| Next.js 16.3.5 | Organização das rotas, páginas e estrutura principal da aplicação. |
+| Next.js 16.4.6 (lockfile) | Organização das rotas, páginas e estrutura principal da aplicação. |
 | Node.js e npm | Execução do ambiente e gerenciamento das dependências. |
 | Supabase Auth | Autenticação real quando habilitada em ambiente configurado. |
 | PostgreSQL / Supabase | Persistência, funções SQL e políticas RLS da N2. |
@@ -267,9 +267,14 @@ npm run build
 
 Os testes automatizados usam dados fictícios e banco descartável; não acessam o Supabase hospedado. O teste opcional com duas conexões está em [conflitos de horários](docs/conflitos-horarios.md).
 
+Na revisão de 13/11/2026, baseada na `main` em `c158029`, os **104 testes de Node/PGlite passaram, sem falhas**. Os testes de navegador são executados separadamente e cobrem o modo de demonstração. Consulte a [revisão dos testes, contribuições e pendências](docs/revisao-testes-funcionalidades.md) e o [guia de ponta a ponta](docs/testes-ponta-a-ponta.md).
+
 ## Documentação técnica
 
 - [Guia técnico e estado da N2](docs/documentacao-tecnica.md)
+- [Revisão dos testes, contribuições e pendências](docs/revisao-testes-funcionalidades.md)
+- [Testes de navegador no modo de demonstração](docs/testes-ponta-a-ponta.md)
+- [Integração entre cadastro e perfil](docs/testes-integracao-paciente.md)
 - [Refatoração de código e componentes](docs/refatoracao-componentes.md)
 - [Notificações integradas aos agendamentos](docs/notificacoes-agendamentos.md)
 - [Validação do CPF e dados fictícios para testes](docs/validacao-cpf.md)
@@ -303,8 +308,8 @@ O modo simulado permanece o padrão. A configuração atual da Vercel e o estado
 ## Próximos passos
 
 - Concluir painéis do médico e da secretaria.
-- Implementar gestão de disponibilidade por profissional e demais cadastros previstos no backlog.
-- Completar edição da agenda pelo administrador e o módulo de serviços; a agenda diária já permite leitura.
+- Completar os demais cadastros e o módulo de serviços previstos no backlog; horários por médico/dia já estão implementados.
+- Completar criação de consultas pelo administrador e grade semanal recorrente; leitura, remarcação e cancelamento já estão no código. Conferir migrações e validar essas operações no ambiente de destino.
 - Ampliar as validações dos demais campos; formulários e banco já conferem os dígitos verificadores do CPF em novas gravações e alterações do número. Veja [escopo e testes](docs/validacao-cpf.md).
 - Definir o destino dos dados simulados e validar isolamento entre contas.
 - Executar os roteiros manuais com contas de teste, inclusive disputa de horário em duas sessões.

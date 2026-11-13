@@ -5,6 +5,12 @@
 Os testes de navegador cobrem os caminhos principais da demonstração local do
 AgendaSaúde: página inicial, consulta de especialidade, navegação para cadastro e
 login, validações dos formulários e entrada com um usuário de demonstração.
+A PR #36 acrescentou rejeição de nomes inválidos e edição do perfil local com
+persistência após recarregar a página. A base `c158029` contém 13 cenários.
+
+Consulte a [revisão de 13/11/2026](revisao-testes-funcionalidades.md) para autoria,
+resultados e pendências. A existência dos cenários não indica que todos foram
+executados nesta revisão: a execução aqui foi bloqueada ao iniciar o navegador.
 
 Os cenários usam dados fictícios no navegador local. Eles não acessam o projeto
 Supabase compartilhado, não criam contas reais e não substituem a revisão de

@@ -38,12 +38,14 @@ begin
 
   if not exists (
     select 1
-    from public.hospital_staff s
-    where s.profile_id = v_appointment.doctor_id
+    from public.profiles p
+    join public.hospital_staff s on s.profile_id = p.id
+    where p.id = v_appointment.doctor_id
+      and p.role = 'doctor'
       and s.hospital_id = 1
       and s.active
   ) then
-    raise exception using errcode = '22023', message = 'O profissional não está ativo.';
+    raise exception using errcode = '22023', message = 'O profissional não é um médico ativo.';
   end if;
 
   if not exists (

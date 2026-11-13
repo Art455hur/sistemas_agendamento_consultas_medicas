@@ -93,6 +93,42 @@ test("disponibilidade diária do médico protege reservas e permissões", async 
     await fails("select * from public.create_patient_appointment($1,$2,null)", [ids.doctor, at("09:00")], "22023");
     assert.equal((await db.query("select id from public.appointments where id=$1", [booked.id])).rows.length, 1);
   });
+  await t.test("aceita a grade ampliada e mantém horários com consultas marcadas", async () => {
+    const expandedSlots = Array.from({ length: 20 }, (_, index) => {
+      const minutes = 8 * 60 + index * 30;
+      return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+    });
+
+    await actor("admin");
+    await save(expandedSlots);
+    const configured = (await get()).rows[0].slots.map((slot) => slot.slice(0, 5));
+    assert.equal(configured.length, 20);
+    assert.equal(configured[0], "08:00");
+    assert.equal(configured.at(-1), "17:30");
+    await fails("select public.admin_set_doctor_day($1,$2,ARRAY['17:45']::time[])", [ids.doctor, day], "22023");
+    await fails("select public.admin_set_doctor_day($1,$2,ARRAY['18:00']::time[])", [ids.doctor, day], "22023");
+
+    const withoutBookedMorning = expandedSlots.filter((slot) => slot !== "08:00");
+    await fails(
+      "select public.admin_set_doctor_day($1,$2,$3::time without time zone[])",
+      [ids.doctor, day, withoutBookedMorning],
+      "23514",
+    );
+
+    await actor("patient");
+    const options = (await db.query("select * from public.booking_slots($1,$2,null)", [ids.doctor, day])).rows;
+    assert.ok(options.some((row) => new Date(row.scheduled_at).toISOString() === new Date(at("17:30")).toISOString()));
+    const lateBooking = (await db.query("select * from public.create_patient_appointment($1,$2,null)", [ids.doctor, at("17:30")])).rows[0];
+    assert.ok(lateBooking.id);
+
+    await actor("admin");
+    const withoutBookedLateSlot = expandedSlots.filter((slot) => slot !== "17:30");
+    await fails(
+      "select public.admin_set_doctor_day($1,$2,$3::time without time zone[])",
+      [ids.doctor, day, withoutBookedLateSlot],
+      "23514",
+    );
+  });
   await t.test("administrador desativado perde acesso sem afetar a disponibilidade existente", async () => {
     await db.exec("reset role");
     await db.query("update public.hospital_staff set active=false where profile_id=$1", [ids.admin]);

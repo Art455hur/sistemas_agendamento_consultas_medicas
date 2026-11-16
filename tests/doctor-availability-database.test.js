@@ -62,7 +62,7 @@ test("disponibilidade diária do médico protege reservas e permissões", async 
     assert.equal(before.slots.length, 5);
     await fails("select public.admin_set_doctor_day($1,$2,ARRAY['08:00','08:00']::time[])", [ids.doctor, day], "22023");
     await fails("select public.admin_set_doctor_day($1,$2,ARRAY['08:15']::time[])", [ids.doctor, day], "22023");
-    await fails("select public.admin_set_doctor_day($1,current_date - 1,ARRAY[]::time[])", [ids.doctor], "22023");
+    await fails("select public.admin_set_doctor_day($1,(now() at time zone 'America/Sao_Paulo')::date - 1,ARRAY[]::time[])", [ids.doctor], "22023");
     await save([]);
     assert.deepEqual((await get()).rows[0].slots, []);
     await actor("patient");

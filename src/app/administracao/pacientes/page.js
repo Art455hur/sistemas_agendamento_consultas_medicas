@@ -5,8 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import {
   deactivatePatient,
   reactivatePatient,
-  updatePatient,
 } from "@/app/administracao/actions";
+import PatientEditForm from "./PatientEditForm";
 import styles from "@/app/administracao/page.module.css";
 
 export const metadata = {
@@ -25,18 +25,6 @@ const feedback = {
   negado: "Ação negada: somente um administrador ativo pode gerenciar pacientes.",
   erro: "Não foi possível concluir a operação. Confira o banco e tente novamente.",
 };
-
-function formatCpf(value) {
-  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
-  return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-}
-
-function formatPhone(value) {
-  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
-  if (digits.length === 11) return digits.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-  if (digits.length === 10) return digits.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
-  return digits;
-}
 
 export default async function PacientesAdministracaoPage({ searchParams }) {
   if (
@@ -94,9 +82,10 @@ export default async function PacientesAdministracaoPage({ searchParams }) {
         <nav aria-label="Navegação administrativa" className={styles.navigation}>
           <Link className={styles.teamLink} href="/administracao">▦ Visão geral</Link>
           <span className={styles.current} aria-current="page">♙ Pacientes</span>
-          <Link className={styles.teamLink} href="/administracao#equipe">♧ Equipe</Link>
-          <Link className={styles.teamLink} href="/administracao#especialidades">✚ Especialidades</Link>
-          <Link className={styles.teamLink} href="/administracao#agenda">▤ Agenda</Link>
+          <Link className={styles.teamLink} href="/administracao?aba=equipe">♧ Equipe</Link>
+          <Link className={styles.teamLink} href="/administracao?aba=especialidades">✚ Especialidades</Link>
+          <Link className={styles.teamLink} href="/administracao?aba=agenda">▤ Agenda</Link>
+          <Link className={styles.teamLink} href="/administracao/horarios">◷ Horários</Link>
         </nav>
         <div className={styles.sidebarFooter}>Área administrativa · N2</div>
       </aside>
@@ -143,26 +132,7 @@ export default async function PacientesAdministracaoPage({ searchParams }) {
                     </span>
                   </div>
 
-                  <form action={updatePatient} className={styles.patientForm}>
-                    <input type="hidden" name="patientId" value={patient.id} />
-                    <div>
-                      <label htmlFor={"patient-name-" + patient.id}>Nome completo</label>
-                      <input id={"patient-name-" + patient.id} name="fullName" type="text" minLength={3} maxLength={120} required defaultValue={patient.full_name || ""} />
-                    </div>
-                    <div>
-                      <label htmlFor={"patient-phone-" + patient.id}>Telefone</label>
-                      <input id={"patient-phone-" + patient.id} name="phone" type="tel" maxLength={20} defaultValue={formatPhone(patient.phone)} placeholder="(11) 99999-9999" />
-                    </div>
-                    <div>
-                      <label htmlFor={"patient-cpf-" + patient.id}>CPF</label>
-                      <input id={"patient-cpf-" + patient.id} name="cpf" type="text" inputMode="numeric" maxLength={14} defaultValue={formatCpf(patient.cpf)} placeholder="000.000.000-00" />
-                    </div>
-                    <div>
-                      <label htmlFor={"patient-birth-" + patient.id}>Nascimento</label>
-                      <input id={"patient-birth-" + patient.id} name="birthDate" type="date" max={today} defaultValue={patient.birth_date || ""} />
-                    </div>
-                    <button type="submit">Salvar alterações</button>
-                  </form>
+                  <PatientEditForm patient={patient} today={today} />
 
                   <div className={styles.patientFoot}>
                     <span>{patient.appointment_count} consulta{Number(patient.appointment_count) === 1 ? "" : "s"} no histórico</span>

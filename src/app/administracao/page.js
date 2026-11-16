@@ -4,8 +4,8 @@ import { ROLES } from "@/features/auth/access-control.js";
 import { clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { createClient } from "@/lib/supabase/server";
 import AdminCreateAppointmentForm from "@/app/administracao/AdminCreateAppointmentForm";
+import StaffAssignmentForm from "@/app/administracao/StaffAssignmentForm";
 import {
-  assignStaff,
   createSpecialty,
   cancelAdminAppointment,
   deactivateSpecialty,
@@ -61,6 +61,12 @@ const feedback = {
 };
 
 const roleLabel = { admin: "Administrador", doctor: "Médico", receptionist: "Secretaria" };
+const sections = {
+  geral: { eyebrow: "VISÃO GERAL DA CLÍNICA", title: "Painel administrativo", description: "Escolha uma área para gerenciar o Hospital Sapiens." },
+  agenda: { eyebrow: "CONSULTAS", title: "Agenda da clínica", description: "Agende, consulte, remarque ou cancele consultas." },
+  equipe: { eyebrow: "PROFISSIONAIS", title: "Equipe da clínica", description: "Gerencie os vínculos dos médicos e da secretaria." },
+  especialidades: { eyebrow: "CATÁLOGO", title: "Especialidades", description: "Cadastre e organize as especialidades da clínica." },
+};
 
 function selectedDay(value) {
   const today = clinicDateTime(new Date()).date;
@@ -142,7 +148,8 @@ export default async function AdministracaoPage({ searchParams }) {
     );
   }
 
-  const { resultado, dia } = await searchParams;
+  const { resultado, dia, aba } = await searchParams;
+  const section = Object.hasOwn(sections, aba) ? aba : "geral";
   const day = selectedDay(dia);
   const [
     { data: staff, error: staffError },
@@ -174,11 +181,12 @@ export default async function AdministracaoPage({ searchParams }) {
         <Link className={styles.brand} href="/">+ AgendaSaúde</Link>
         <div className={styles.workspaceLabel}>ESPAÇO DE TRABALHO</div>
         <nav aria-label="Navegação administrativa" className={styles.navigation}>
-          <span className={styles.current} aria-current="page">▦ Visão geral</span>
+          <Link className={section === "geral" ? styles.current : styles.teamLink} aria-current={section === "geral" ? "page" : undefined} href="/administracao">▦ Visão geral</Link>
           <Link className={styles.teamLink} href="/administracao/pacientes">♙ Pacientes</Link>
-          <a className={styles.teamLink} href="#equipe">♧ Equipe</a>
-          <a className={styles.teamLink} href="#especialidades">✚ Especialidades</a>
-          <a className={styles.teamLink} href="#agenda">▤ Agenda</a>
+          <Link className={section === "equipe" ? styles.current : styles.teamLink} aria-current={section === "equipe" ? "page" : undefined} href="/administracao?aba=equipe">♧ Equipe</Link>
+          <Link className={section === "especialidades" ? styles.current : styles.teamLink} aria-current={section === "especialidades" ? "page" : undefined} href="/administracao?aba=especialidades">✚ Especialidades</Link>
+          <Link className={section === "agenda" ? styles.current : styles.teamLink} aria-current={section === "agenda" ? "page" : undefined} href="/administracao?aba=agenda">▤ Agenda</Link>
+          <Link className={styles.teamLink} href="/administracao/horarios">◷ Horários</Link>
           <span className={styles.upcoming}>✚ Serviços <small>Em breve</small></span>
         </nav>
         <div className={styles.sidebarFooter}>Área administrativa · N2</div>
@@ -186,31 +194,39 @@ export default async function AdministracaoPage({ searchParams }) {
 
       <main className={styles.main}>
         <header className={styles.topbar}>
-          <div className={styles.breadcrumb}>AgendaSaúde <span>/</span> Administração</div>
+          <div className={styles.breadcrumb}>AgendaSaúde <span>/</span> Administração <span>/</span> {sections[section].title}</div>
           <span className={styles.roleBadge}>Administrador</span>
         </header>
 
         <div className={styles.content}>
           <div className={styles.heading}>
             <div>
-              <span className={styles.eyebrow}>VISÃO GERAL DA CLÍNICA</span>
-              <h1>Olá, {profile.full_name?.trim() || "administrador"}.</h1>
-              <p>Gerencie equipe, especialidades e consulte a agenda do Hospital Sapiens.</p>
+              <span className={styles.eyebrow}>{sections[section].eyebrow}</span>
+              <h1>{section === "geral" ? `Olá, ${profile.full_name?.trim() || "administrador"}.` : sections[section].title}</h1>
+              <p>{sections[section].description}</p>
             </div>
-            <span className={styles.phase}>Painel em construção</span>
+            <span className={styles.phase}>Hospital Sapiens</span>
           </div>
 
-          <section className={styles.notice} aria-label="Estado da integração">
+          {section === "geral" && <section className={styles.notice} aria-label="Estado da integração">
             <div className={styles.noticeIcon}>i</div>
             <div>
               <strong>Equipe, especialidades e agenda em ambiente de testes</strong>
               <p>Especialidades desativadas ficam preservadas no histórico. A agenda permite agendar, remarcar e cancelar consultas; os horários dos médicos têm configuração própria.</p>
             </div>
-          </section>
+          </section>}
 
           {feedback[resultado] && <p role="status" className={styles.feedback}>{feedback[resultado]}</p>}
 
-          <section id="especialidades" className={styles.specialtySection} aria-labelledby="specialties-heading">
+          {section === "geral" && <section className={styles.overviewGrid} aria-label="Áreas de gestão">
+            <Link href="/administracao?aba=agenda" className={styles.overviewCard}><span>▤</span><h2>Agenda</h2><p>Agendar, remarcar e cancelar consultas da clínica.</p><strong>Abrir agenda →</strong></Link>
+            <Link href="/administracao?aba=equipe" className={styles.overviewCard}><span>♧</span><h2>Equipe</h2><p>Consultar e atualizar vínculos de profissionais.</p><strong>{staff?.length ?? 0} vínculos →</strong></Link>
+            <Link href="/administracao?aba=especialidades" className={styles.overviewCard}><span>✚</span><h2>Especialidades</h2><p>Cadastrar e gerenciar as áreas de atendimento.</p><strong>{specialties?.length ?? 0} cadastradas →</strong></Link>
+            <Link href="/administracao/pacientes" className={styles.overviewCard}><span>♙</span><h2>Pacientes</h2><p>Consultar e atualizar os cadastros de pacientes.</p><strong>Abrir pacientes →</strong></Link>
+            <Link href="/administracao/horarios" className={styles.overviewCard}><span>◷</span><h2>Horários dos médicos</h2><p>Definir a disponibilidade por médico e data.</p><strong>Configurar horários →</strong></Link>
+          </section>}
+
+          {section === "especialidades" && <section id="especialidades" className={styles.specialtySection} aria-labelledby="specialties-heading">
             <div className={styles.sectionHeading}>
               <div>
                 <h2 id="specialties-heading">Especialidades</h2>
@@ -250,9 +266,9 @@ export default async function AdministracaoPage({ searchParams }) {
               <button type="submit">Cadastrar especialidade</button>
             </form>
             <p className={styles.staffHint}>Desativar não apaga consultas antigas. Médicos de uma especialidade inativa deixam de aparecer para novos agendamentos até a reativação.</p>
-          </section>
+          </section>}
 
-          <section id="equipe" className={styles.staffSection} aria-labelledby="staff-heading">
+          {section === "equipe" && <section id="equipe" className={styles.staffSection} aria-labelledby="staff-heading">
             <div className={styles.sectionHeading}>
               <div>
                 <h2 id="staff-heading">Equipe do Hospital Sapiens</h2>
@@ -292,38 +308,10 @@ export default async function AdministracaoPage({ searchParams }) {
               </div>
             )}
 
-            <form action={assignStaff} className={styles.staffForm}>
-              <div>
-                <label htmlFor="staff-email">E-mail de uma conta já criada</label>
-                <input id="staff-email" name="email" type="email" maxLength={254} required placeholder="funcionario@exemplo.com" />
-              </div>
-              <div>
-                <label htmlFor="staff-name">Nome do profissional</label>
-                <input id="staff-name" name="fullName" type="text" minLength={3} maxLength={120} required placeholder="Nome completo" />
-              </div>
-              <div>
-                <label htmlFor="staff-specialty">Especialidade</label>
-                <select id="staff-specialty" name="specialty" defaultValue="">
-                  <option value="">Selecione para médicos</option>
-                  {activeSpecialties.map((specialty) => (
-                    <option key={specialty.id} value={specialty.name}>{specialty.name}</option>
-                  ))}
-                </select>
-                <small>Obrigatória para médicos; para secretaria, deixe em branco.</small>
-              </div>
-              <div>
-                <label htmlFor="staff-role">Função</label>
-                <select id="staff-role" name="role" required defaultValue="doctor">
-                  <option value="doctor">Médico</option>
-                  <option value="receptionist">Secretaria</option>
-                </select>
-              </div>
-              <button type="submit">Salvar e ativar vínculo</button>
-            </form>
-            <p className={styles.staffHint}>Para atualizar nome, função ou especialidade, preencha o formulário com o mesmo e-mail. Desativar não exclui o usuário nem cancela consultas existentes.</p>
-          </section>
+            {!staffError && !specialtyError && <StaffAssignmentForm staff={staff || []} specialties={activeSpecialties} />}
+          </section>}
 
-          <section id="agenda" className={styles.agendaSection} aria-labelledby="agenda-heading">
+          {section === "agenda" && <section id="agenda" className={styles.agendaSection} aria-labelledby="agenda-heading">
             <div className={styles.sectionHeading}>
               <div>
                 <h2 id="agenda-heading">Agenda da clínica</h2>
@@ -349,6 +337,7 @@ export default async function AdministracaoPage({ searchParams }) {
               )}
             </div>
             <form action="/administracao" method="get" className={styles.agendaFilter}>
+              <input type="hidden" name="aba" value="agenda" />
               <label htmlFor="agenda-day">Dia da agenda</label>
               <input id="agenda-day" type="date" name="dia" defaultValue={day || ""} required />
               <button type="submit">Consultar</button>
@@ -379,11 +368,11 @@ export default async function AdministracaoPage({ searchParams }) {
                         <form action={rescheduleAdminAppointment}>
                           <input type="hidden" name="appointmentId" value={appointment.id} />
                           <label>
-                            <span className={styles.srOnly}>Nova data</span>
+                            <span>Nova data</span>
                             <input type="date" name="day" defaultValue={appointmentDateTime.date} required />
                           </label>
                           <label>
-                            <span className={styles.srOnly}>Novo horário</span>
+                            <span>Novo horário</span>
                             <input type="time" name="time" min="08:00" max="17:30" step="1800" defaultValue={appointmentDateTime.time} required />
                           </label>
                           <button type="submit">Remarcar</button>
@@ -399,9 +388,9 @@ export default async function AdministracaoPage({ searchParams }) {
                 })}
               </div>
             )}
-          </section>
+          </section>}
 
-          <section aria-labelledby="modules-heading">
+          {section === "geral" && <section aria-labelledby="modules-heading">
             <div className={styles.sectionHeading}>
               <div>
                 <h2 id="modules-heading">Módulos de gestão</h2>
@@ -422,15 +411,15 @@ export default async function AdministracaoPage({ searchParams }) {
                 </article>
               ))}
             </div>
-          </section>
+          </section>}
 
-          <section className={styles.nextStep} aria-labelledby="next-heading">
+          {section === "geral" && <section className={styles.nextStep} aria-labelledby="next-heading">
             <div className={styles.nextIcon}>↗</div>
             <div>
               <h2 id="next-heading">Próximo passo</h2>
-              <p>Depois da revisão, aplicar a migração de criação administrativa e validar com contas fictícias antes de usar com pacientes reais.</p>
+              <p>Continue a validação das permissões e dos fluxos com contas fictícias antes de usar com pacientes reais.</p>
             </div>
-          </section>
+          </section>}
         </div>
       </main>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { createAdminAppointment } from "@/app/administracao/actions";
@@ -72,7 +73,10 @@ export default function AdminCreateAppointmentForm({ patients, doctors, initialD
       </div>
       {error && <p role="alert" className={styles.createAppointmentHint}>{error}</p>}
       {!loading && patientId && doctorId && !error && slots.length === 0 &&
-        <p className={styles.createAppointmentHint}>Sem horários livres neste dia para o médico e paciente selecionados.</p>}
+        <p className={styles.createAppointmentHint}>Sem horários livres para esta combinação de médico, paciente e dia. Confira a grade do médico e possíveis consultas já marcadas.</p>}
+      {doctorId && day && <Link className={styles.availabilityShortcut} href={`/administracao/horarios?medico=${encodeURIComponent(doctorId)}&dia=${encodeURIComponent(day)}`}>
+        Conferir horários deste médico neste dia →
+      </Link>}
       <button type="submit" disabled={!time || loading || Boolean(error)}>Agendar para paciente</button>
       <p className={styles.createAppointmentHint}>O banco confere novamente as permissões, a disponibilidade e os conflitos antes de salvar.</p>
     </form>

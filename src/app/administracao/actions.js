@@ -12,7 +12,11 @@ function authEnabled() {
 }
 
 function resultUrl(result) {
-  return `/administracao?resultado=${result}`;
+  return `/administracao?aba=equipe&resultado=${result}`;
+}
+
+function specialtyResultUrl(result) {
+  return `/administracao?aba=especialidades&resultado=${result}`;
 }
 
 function patientResultUrl(result) {
@@ -46,8 +50,7 @@ export async function assignStaff(formData) {
   const fullName = String(formData.get("fullName") ?? "").trim();
   const specialty = String(formData.get("specialty") ?? "").trim();
   if (email.length < 3 || email.length > 254 || !["doctor", "receptionist"].includes(role) ||
-      fullName.length < 3 || fullName.length > 120 || specialty.length > 120 ||
-      (role === "doctor" && !specialty)) {
+      fullName.length < 3 || fullName.length > 120 || specialty.length > 120) {
     redirect(resultUrl("invalido"));
   }
 
@@ -56,7 +59,7 @@ export async function assignStaff(formData) {
     p_email: email,
     p_role: role,
     p_full_name: fullName,
-    p_specialty: role === "doctor" ? specialty : null,
+    p_specialty: role === "doctor" ? specialty || null : null,
   });
   if (error) {
     if (error.code === "42501") redirect(resultUrl("negado"));
@@ -98,21 +101,21 @@ export async function reactivateStaff(formData) {
 
 export async function createSpecialty(formData) {
   const name = String(formData.get("name") ?? "").trim();
-  if (name.length < 2 || name.length > 120) redirect(resultUrl("especialidade-invalida"));
+  if (name.length < 2 || name.length > 120) redirect(specialtyResultUrl("especialidade-invalida"));
 
   const supabase = await authenticatedClient();
   const { error } = await supabase.rpc("admin_create_specialty", { p_name: name });
-  if (error) redirect(resultUrl(specialtyErrorResult(error)));
+  if (error) redirect(specialtyResultUrl(specialtyErrorResult(error)));
 
   revalidatePath("/administracao");
-  redirect(resultUrl("especialidade-criada"));
+  redirect(specialtyResultUrl("especialidade-criada"));
 }
 
 export async function updateSpecialty(formData) {
   const id = String(formData.get("specialtyId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   if (!validUuid(id) || name.length < 2 || name.length > 120) {
-    redirect(resultUrl("especialidade-invalida"));
+    redirect(specialtyResultUrl("especialidade-invalida"));
   }
 
   const supabase = await authenticatedClient();
@@ -120,25 +123,25 @@ export async function updateSpecialty(formData) {
     p_id: id,
     p_name: name,
   });
-  if (error) redirect(resultUrl(specialtyErrorResult(error)));
+  if (error) redirect(specialtyResultUrl(specialtyErrorResult(error)));
 
   revalidatePath("/administracao");
-  redirect(resultUrl("especialidade-atualizada"));
+  redirect(specialtyResultUrl("especialidade-atualizada"));
 }
 
 async function setSpecialtyActive(formData, active) {
   const id = String(formData.get("specialtyId") ?? "");
-  if (!validUuid(id)) redirect(resultUrl("especialidade-invalida"));
+  if (!validUuid(id)) redirect(specialtyResultUrl("especialidade-invalida"));
 
   const supabase = await authenticatedClient();
   const { error } = await supabase.rpc("admin_set_specialty_active", {
     p_id: id,
     p_active: active,
   });
-  if (error) redirect(resultUrl(specialtyErrorResult(error)));
+  if (error) redirect(specialtyResultUrl(specialtyErrorResult(error)));
 
   revalidatePath("/administracao");
-  redirect(resultUrl(active ? "especialidade-reativada" : "especialidade-desativada"));
+  redirect(specialtyResultUrl(active ? "especialidade-reativada" : "especialidade-desativada"));
 }
 
 export async function deactivateSpecialty(formData) {
@@ -215,6 +218,7 @@ export async function reactivatePatient(formData) {
 
 function appointmentResultUrl(result, day) {
   const query = new URLSearchParams({ resultado: result });
+  query.set("aba", "agenda");
   if (typeof day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day)) query.set("dia", day);
   return `/administracao?${query.toString()}#agenda`;
 }

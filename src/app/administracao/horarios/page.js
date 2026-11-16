@@ -57,7 +57,7 @@ export default async function DoctorHoursPage({ searchParams }) {
     <main className={styles.layout}>
       <Link href="/administracao" className={styles.back}>← Voltar à administração</Link>
       <header><span className={styles.eyebrow}>GESTÃO DA CLÍNICA</span><h1>Horários dos médicos</h1>
-        <p>Configure os horários de atendimento de cada médico para uma data. A agenda de consultas continua somente para leitura.</p>
+        <p>Configure os horários de atendimento de cada médico para uma data. Consultas já marcadas permanecem protegidas.</p>
       </header>
       {messages[resultado] && <p className={styles.notice} role="status">{messages[resultado]}</p>}
       {staffError ? <p className={styles.notice} role="alert">Não foi possível carregar os médicos.</p> :

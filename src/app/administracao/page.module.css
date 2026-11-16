@@ -49,6 +49,18 @@
 .staffForm button:hover { background: #07647b; }
 .staffHint { color: #718699; font-size: 12px; line-height: 1.5; }
 .agendaSection { scroll-margin-top: 25px; margin-bottom: 46px; }
+.createAppointmentCard { margin: 0 0 28px; padding: 22px; background: #fff; border: 1px solid #e3ebef; border-radius: 14px; }
+.createAppointmentCard h3 { margin: 0 0 6px; font-size: 17px; }
+.createAppointmentCard > p { margin: 0 0 17px; color: #718699; font-size: 13px; }
+.createAppointmentForm { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.createAppointmentForm label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 700; }
+.createAppointmentForm input, .createAppointmentForm select, .createAppointmentForm textarea { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #cbdbe4; border-radius: 8px; background: #fff; color: #17324d; font: inherit; }
+.createAppointmentForm textarea { resize: vertical; }
+.createAppointmentReason, .createAppointmentHint { grid-column: 1 / -1; }
+.createAppointmentHint { margin: 0; color: #718699; font-size: 12px; line-height: 1.5; }
+.createAppointmentForm button { justify-self: start; min-height: 42px; padding: 9px 17px; border: 0; border-radius: 8px; background: #087c96; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.createAppointmentForm button:disabled { opacity: .55; cursor: not-allowed; }
+.createAppointmentForm button:not(:disabled):hover { background: #07647b; }
 .agendaFilter { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin-bottom: 19px; }
 .agendaFilter label { flex-basis: 100%; font-size: 12px; font-weight: 700; }
 .agendaFilter input { min-height: 42px; border: 1px solid #cbdbe4; border-radius: 8px; background: #fff; color: #17324d; padding: 9px 11px; font: inherit; }
@@ -99,6 +111,7 @@
 @media (max-width: 700px) { .staffRow { flex-wrap: wrap; gap: 10px; } .staffRow > div { flex-basis: 100%; } }
 @media (max-width: 700px) { .agendaRow { flex-wrap: wrap; gap: 10px; } .agendaDetails { flex-basis: calc(100% - 80px); } }
 @media (max-width: 700px) { .appointmentActions { margin-left: 0; } }
+@media (max-width: 700px) { .createAppointmentForm { grid-template-columns: 1fr; } }
 
 .staffForm > div { flex: 1 1 220px; min-width: 0; }
 .staffForm small { display: block; margin-top: 6px; color: #718699; font-size: 12px; }

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ROLES } from "@/features/auth/access-control.js";
 import { clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { createClient } from "@/lib/supabase/server";
+import AdminCreateAppointmentForm from "@/app/administracao/AdminCreateAppointmentForm";
 import {
   assignStaff,
   createSpecialty,
@@ -52,6 +53,7 @@ const feedback = {
   "especialidade-nao-encontrada": "Especialidade não encontrada. Atualize a página.",
   "especialidade-invalida": "Selecione ou informe uma especialidade ativa e válida.",
   "consulta-atualizada": "Consulta remarcada com sucesso.",
+  "consulta-criada": "Consulta agendada para o paciente com sucesso.",
   "consulta-cancelada": "Consulta cancelada; o registro histórico foi preservado.",
   "consulta-conflito": "O paciente ou profissional já possui uma consulta nesse horário.",
   "consulta-nao-encontrada": "A consulta não está mais disponível para alteração.",
@@ -145,14 +147,26 @@ export default async function AdministracaoPage({ searchParams }) {
   const [
     { data: staff, error: staffError },
     { data: specialties, error: specialtyError },
+    { data: patients, error: patientsError },
     agendaResult,
   ] = await Promise.all([
     supabase.rpc("admin_list_staff"),
     supabase.rpc("admin_list_specialties"),
+    supabase.rpc("admin_list_patients"),
     day ? supabase.rpc("admin_list_appointments", { p_day: day }) : Promise.resolve({ data: null, error: null }),
   ]);
   const activeSpecialties = specialties?.filter((specialty) => specialty.active) ?? [];
   const appointments = agendaResult.data || [];
+  const today = clinicDateTime(new Date()).date;
+  const maxDate = new Date(`${today}T12:00:00Z`);
+  maxDate.setUTCDate(maxDate.getUTCDate() + 365);
+  const maxDay = maxDate.toISOString().slice(0, 10);
+  const bookingPatients = patients?.filter((patient) => patient.active).map((patient) => ({
+    id: patient.id, name: patient.full_name, email: patient.email,
+  })) ?? [];
+  const bookingDoctors = staff?.filter((member) => member.active && member.staff_role === ROLES.DOCTOR).map((member) => ({
+    id: member.profile_id, name: member.full_name, email: member.email,
+  })) ?? [];
 
   return (
     <div className={styles.shell}>
@@ -190,7 +204,7 @@ export default async function AdministracaoPage({ searchParams }) {
             <div className={styles.noticeIcon}>i</div>
             <div>
               <strong>Equipe, especialidades e agenda em ambiente de testes</strong>
-              <p>Especialidades desativadas ficam preservadas no histórico. A agenda permite apenas consulta; os horários dos médicos têm configuração própria.</p>
+              <p>Especialidades desativadas ficam preservadas no histórico. A agenda permite agendar, remarcar e cancelar consultas; os horários dos médicos têm configuração própria.</p>
             </div>
           </section>
 
@@ -317,6 +331,23 @@ export default async function AdministracaoPage({ searchParams }) {
               </div>
               <span>Até 200 consultas por dia</span>
             </div>
+            <div className={styles.createAppointmentCard}>
+              <h3>Agendar para um paciente</h3>
+              <p>Selecione uma conta de paciente já criada, um médico ativo e um horário livre.</p>
+              {patientsError || staffError ? (
+                <p role="alert" className={styles.feedback}>Não foi possível carregar pacientes ou médicos. Confira as permissões e atualize a página.</p>
+              ) : bookingPatients.length === 0 || bookingDoctors.length === 0 ? (
+                <p className={styles.createAppointmentHint}>É necessário ter ao menos um paciente e um médico ativos para agendar.</p>
+              ) : (
+                <AdminCreateAppointmentForm
+                  patients={bookingPatients}
+                  doctors={bookingDoctors}
+                  initialDay={day || today}
+                  minDay={today}
+                  maxDay={maxDay}
+                />
+              )}
+            </div>
             <form action="/administracao" method="get" className={styles.agendaFilter}>
               <label htmlFor="agenda-day">Dia da agenda</label>
               <input id="agenda-day" type="date" name="dia" defaultValue={day || ""} required />
@@ -397,7 +428,7 @@ export default async function AdministracaoPage({ searchParams }) {
             <div className={styles.nextIcon}>↗</div>
             <div>
               <h2 id="next-heading">Próximo passo</h2>
-              <p>Após revisar e aplicar a migração de horários, validar com contas fictícias antes de ativar o login no site publicado.</p>
+              <p>Depois da revisão, aplicar a migração de criação administrativa e validar com contas fictícias antes de usar com pacientes reais.</p>
             </div>
           </section>
         </div>

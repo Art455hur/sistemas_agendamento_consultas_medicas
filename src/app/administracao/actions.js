@@ -233,6 +233,33 @@ function validAppointmentDate(value) {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
+export async function createAdminAppointment(formData) {
+  const patientId = String(formData.get("patientId") ?? "");
+  const doctorId = String(formData.get("doctorId") ?? "");
+  const day = String(formData.get("day") ?? "");
+  const time = String(formData.get("time") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim();
+  if (!validUuid(patientId) || !validUuid(doctorId) || !validAppointmentDate(day) ||
+      !isAvailabilitySlot(time) || reason.length > 2000) {
+    redirect(appointmentResultUrl("consulta-invalida", day));
+  }
+
+  const supabase = await authenticatedClient();
+  const { error } = await supabase.rpc("admin_create_appointment", {
+    p_patient_id: patientId,
+    p_doctor_id: doctorId,
+    p_day: day,
+    p_time: time,
+    p_reason: reason || null,
+  });
+  if (error) redirect(appointmentResultUrl(appointmentErrorResult(error), day));
+
+  revalidatePath("/administracao");
+  revalidatePath("/agendamentos");
+  revalidatePath("/dashboard");
+  redirect(appointmentResultUrl("consulta-criada", day));
+}
+
 export async function rescheduleAdminAppointment(formData) {
   const id = String(formData.get("appointmentId") ?? "");
   const day = String(formData.get("day") ?? "");

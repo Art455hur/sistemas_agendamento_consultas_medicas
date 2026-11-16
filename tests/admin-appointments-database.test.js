@@ -161,4 +161,62 @@ test("operações administrativas de consultas exigem papel e vínculo ativos", 
     await db.exec("reset role");
     assert.equal((await db.query("select status from public.appointments where id=$1", [old.id])).rows[0].status, "scheduled");
   });
+
+  await t.test("criação administrativa exige vínculo ativo e conserva o isolamento", async () => {
+    const createAdmin = (patient, doctor, day, time, reason = null) => db.query(
+      "select public.admin_create_appointment($1,$2,$3,$4::time,$5) as id",
+      [patient, doctor, day, time, reason],
+    );
+    const listSlots = (patient, doctor, day) => db.query(
+      "select slot from public.admin_booking_slots($1,$2,$3)", [patient, doctor, day],
+    );
+    for (const actor of [null, ids.patient, ids.doctor, ids.receptionist, ids.inactiveAdmin]) {
+      await asUser(actor);
+      await fails("select public.admin_booking_slots($1,$2,$3)", [ids.otherPatient, ids.otherDoctor, days.tomorrow], "42501");
+      await fails("select public.admin_create_appointment($1,$2,$3,$4::time,$5)",
+        [ids.otherPatient, ids.otherDoctor, days.tomorrow, "15:30", null], "42501");
+    }
+
+    await asUser(ids.admin);
+    const slots = (await listSlots(ids.otherPatient, ids.otherDoctor, days.tomorrow)).rows.map((row) => row.slot.slice(0, 5));
+    assert.ok(slots.includes("15:30"));
+    assert.ok(!slots.includes("14:00"));
+    const patientSlots = (await listSlots(ids.patient, ids.otherDoctor, days.tomorrow)).rows.map((row) => row.slot.slice(0, 5));
+    assert.ok(!patientSlots.includes("10:30"));
+    await fails("select public.admin_create_appointment($1,$2,$3,$4::time,$5)",
+      [ids.patient, ids.otherDoctor, days.tomorrow, "10:30", null], "23505");
+    await fails("select public.admin_create_appointment($1,$2,$3,$4::time,$5)",
+      [ids.otherPatient, ids.otherDoctor, days.tomorrow, "16:00", null], "22023");
+    await fails("select public.admin_create_appointment($1,$2,$3,$4::time,$5)",
+      [ids.otherPatient, ids.inactiveDoctor, days.tomorrow, "15:30", null], "22023");
+    await fails("select public.admin_create_appointment($1,$2,$3,$4::time,$5)",
+      [ids.otherPatient, ids.otherDoctor, days.yesterday, "15:30", null], "22023");
+    await fails("select public.admin_create_appointment($1,$2,$3,$4::time,$5)",
+      [ids.otherPatient, ids.otherDoctor, days.tomorrow, "15:30", "x".repeat(2001)], "22023");
+    await db.exec("reset role");
+    await db.query("update public.profiles set patient_active=false where id=$1", [ids.otherPatient]);
+    await asUser(ids.admin);
+    await fails("select public.admin_create_appointment($1,$2,$3,$4::time,$5)",
+      [ids.otherPatient, ids.otherDoctor, days.tomorrow, "15:30", null], "22023");
+    await db.exec("reset role");
+    await db.query("update public.profiles set patient_active=true where id=$1", [ids.otherPatient]);
+    await asUser(ids.admin);
+    const savedId = (await createAdmin(ids.otherPatient, ids.otherDoctor, days.tomorrow, "15:30", "Teste de integração")).rows[0].id;
+    assert.ok(savedId);
+    await fails("select public.admin_create_appointment($1,$2,$3,$4::time,$5)",
+      [ids.otherPatient, ids.otherDoctor, days.tomorrow, "15:30", null], "23505");
+    await fails("select public.admin_create_appointment($1,$2,$3,$4::time,$5)",
+      [ids.patient, ids.otherDoctor, days.tomorrow, "15:30", null], "23505");
+    const remaining = (await listSlots(ids.otherPatient, ids.otherDoctor, days.tomorrow)).rows.map((row) => row.slot.slice(0, 5));
+    assert.ok(!remaining.includes("15:30"));
+
+    await asUser(ids.otherPatient);
+    const owned = (await db.query("select id, scheduled_at, reason, doctor_name, specialty from public.appointments where id=$1", [savedId])).rows[0];
+    assert.equal(new Date(owned.scheduled_at).toISOString(), new Date(at(days.tomorrow, "15:30")).toISOString());
+    assert.equal(owned.reason, "Teste de integração");
+    assert.equal(owned.doctor_name, "otherDoctor");
+    assert.equal(owned.specialty, "Clínica Geral");
+    await asUser(ids.patient);
+    assert.equal((await db.query("select id from public.appointments where id=$1", [savedId])).rows.length, 0);
+  });
 });

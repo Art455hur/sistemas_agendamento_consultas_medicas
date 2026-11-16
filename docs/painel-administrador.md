@@ -19,6 +19,12 @@ Com a flag desligada, informa indisponibilidade. Dados locais não concedem aces
 - Remarcação e cancelamento de consultas futuras na própria agenda. A remarcação
   respeita a disponibilidade do profissional, conflitos de paciente/médico e o
   fuso de São Paulo. Cancelar preserva o histórico da consulta.
+- Criação administrativa de consultas para contas de pacientes ativos: seleciona
+  médico vinculado, data e horário livre, com validação final por
+  `admin_create_appointment`. `admin_booking_slots` considera simultaneamente
+  a grade do médico e consultas já marcadas para o médico ou paciente. Apenas
+  administrador ativo pode chamar essas RPCs; agendamentos do paciente continuam
+  isolados e a escrita direta permanece bloqueada.
 - Página `/administracao/horarios` para configurar horários de 30 em 30 minutos,
   das 08:00 às 17:30, por médico ativo e dia (hoje até 365 dias). Sem configuração
   vale a grade padrão; desmarcar todos fecha o dia e restaurar remove a personalização.
@@ -31,7 +37,7 @@ Os detalhes e restrições estão em [gestão de funcionários](gestao-funcionar
 
 ## Pendente
 
-- Criação de consultas pelo administrador e módulo de serviços.
+- Módulo de serviços.
 - Grade semanal recorrente; esta etapa configura datas individuais.
 - Reorganização visual do painel em telas próprias para Agenda, Equipe e outros módulos.
 - Validação manual dos formulários, contas e tentativas negadas antes da publicação.
@@ -51,3 +57,12 @@ médico ativo e um dia futuro, salvar
 uma seleção menor, confirmar as opções no agendamento do paciente e restaurar
 a grade. Conferir também que não é possível remover um horário com consulta
 marcada nem configurar como paciente, médico ou administrador sem vínculo ativo.
+
+Antes de testar a criação administrativa no ambiente compartilhado, revisar e
+aplicar **uma vez** `20261116001239_admin_create_appointments.sql` no projeto
+correto após backup e `supabase db push --dry-run`. Esta migração acrescenta
+apenas funções RPC; não altera consultas existentes nem cria pacientes.
+Em `/administracao`, selecionar paciente e médico ativos, conferir um dia
+futuro e agendar em horário livre. Confirmar que a consulta aparece para o
+paciente e na agenda; repetir com horário ocupado, médico/paciente desativado e
+usuário sem papel administrativo. Não usar dados reais nos testes.

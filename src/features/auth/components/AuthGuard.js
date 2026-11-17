@@ -1,5 +1,7 @@
 "use client";
 
+import { safeRedirect } from "@/shared/security/redirect.js";
+
 import ErrorNotice from "../../../components/feedback/ErrorNotice.js";
 
 import {
@@ -105,13 +107,10 @@ export default function AuthGuard({
       const redirect =
         parameters.get("redirect");
 
-      const isSafeRedirect =
-        redirect &&
-        redirect.startsWith("/") &&
-        !redirect.startsWith("//");
+      const isSafeRedirect = safeRedirect(redirect);
 
       if (isSafeRedirect) {
-        router.replace(redirect);
+        router.replace(isSafeRedirect);
         return;
       }
 

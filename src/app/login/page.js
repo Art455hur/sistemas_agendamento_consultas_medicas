@@ -1,5 +1,7 @@
 "use client";
 
+import { safeRedirect } from "@/shared/security/redirect.js";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -76,8 +78,8 @@ export default function Login() {
       }));
       const parameters = new URLSearchParams(window.location.search);
       const redirect = parameters.get("redirect");
-      const safe = redirect?.startsWith("/") && !redirect.startsWith("//");
-      router.replace(safe ? redirect : "/dashboard");
+      const safe = safeRedirect(redirect);
+      router.replace(safe || "/dashboard");
       router.refresh();
       return;
     }
@@ -136,13 +138,10 @@ export default function Login() {
         const redirect =
       parameters.get("redirect");
 
-    const isSafeRedirect =
-      redirect &&
-      redirect.startsWith("/") &&
-      !redirect.startsWith("//");
+    const isSafeRedirect = safeRedirect(redirect);
 
     if (isSafeRedirect) {
-      router.push(redirect);
+      router.push(isSafeRedirect);
       return;
     }
 

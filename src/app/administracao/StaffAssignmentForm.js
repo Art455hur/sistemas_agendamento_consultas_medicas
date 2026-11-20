@@ -1,32 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { assignStaff } from "@/app/administracao/actions";
 import styles from "@/app/administracao/page.module.css";
 
-export default function StaffAssignmentForm({ staff, specialties }) {
+export default function StaffAssignmentForm({ staff, specialties, selectedId = "", onSelectMember }) {
   const existing = staff.filter((member) => member.staff_role === "doctor" || member.staff_role === "receptionist");
-  const [selected, setSelected] = useState("");
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("doctor");
+  const member = existing.find((person) => person.profile_id === selectedId);
+  const selected = member?.profile_id || "";
+  const [email, setEmail] = useState(member?.email || "");
+  const [name, setName] = useState(member?.full_name || "");
+  const [role, setRole] = useState(member?.staff_role || "doctor");
   const [specialty, setSpecialty] = useState("");
+  const nameInput = useRef(null);
   const keepExistingSpecialty = role === "doctor" && existing.some((member) => member.profile_id === selected && member.staff_role === "doctor");
 
-  function selectMember(id) {
-    const member = existing.find((person) => person.profile_id === id);
-    setSelected(id);
-    setEmail(member?.email || "");
-    setName(member?.full_name || "");
-    setRole(member?.staff_role || "doctor");
-    setSpecialty("");
-  }
+  useEffect(() => {
+    if (selected) nameInput.current?.focus();
+  }, [selected]);
 
   return (
     <div className={styles.staffEditor}>
       <div className={styles.staffPicker}>
         <label htmlFor="existing-staff">Selecionar profissional já vinculado</label>
-        <select id="existing-staff" value={selected} onChange={(event) => selectMember(event.target.value)}>
+        <select id="existing-staff" value={selected} onChange={(event) => onSelectMember(event.target.value)}>
           <option value="">Vincular outra conta</option>
           {existing.map((member) => (
             <option key={member.profile_id} value={member.profile_id}>
@@ -43,7 +40,7 @@ export default function StaffAssignmentForm({ staff, specialties }) {
         </div>
         <div>
           <label htmlFor="staff-name">Nome do profissional</label>
-          <input id="staff-name" name="fullName" type="text" minLength={3} maxLength={120} required value={name} onChange={(event) => setName(event.target.value)} placeholder="Nome completo" />
+          <input ref={nameInput} id="staff-name" name="fullName" type="text" minLength={3} maxLength={120} required value={name} onChange={(event) => setName(event.target.value)} placeholder="Nome completo" />
         </div>
         <div>
           <label htmlFor="staff-specialty">Especialidade</label>

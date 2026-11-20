@@ -4,14 +4,12 @@ import { ROLES } from "@/features/auth/access-control.js";
 import { clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { createClient } from "@/lib/supabase/server";
 import AdminCreateAppointmentForm from "@/app/administracao/AdminCreateAppointmentForm";
-import StaffAssignmentForm from "@/app/administracao/StaffAssignmentForm";
+import StaffManager from "@/app/administracao/StaffManager";
 import {
   createSpecialty,
   cancelAdminAppointment,
   deactivateSpecialty,
-  deactivateStaff,
   reactivateSpecialty,
-  reactivateStaff,
   rescheduleAdminAppointment,
   updateSpecialty,
 } from "@/app/administracao/actions";
@@ -60,7 +58,6 @@ const feedback = {
   "consulta-invalida": "Escolha uma data e um horário futuro disponível para esse profissional.",
 };
 
-const roleLabel = { admin: "Administrador", doctor: "Médico", receptionist: "Secretaria" };
 const sections = {
   geral: { eyebrow: "VISÃO GERAL DA CLÍNICA", title: "Painel administrativo", description: "Escolha uma área para gerenciar o Hospital Sapiens." },
   agenda: { eyebrow: "CONSULTAS", title: "Agenda da clínica", description: "Agende, consulte, remarque ou cancele consultas." },
@@ -280,35 +277,8 @@ export default async function AdministracaoPage({ searchParams }) {
             {staffError ? (
               <p role="alert" className={styles.feedback}>Não foi possível carregar a equipe. Verifique se a migration de permissões foi aplicada.</p>
             ) : (
-              <div className={styles.staffList}>
-                {staff?.map((member) => (
-                  <div className={styles.staffRow} key={member.profile_id}>
-                    <div>
-                      <strong>{member.full_name?.trim() || member.email}</strong>
-                      <span>{member.email} · {roleLabel[member.staff_role] ?? member.staff_role}</span>
-                    </div>
-                    <span className={member.active ? styles.active : styles.inactive}>
-                      {member.active ? "Ativo" : "Inativo"}
-                    </span>
-                    {member.staff_role !== ROLES.ADMIN && (
-                      <form action={member.active ? deactivateStaff : reactivateStaff}>
-                        <input type="hidden" name="profileId" value={member.profile_id} />
-                        <button
-                          className={member.active ? styles.deactivate : styles.reactivate}
-                          type="submit"
-                          aria-label={`${member.active ? "Desativar" : "Reativar"} ${member.email}`}
-                        >
-                          {member.active ? "Desativar" : "Reativar"}
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                ))}
-                {staff?.length === 0 && <p>Ainda não há vínculos de funcionários.</p>}
-              </div>
+              <StaffManager staff={staff || []} specialties={activeSpecialties} canEdit={!specialtyError} />
             )}
-
-            {!staffError && !specialtyError && <StaffAssignmentForm staff={staff || []} specialties={activeSpecialties} />}
           </section>}
 
           {section === "agenda" && <section id="agenda" className={styles.agendaSection} aria-labelledby="agenda-heading">

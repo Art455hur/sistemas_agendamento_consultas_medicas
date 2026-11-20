@@ -63,7 +63,9 @@ falhar, a edição fica indisponível, mas a consulta e as ações de situação
 `tests/filter-staff.test.js` cobre busca sem acentos, e-mail sem nome, combinação
 de filtros, estado vazio e preservação da ordem/dados recebidos. A validação desta
 entrega passou com **113 testes** (108 da base mais 5 novos) e `npm run build`.
-Os testes do PR #42 estão em uma branch separada e não entram nesse total.
+Esse é o resultado histórico isolado da PR #43. As PRs #42 e #43 foram integradas
+à `main`; na validação posterior da PR #44, Sandro registrou 128 testes aprovados.
+Veja a [revisão atualizada](revisao-testes-funcionalidades.md#atualização-de-20112026).
 
 Conferência manual pendente antes de publicar:
 

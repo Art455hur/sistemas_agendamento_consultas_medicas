@@ -1,7 +1,6 @@
 # Documentação técnica — AgendaSaúde N2
 
-Atualizada em 13/11/2026 com base na `main` no commit `c158029`, após a PR #37. A revisão inclui testes, validações, cadastro integrado ao perfil e operações administrativas presentes no código.
-Este guia descreve implementação e limites; não certifica o estado da Vercel ou do banco hospedado.
+Atualizada em 20/11/2026 com base na `main` em `20b69e5`, após a PR #43. Registra também as consultas de leitura ao Supabase, Vercel e GitHub Actions dessa data; cada resultado é uma fotografia do ambiente, não uma certificação do fluxo completo.
 
 ## Objetivo e modos de execução
 
@@ -49,7 +48,7 @@ A landing institucional em `landing-nextech` é uma aplicação independente.
 | `/agendamentos` | Lista e cancelamento de consultas |
 | `/confirmacao` | Resultado do agendamento |
 | `/perfil` | Dados do titular da conta |
-| `/administracao` | Gestão de equipe e especialidades; leitura, remarcação e cancelamento da agenda por administrador ativo |
+| `/administracao` | Visão geral e abas Agenda, Equipe e Especialidades; criação, leitura, remarcação e cancelamento de consultas por administrador ativo |
 | `/administracao/pacientes` | Listagem, edição, desativação e reativação de pacientes |
 | `/administracao/horarios` | Disponibilidade por médico e data |
 
@@ -102,7 +101,7 @@ permanecer fora dos esquemas expostos pela Data API.
 
 ## Migrações versionadas
 
-Há **15 migrações SQL** versionadas nesta base. Aplicar em ordem de versão somente as pendentes no ambiente de destino.
+Há **16 migrações SQL** versionadas nesta base. Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 
 | Versão | Arquivo em `supabase/migrations` | Mudança |
 | --- | --- | --- |
@@ -121,11 +120,15 @@ Há **15 migrações SQL** versionadas nesta base. Aplicar em ordem de versão s
 | `20261112200018` | `20261112200018_horarios_profissionais.sql` | Personalização da disponibilidade por médico e data |
 | `20261113134032` | `20261113134032_extend_doctor_day_slots.sql` | Amplia a grade diária de horários configuráveis para intervalos de meia hora |
 | `20261113134034` | `20261113134034_admin_manage_appointments.sql` | Permite ao administrador remarcar ou cancelar consultas futuras |
+| `20261116001239` | `20261116001239_admin_create_appointments.sql` | Permite criação de consultas por administrador ativo |
 
-O registro anterior da equipe informa a aplicação das migrações até
-`20261112200018`, inclusive o teste transacional do CRUD de pacientes.
-As duas versões de 13/11 estão no repositório; esta revisão não consultou nem
-alterou o histórico remoto e não certifica sua aplicação no projeto hospedado.
+A consulta de 20/11/2026 ao projeto `rgggijnypvvdkskyalip` retornou estado
+`ACTIVE_HEALTHY` e **17 migrações aplicadas**, incluindo as 16 versões desta base.
+A versão `20261119235524_receptionist_agenda` está aplicada no banco, mas não
+consta na `main` consultada. Alinhar com Railson a recuperação do arquivo SQL
+original, preservando versão e conteúdo após comparação; não reaplicar a migração.
+O banco já contém RPCs da secretaria, mas isso não entrega a página do painel.
+Esta revisão não executou mudanças de esquema.
 Confira o histórico remoto antes de qualquer execução. Não reaplique arquivos já
 registrados nem altere migrações antigas para introduzir novas mudanças. Mudanças
 futuras devem entrar em nova migração e PR; avise a equipe antes de aplicá-las no
@@ -139,7 +142,7 @@ banco compartilhado. Esta atualização documental não executa SQL.
 | Paciente | Próprio perfil; ler, agendar, cancelar e remarcar suas consultas | Não altera papéis nem dados de outros pacientes |
 | Médico ativo | Leitura das consultas em que é o médico, conforme RLS | Painel próprio pendente; desativação revoga essa leitura |
 | Secretaria | Leitura do próprio perfil e vínculo | Agenda da clínica e painel próprios ainda pendentes |
-| Administrador ativo | Painel, gestão da equipe, especialidades, pacientes, horários e leitura/remarcação/cancelamento da agenda da clínica | Não promove administradores; CRUD de pacientes usa desativação lógica |
+| Administrador ativo | Painel, gestão da equipe, especialidades, pacientes, horários e criação/leitura/remarcação/cancelamento da agenda da clínica | Não promove administradores; CRUD de pacientes usa desativação lógica |
 
 RLS restringe linhas e grants restringem operações/colunas. As RPCs de equipe
 validam administrador ativo no banco. A leitura administrativa da agenda também
@@ -163,7 +166,7 @@ horários disponíveis. A confirmação só ocorre após a operação ser aceita
 - O banco rejeita passado, médico indisponível e conflito do médico ou paciente.
 - A remarcação preserva o ID, profissional, especialidade e motivo.
 - O cancelamento muda o status e libera o horário; não apaga o histórico.
-- A administração pode remarcar ou cancelar consultas futuras; a operação
+- A administração pode criar, remarcar ou cancelar consultas futuras; a operação
   valida novamente autorização, disponibilidade e conflitos no banco.
 - Índices únicos para status `scheduled` também protegem reservas concorrentes.
 - Consultas passadas aparecem como concluídas pela regra de exibição, sem
@@ -196,10 +199,16 @@ O cadastro continua sendo feito pelo fluxo público do Supabase Auth. O administ
 Uma conta Auth precisa existir antes de ser vinculada. O administrador informa
 e-mail, nome, função e, para médico, especialidade. Salvar cria/atualiza o vínculo;
 o mesmo e-mail permite edição. Desativar/reativar preserva histórico e dados.
+A aba Equipe permite busca por nome/e-mail sem diferenciar acentos ou maiúsculas,
+filtros combinados de função/situação e edição direta da linha com foco no nome.
+Salvar também ativa o vínculo; administradores não recebem ações de edição na lista.
 O formulário não cria contas Auth nem permite alterar administradores ou o próprio
-papel. Contas com consultas não podem trocar de função.
+papel. Contas com consultas não podem trocar de função. Veja o [roteiro atualizado](gestao-funcionarios.md).
 
 ## Verificação e publicação
+
+Os números de 13/11 abaixo são históricos. Para a evidência mais recente de
+20/11, consultar a seção de produção e a [revisão dos testes](revisao-testes-funcionalidades.md#atualização-de-20112026).
 
 ```bash
 npm test
@@ -223,7 +232,19 @@ concorrência com duas conexões está em [conflitos](conflitos-horarios.md).
 Veja a [revisão de cobertura, contribuições e pendências](revisao-testes-funcionalidades.md)
 e o [guia de execução dos testes de navegador](testes-ponta-a-ponta.md).
 
-Antes de liberar Auth no site publicado, executar com contas fictícias:
+Na consulta de 20/11/2026, a Vercel estava com produção READY no commit
+`20b69e5`, correspondente à `main`, e `NEXT_PUBLIC_ENABLE_SUPABASE_AUTH=true`
+configurado para produção. URL e chave publicável constavam para esse ambiente;
+previews não tinham essas variáveis na consulta e usam a demonstração.
+Isso não comprova login, cookies ou entrega de e-mail.
+
+Após as PRs #42 e #43, a [PR #44](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/44), de Sandro, registra
+128 testes aprovados. O [job de testes e compilação](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/44683026264)
+foi consultado e concluiu instalação, testes e build com sucesso. A PR ainda está
+aberta: a automação não deve ser descrita como já integrada à `main`.
+Não foram repetidos testes ou build localmente nesta atualização documental.
+
+Para concluir a validação funcional, executar com contas fictícias:
 
 1. Cadastro, confirmação de e-mail, login, recuperação de senha e logout.
 2. Edição de perfil e leitura em outra sessão; isolamento de outro paciente.
@@ -235,15 +256,16 @@ Antes de liberar Auth no site publicado, executar com contas fictícias:
 
 Roteiros detalhados: [consultas](consultas-supabase.md),
 [equipe](gestao-funcionarios.md) e [conflitos](conflitos-horarios.md).
-Não habilitar `NEXT_PUBLIC_ENABLE_SUPABASE_AUTH` na Vercel antes da revisão da
-equipe e da validação completa. Conferir também URLs, e-mail e configurações de
-segurança do ambiente. Merge e testes automatizados não substituem esse roteiro.
+Conferir também URLs, e-mail e configurações de segurança do ambiente com a equipe.
+Esta atualização não altera a flag de Auth. Merge, READY e testes de banco isolado
+não substituem o roteiro com autenticação real.
 
 ## Pendências e manutenção
 
-Painéis de médico/secretaria, grade semanal recorrente, criação administrativa
-de consultas, gestão completa dos demais cadastros, módulo de serviços e validações
-adicionais continuam no backlog. Não marcar um card inteiro como concluído pela
+Painéis de médico/secretaria, grade semanal recorrente, gestão completa dos demais
+cadastros, módulo de serviços e validações adicionais continuam pendentes. Criação
+administrativa de consultas já foi integrada pela PR #39. Priorizar alinhamento da
+migração remota da secretaria, revisão da PR #44 e validação real por perfil. Não marcar um card inteiro como concluído pela
 entrega de uma parte.
 
 Cada PR que mudar comportamento, banco ou configuração deve atualizar a documentação

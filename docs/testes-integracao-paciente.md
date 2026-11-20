@@ -1,6 +1,8 @@
 # Testes de integração do paciente
 
-Registro de 12/11/2026. Base: `main` no commit `3751183`, após os PRs #28 (pacientes) e #29 (horários). Este documento acompanha o card **Testes de integração** e a correção de cadastro ligada ao card **Criar usuários**.
+Registro inicial de 12/11/2026. Base original: `main` no commit `3751183`, após os PRs #28 (pacientes) e #29 (horários). Este documento acompanha o card **Testes de integração** e a correção de cadastro ligada ao card **Criar usuários**.
+
+Atualização de 19/11/2026: a correção de cadastro do [PR #31](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/31) já foi integrada à `main`. Foi acrescentada a cobertura da gestão administrativa de pacientes descrita abaixo, sobre a base `c3ed8dd`, após o PR #41. Os resultados de 86 testes registrados na entrega original continuam como histórico.
 
 ## Problema encontrado e correção
 
@@ -42,10 +44,46 @@ Os resultados abaixo foram informados por Sandro durante os testes no site; não
 | Paciente abrir administração | Apareceu bloqueio de acesso. |
 | Novo pedido de confirmação | Bloqueado pelo limite de envio do Supabase. A mensagem de limite apareceu corretamente. |
 
+## Gestão administrativa de pacientes — 19/11/2026
+
+Sandro acrescentou `tests/admin-patients-database.test.js`, que chama as funções
+`admin_list_patients`, `admin_update_patient` e `admin_set_patient_active` junto
+com as consultas e políticas reais do banco. A suíte cria um PGlite em memória,
+aplica as 16 migrações e usa somente contas e consultas fictícias. Cada cenário
+roda em uma transação desfeita ao terminar, sem depender das alterações do anterior.
+
+| Cenário | Resultado verificado |
+| --- | --- |
+| Permissões administrativas | Visitante, sessão sem identidade, paciente, médico, secretaria, administrador inativo e administrador sem vínculo não conseguem listar, editar, desativar ou reativar pacientes; os dados permanecem iguais. |
+| Listagem | Administrador ativo vê somente pacientes, incluindo inativos e a contagem de consultas no histórico. |
+| Edição e isolamento | Nome, telefone e CPF são normalizados, a data é preservada e o titular lê os dados ao trocar o contexto de sessão; outro paciente não consegue ler o perfil. Conta Auth, papel e consultas permanecem iguais. |
+| Entradas rejeitadas | Nome, telefone, CPF e nascimento inválidos, CPF duplicado, ID inexistente, conta de funcionário e parâmetros obrigatórios nulos são rejeitados sem alterações parciais. |
+| Desativação | Cancela somente consultas futuras agendadas daquele paciente. Preserva consultas passadas, concluídas e já canceladas, a conta e as consultas de outros pacientes. A listagem mantém o histórico e o horário cancelado volta a ficar disponível. |
+| Paciente inativo | Não lê perfil ou consultas, não edita o próprio perfil, não acessa o catálogo ou os horários e não agenda, remarca, cancela ou se reativa. |
+| Reativação | Recupera leitura do próprio perfil, histórico e catálogo; permite novo agendamento sem restaurar consultas canceladas nem expor dados a outro paciente. Repetir desativação/reativação mantém o resultado. |
+
+Resultado: **123 testes aprovados**, zero falhas ou ignorados na suíte completa.
+O arquivo novo contém **14 cenários**, além do teste agrupador contado pelo Node.
+O total de 123 inclui as contribuições anteriores da equipe.
+
+Para executar somente esta cobertura:
+
+```bash
+node --test tests/admin-patients-database.test.js
+```
+
+Para executar toda a suíte: `npm test`. Não são necessárias credenciais nem
+variáveis de ambiente do Supabase. O `auth.uid()` e os papéis de sessão são
+simulados; isso não comprova login/JWT real, entrega de e-mail ou funcionamento
+dos formulários no navegador. Nenhuma migração, regra da aplicação ou configuração
+do Supabase/Vercel foi alterada nesta entrega.
+
 ## Pendências do card
 
-- Conferir pela interface de um novo cadastro se os quatro dados aparecem no perfil após esta correção ser publicada. Os testes de banco já cobrem esse caminho; a conferência da tela ainda falta.
+- O checklist do Praxi registra como concluída a conferência dos dados iniciais do perfil após a publicação do PR #31. Esta atualização não repetiu esse teste de interface; o registro automatizado continua separado da evidência manual.
 - Testar a entrega e o link do reenvio quando o serviço permitir novos envios. Não marcar como aprovado por existir um usuário no banco.
 - Conferir o bloqueio das áreas de médico e secretaria quando as rotas estiverem implementadas. Não confundir página inexistente com autorização testada.
 
-O card pode continuar em andamento enquanto essas pendências existirem. Não é preciso bloquear as entregas de consultas e perfil por causa do limite de e-mail. Este PR fica separado e depende de autorização específica para merge.
+O card permanece em revisão enquanto as pendências existirem. A cobertura nova
+de banco não conclui os testes de interface ou das áreas de médico e secretaria.
+A nova entrega fica em PR separado, aguardando autorização específica para merge.

@@ -2307,12 +2307,9 @@ html {
     font-size: 16px;
   }
 
-  .public-login-button {
-    display: none;
-  }
-
+  .public-login-button,
   .public-register-button {
-    min-height: 38px;
+    min-height: 44px;
     padding: 0 14px;
   }
 
@@ -2352,6 +2349,13 @@ html {
 @media (max-width: 580px) {
   .public-navigation {
     width: min(100% - 24px, 1180px);
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  .public-header-actions {
+    margin-left: auto;
   }
 
   .public-logo span {

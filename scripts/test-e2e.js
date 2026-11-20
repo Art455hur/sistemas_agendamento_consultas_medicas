@@ -5,6 +5,8 @@ import { setTimeout as delay } from "node:timers/promises";
 import process from "node:process";
 
 const host = "127.0.0.1";
+// O CI usa o build de demonstração já compilado; localmente mantém next dev.
+const production = process.env.E2E_SERVER_MODE === "production";
 
 function findAvailablePort() {
   return new Promise((resolve, reject) => {
@@ -58,7 +60,7 @@ async function stopServer(server) {
 
 const server = spawn(
   process.execPath,
-  ["node_modules/next/dist/bin/next", "dev", "--webpack", "--hostname", host, "--port", String(port)],
+  ["node_modules/next/dist/bin/next", ...(production ? ["start"] : ["dev", "--webpack"]), "--hostname", host, "--port", String(port)],
   { env, stdio: "inherit" },
 );
 

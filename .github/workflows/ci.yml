@@ -40,3 +40,19 @@ jobs:
         run: npm test
       - name: Compilar aplicação
         run: npm run build
+      - name: Instalar Chromium e dependências do navegador
+        run: npm run test:e2e:install -- --with-deps
+      - name: Testar interface no desktop e celular
+        env:
+          E2E_SERVER_MODE: production
+        run: npm run test:e2e
+      - name: Guardar relatório dos testes de navegador
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: testes-navegador
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore

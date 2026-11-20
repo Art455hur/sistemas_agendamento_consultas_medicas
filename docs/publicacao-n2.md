@@ -10,6 +10,9 @@ Um preview de PR não é o mesmo que o site de produção.
 O workflow **Testes e build** roda em PRs destinados à `main`, em pushes na
 `main` e por execução manual na aba Actions. Ele instala as versões do lockfile
 com `npm ci`, executa `npm test` e compila com `npm run build`, usando Node 22.
+Depois executa os testes Playwright no build de demonstração em desktop e
+celular emulado. O relatório fica disponível por sete dias no artefato
+`testes-navegador`; veja [execução e limites](testes-ponta-a-ponta.md).
 Uma falha interrompe o job e aparece nos checks do PR. Novos commits cancelam
 uma execução anterior da mesma referência para evitar trabalho duplicado.
 

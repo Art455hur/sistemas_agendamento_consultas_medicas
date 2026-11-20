@@ -40,6 +40,43 @@ atualização. Não são alterados os horários absolutos de consultas existente
 
 ## Roteiro manual antes de publicar
 
+### Busca e edição pela lista
+
+Na aba **Equipe** (`/administracao?aba=equipe`), a busca aceita nome ou e-mail
+parcial, sem diferenciar maiúsculas ou acentos. Palavras separadas por espaços
+precisam estar presentes no nome/e-mail do mesmo vínculo. Os filtros de função
+e situação podem ser combinados com a busca; **Limpar filtros** restaura a lista.
+A contagem informa quantos vínculos estão sendo exibidos, incluindo administradores.
+
+O botão **Editar** de médicos e secretários preenche o formulário e leva o foco
+ao nome. O e-mail fica somente para leitura; a especialidade pode ser mantida
+ou substituída por uma ativa. **Salvar e ativar vínculo** mantém o comportamento
+existente: salvar também reativa um vínculo inativo. Para começar outro cadastro,
+selecione **Vincular outra conta**. Administradores não têm ações de edição,
+desativação ou reativação nessa lista.
+
+A filtragem ocorre somente sobre os dados já autorizados pelo servidor. Não
+consulta Auth diretamente, não muda permissões e não exige migração. As mutações
+continuam nas mesmas Server Actions e RPCs. Se o catálogo de especialidades
+falhar, a edição fica indisponível, mas a consulta e as ações de situação continuam.
+
+`tests/filter-staff.test.js` cobre busca sem acentos, e-mail sem nome, combinação
+de filtros, estado vazio e preservação da ordem/dados recebidos. A validação desta
+entrega passou com **113 testes** (108 da base mais 5 novos) e `npm run build`.
+Os testes do PR #42 estão em uma branch separada e não entram nesse total.
+
+Conferência manual pendente antes de publicar:
+
+- Buscar um nome acentuado sem digitar o acento; combinar Médico + Inativos.
+- Buscar algo inexistente e usar Limpar filtros para recuperar todos os vínculos.
+- Clicar em Editar e conferir nome, e-mail bloqueado, função e foco no nome.
+- Trocar o profissional no seletor e conferir que os campos pertencem à nova seleção.
+- Editar um médico inativo, observar o aviso do botão Salvar e ativar vínculo e
+  conferir o resultado após salvar; preservar consultas antigas.
+- Conferir a lista e os filtros em tela estreita, usando teclado e celular.
+
+### Fluxos completos com contas de teste
+
 1. Com contas de teste, entre como administrador ativo e abra `/administracao`.
 2. Preencha o e-mail de uma conta nova de funcionário, nome, função Médico e
    especialidade. Salve e confira o vínculo na equipe.

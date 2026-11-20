@@ -35,6 +35,14 @@
 .feedback { background: #eaf5f8; border: 1px solid #cde5ed; border-radius: 10px; padding: 12px 15px; font-size: 13px; }
 .staffList { border: 1px solid #e3ebef; border-radius: 14px; background: #fff; overflow: hidden; }
 .staffList > p { padding: 12px 20px; font-size: 13px; }
+.staffFilters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.staffFilters > div { flex: 1; min-width: 160px; }
+.staffFilters > div:first-child { flex: 2; }
+.staffFilters label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 700; }
+.staffFilters input, .staffFilters select { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #cbdbe4; border-radius: 8px; background: #fff; color: #17324d; font: inherit; }
+.staffEditButton { min-height: 38px; padding: 8px 12px; border: 1px solid #b7d9e2; border-radius: 8px; color: #087c96; background: #fff; font: inherit; cursor: pointer; }
+.staffEditButton:hover:not(:disabled), .staffEditButton:focus-visible { background: #eaf5f8; }
+.staffEditButton:disabled { opacity: .55; cursor: default; }
 .staffRow { display: flex; align-items: center; gap: 20px; padding: 16px 19px; border-bottom: 1px solid #e8edf1; }
 .staffRow:last-child { border: 0; }
 .staffRow > div { flex: 1; min-width: 0; }

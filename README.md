@@ -2,7 +2,7 @@
 
 O **AgendaSaúde** é um projeto acadêmico desenvolvido na disciplina de Programação Web.
 
-> **N2 — revisão de 20/11/2026:** a `main` em `20b69e5` inclui as entregas até a PR #43 e está publicada na Vercel com estado READY. A configuração de produção consultada tem Supabase Auth habilitado; a demonstração continua sendo a alternativa local sem configuração. Os painéis próprios de médico/secretaria e a validação completa dos fluxos ainda estão pendentes. Consulte a [documentação técnica](docs/documentacao-tecnica.md).
+> **N2 — revisão de 20/11/2026:** a `main` em `20b69e5` inclui as entregas até a PR #43 e está publicada na Vercel com estado READY. A configuração de produção consultada tem Supabase Auth habilitado; a demonstração continua sendo a alternativa local sem configuração. Os painéis próprios de médico/secretaria e a validação completa dos fluxos ainda estão pendentes. Consulte a [documentação técnica](docs/documentacao-tecnica.md) e a [conferência de publicação](docs/publicacao-n2.md).
 
 A aplicação tem como objetivo facilitar o acesso a profissionais da saúde, permitindo que pacientes consultem especialidades, escolham horários e gerenciem seus agendamentos em uma interface simples e navegável.
 
@@ -60,6 +60,7 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
 | Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes, leitura diária da agenda, criação/remarcação/cancelamento de consultas futuras, busca/filtros de profissionais e horários por médico/dia |
 | Banco e testes | Dezesseis migrações versionadas na `main`; a revisão encontrou 17 no Supabase. Alinhar a migração da secretaria com o responsável, sem reaplicá-la |
+| Validação automática | GitHub Actions executa instalação pelo lockfile, testes e build em PRs e pushes na main, sem acessar o banco hospedado |
 
 A gestão de funcionários exige contas previamente existentes no Supabase Auth. Não cria contas Auth nem concede papel de administrador. Notificações na interface não representam envio de e-mail, SMS ou push.
 

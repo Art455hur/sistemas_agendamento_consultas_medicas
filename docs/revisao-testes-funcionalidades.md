@@ -1,6 +1,7 @@
 # Revisão dos testes das funcionalidades
 
-Revisão de 13/11/2026, baseada na `main` no commit `c158029`, após a PR #37.
+Registro inicial de 13/11/2026, baseado em `c158029`, preservado como histórico.
+A [atualização de 20/11/2026](#atualização-de-20112026) registra as entregas mais recentes.
 Relacionada aos cards **Criar testes das funcionalidades**, **Implementar
 validações de dados** e **Preparar documentação técnica**. Registra o que já
 existe para orientar a divisão do trabalho e evitar testes duplicados.
@@ -96,3 +97,18 @@ Consulte [testes de ponta a ponta](testes-ponta-a-ponta.md) para instalação,
 relatório e isolamento da demonstração. Os testes de Auth real exigem ambiente
 de teste configurado e contas fictícias. Esta revisão não aplica migrações nem
 altera configurações de Supabase ou Vercel.
+
+## Atualização de 20/11/2026
+
+Base consultada: `main` em `20b69e5`, após as PRs #42 e #43.
+
+- **San / Sandro:** a [PR #42](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/42) já foi integrada e cobre a gestão administrativa de pacientes com 14 cenários em PGlite. Essa cobertura não é mais uma pendência de implementação. A [PR #43](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/43), também integrada, acrescenta cinco testes de busca/filtros dos profissionais. A interação com Auth real e o layout móvel continuam exigindo conferência.
+- **Brício:** a [PR #41](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/41) acrescentou regressões de redirecionamento e cabeçalhos de segurança.
+- **Railson:** a [PR #39](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/39) integrou criação administrativa de consultas e a [PR #40](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/40) reorganizou o painel e formulários. Médico e secretaria continuam com cards próprios em andamento.
+- **Arthur:** consolida os registros desta revisão, atualiza a documentação e os cards de validações/testes, preservando a autoria do código e das execuções de cada integrante.
+
+A [PR #44](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/44) registra instalação limpa, **128 testes aprovados** e build concluído por Sandro. O [GitHub Actions](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/44683026264) foi consultado: instalação, testes e compilação passaram. A PR ainda está aberta, com automação pendente de revisão e integração. Esses resultados não são uma nova execução local de Arthur nesta atualização documental.
+
+Os 13 cenários Playwright continuam separados: o check da PR #44 executa Node/PGlite e build, não a suíte de navegador. Permanecem pendentes os fluxos completos com Auth real, e-mails, interação de profissionais no celular e os painéis de médico/secretaria quando entregues. Não refazer os testes administrativos que já foram integrados.
+
+O card de testes deve apontar para as PRs #42/#43 e distinguir os registros históricos de 104/123 testes da evidência mais recente de 128. Não concluir todos os critérios somente pelo check aprovado.

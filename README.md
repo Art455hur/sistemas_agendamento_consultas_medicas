@@ -2,7 +2,7 @@
 
 O **AgendaSaúde** é um projeto acadêmico desenvolvido na disciplina de Programação Web.
 
-> **N2 — estado do código em 20/11/2026:** consultas, perfil do paciente e gestão administrativa possuem integração com Supabase. Os painéis próprios de médico e secretaria ainda estão pendentes. O modo local sem configuração usa dados simulados; isso não descreve a configuração do site publicado. Consulte a [documentação técnica](docs/documentacao-tecnica.md) e a [conferência de publicação](docs/publicacao-n2.md).
+> **N2 — revisão de 20/11/2026:** a `main` em `20b69e5` inclui as entregas até a PR #43 e está publicada na Vercel com estado READY. A configuração de produção consultada tem Supabase Auth habilitado; a demonstração continua sendo a alternativa local sem configuração. Os painéis próprios de médico/secretaria e a validação completa dos fluxos ainda estão pendentes. Consulte a [documentação técnica](docs/documentacao-tecnica.md) e a [conferência de publicação](docs/publicacao-n2.md).
 
 A aplicação tem como objetivo facilitar o acesso a profissionais da saúde, permitindo que pacientes consultem especialidades, escolham horários e gerenciem seus agendamentos em uma interface simples e navegável.
 
@@ -58,8 +58,9 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Conflitos | Proteção no banco contra duas consultas ativas do mesmo médico ou paciente no mesmo instante |
 | Dashboard e notificações | Indicadores e avisos individuais de consultas futuras/canceladas, com links e atualização após alterações |
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
-| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes, leitura diária da agenda, remarcação/cancelamento de consultas futuras e horários por médico/dia |
-| Banco e testes | Dezesseis migrações versionadas, testes de banco isolado e workflow de testes/compilação em PRs; conferir o histórico remoto antes de aplicar migrações pendentes |
+| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes, leitura diária da agenda, criação/remarcação/cancelamento de consultas futuras, busca/filtros de profissionais e horários por médico/dia |
+| Banco e testes | Dezesseis migrações versionadas na `main`; a revisão encontrou 17 no Supabase. Alinhar a migração da secretaria com o responsável, sem reaplicá-la |
+| Validação automática | GitHub Actions executa instalação pelo lockfile, testes e build em PRs e pushes na main, sem acessar o banco hospedado |
 
 A gestão de funcionários exige contas previamente existentes no Supabase Auth. Não cria contas Auth nem concede papel de administrador. Notificações na interface não representam envio de e-mail, SMS ou push.
 
@@ -258,7 +259,7 @@ npm run dev
 
 Abra `http://localhost:3000`. No PowerShell, se `npm` estiver bloqueado, use `npm.cmd ci` e `npm.cmd run dev`.
 
-O modo de demonstração funciona com a autenticação real desligada. Para testar Supabase, copie `.env.example` para `.env.local` e siga [o guia de configuração](docs/autenticacao-supabase.md). Não habilite Auth na Vercel antes da revisão e dos testes completos.
+O modo de demonstração funciona com a autenticação real desligada. Para testar Supabase, copie `.env.example` para `.env.local` e siga [o guia de configuração](docs/autenticacao-supabase.md). Na consulta de 20/11/2026, Auth já estava habilitado na produção. Isso não conclui os testes de contas, e-mails e permissões; mudanças de configuração devem ser combinadas com a equipe.
 
 ```bash
 npm test
@@ -267,7 +268,7 @@ npm run build
 
 Os testes automatizados usam dados fictícios e banco descartável; não acessam o Supabase hospedado. O teste opcional com duas conexões está em [conflitos de horários](docs/conflitos-horarios.md).
 
-Na revisão de 13/11/2026, baseada na `main` em `c158029`, os **104 testes de Node/PGlite passaram, sem falhas**. Os testes de navegador são executados separadamente e cobrem o modo de demonstração. Consulte a [revisão dos testes, contribuições e pendências](docs/revisao-testes-funcionalidades.md) e o [guia de ponta a ponta](docs/testes-ponta-a-ponta.md).
+A revisão de 13/11/2026 registrou 104 testes na base `c158029`. Após as PRs #42 e #43, Sandro registrou **128 testes aprovados** na validação da [PR #44](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/44); o check de testes e compilação do GitHub Actions também foi conferido e passou. Essa PR ainda estava aberta na consulta de 20/11. Não houve nova execução local nesta atualização documental. Os testes de navegador são executados separadamente e cobrem o modo de demonstração. Consulte a [revisão dos testes, contribuições e pendências](docs/revisao-testes-funcionalidades.md) e o [guia de ponta a ponta](docs/testes-ponta-a-ponta.md).
 
 ## Documentação técnica
 
@@ -303,13 +304,15 @@ Na revisão de 13/11/2026, baseada na `main` em `c158029`, os **104 testes de No
 
 A N1 entregou o protótipo e os fluxos simulados do paciente. A N2 já possui autenticação preparada, persistência de consultas e perfil, gestão de equipe e proteção contra conflitos na `main`.
 
-O modo simulado permanece o padrão. A configuração atual da Vercel e o estado do banco hospedado devem ser conferidos no ambiente correspondente; esta documentação descreve o código versionado. A ativação em produção continua condicionada à revisão e aos testes de ponta a ponta.
+Em 20/11/2026, a Vercel publicou a `main` em `20b69e5` e a configuração consultada tinha Auth habilitado em produção. Os testes da demonstração não comprovam os fluxos reais de e-mail, cookies e permissões. O histórico remoto tem uma migração da secretaria ainda ausente desta base; conferir com o responsável antes de novas mudanças.
 
 ## Próximos passos
 
 - Concluir painéis do médico e da secretaria.
 - Completar os demais cadastros e o módulo de serviços previstos no backlog; horários por médico/dia já estão implementados.
-- Completar criação de consultas pelo administrador e grade semanal recorrente; leitura, remarcação e cancelamento já estão no código. Conferir migrações e validar essas operações no ambiente de destino.
+- Validar criação, leitura, remarcação e cancelamento pelo administrador, já implementados; grade semanal recorrente continua pendente.
+- Alinhar com Railson a migração `20261119235524_receptionist_agenda`, aplicada no banco e ausente da `main` consultada; preservar versão e conteúdo após conferência, sem executar novamente.
+- Revisar a PR #44 e conferir a automação na `main` após integração; não duplicar esse trabalho.
 - Ampliar as validações dos demais campos; formulários e banco já conferem os dígitos verificadores do CPF em novas gravações e alterações do número. Veja [escopo e testes](docs/validacao-cpf.md).
 - Definir o destino dos dados simulados e validar isolamento entre contas.
 - Executar os roteiros manuais com contas de teste, inclusive disputa de horário em duas sessões.

@@ -2,7 +2,7 @@
 
 O **AgendaSaúde** é um projeto acadêmico desenvolvido na disciplina de Programação Web.
 
-> **N2 — estado do código em 12/11/2026:** consultas, perfil do paciente e gestão de funcionários já possuem integração com Supabase. O modo simulado permanece como padrão. A integração real exige configuração em ambiente de teste e validação antes da liberação em produção. Consulte a [documentação técnica](docs/documentacao-tecnica.md).
+> **N2 — estado do código em 20/11/2026:** consultas, perfil do paciente e gestão administrativa possuem integração com Supabase. Os painéis próprios de médico e secretaria ainda estão pendentes. O modo local sem configuração usa dados simulados; isso não descreve a configuração do site publicado. Consulte a [documentação técnica](docs/documentacao-tecnica.md) e a [conferência de publicação](docs/publicacao-n2.md).
 
 A aplicação tem como objetivo facilitar o acesso a profissionais da saúde, permitindo que pacientes consultem especialidades, escolham horários e gerenciem seus agendamentos em uma interface simples e navegável.
 
@@ -59,7 +59,7 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Dashboard e notificações | Indicadores e avisos individuais de consultas futuras/canceladas, com links e atualização após alterações |
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
 | Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes, leitura diária da agenda, remarcação/cancelamento de consultas futuras e horários por médico/dia |
-| Banco e testes | Quinze migrações versionadas no código; conferir o histórico remoto antes de aplicar migrações pendentes |
+| Banco e testes | Dezesseis migrações versionadas, testes de banco isolado e workflow de testes/compilação em PRs; conferir o histórico remoto antes de aplicar migrações pendentes |
 
 A gestão de funcionários exige contas previamente existentes no Supabase Auth. Não cria contas Auth nem concede papel de administrador. Notificações na interface não representam envio de e-mail, SMS ou push.
 

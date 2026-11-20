@@ -23,7 +23,7 @@ test("Auth habilitado sem cookie de sessão", async (t) => {
   });
 
   await t.test("páginas privadas redirecionam para o login preservando o destino", async () => {
-    for (const path of ["/dashboard", "/agendar?especialidade=Cardiologia", "/administracao"]) {
+    for (const path of ["/dashboard", "/agendar?especialidade=Cardiologia", "/administracao", "/secretaria?dia=2026-11-19"]) {
       const response = await proxy(new NextRequest(`http://localhost:3000${path}`));
       assert.equal(response.status, 307);
       const location = new URL(response.headers.get("location"));

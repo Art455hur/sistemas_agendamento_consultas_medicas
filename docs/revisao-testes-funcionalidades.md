@@ -69,11 +69,13 @@ execução automática do navegador nesta revisão.
    quatro dados visíveis no perfil, confirmação e reenvio com entrega/link,
    recuperação de senha e sessão. O registro anterior documenta limite de envio
    do Supabase; mensagem correta de limite não comprova entrega do e-mail.
-3. Acrescentar testes automatizados específicos das RPCs `admin_update_patient`
-   e `admin_set_patient_active`: autorização, edição, desativação, cancelamento
-   de consultas futuras e reativação preservando histórico. Não foram
-   encontrados testes que chamem essas RPCs nesta base. A PR #28 registra
-   verificação transacional; isso não equivale a cobertura automatizada na suíte.
+3. **Cobertura acrescentada em 19/11/2026 por Sandro:**
+   `tests/admin-patients-database.test.js` testa listagem, edição, desativação e
+   reativação, permissões, entradas inválidas, cancelamento de consultas futuras,
+   preservação do histórico e isolamento. São 14 cenários em PGlite; a suíte
+   completa passou com 123 testes, incluindo o agrupador. Detalhes e limites em
+   [integração do paciente](testes-integracao-paciente.md#gestão-administrativa-de-pacientes--19112026).
+   A verificação com Auth real e pela interface continua separada.
 4. Validar as áreas de médico e secretaria quando suas rotas forem entregues.
    Página inexistente não comprova bloqueio de autorização.
 

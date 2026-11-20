@@ -112,3 +112,22 @@ A [PR #44](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/p
 Os 13 cenários Playwright continuam separados: o check da PR #44 executa Node/PGlite e build, não a suíte de navegador. Permanecem pendentes os fluxos completos com Auth real, e-mails, interação de profissionais no celular e os painéis de médico/secretaria quando entregues. Não refazer os testes administrativos que já foram integrados.
 
 O card de testes deve apontar para as PRs #42/#43 e distinguir os registros históricos de 104/123 testes da evidência mais recente de 128. Não concluir todos os critérios somente pelo check aprovado.
+
+
+## Continuação da validação de navegador — PR #46
+
+A PR #44 foi integrada e passou também na main. A [PR #46](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/46)
+acrescenta a execução Playwright ao CI em desktop e celular emulado, sobre o
+build local de demonstração. Os cenários originais de Ian e Arthur foram
+preservados. Sandro acrescentou a automação, o relatório e uma regressão do
+cabeçalho em 320 px.
+
+Na [primeira execução](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/44806686865),
+25 das 26 execuções passaram. A navegação móvel falhou porque o CSS ocultava
+**Entrar** abaixo de 800 px. O ajuste mantém os dois acessos visíveis e permite
+quebra de linha no cabeçalho. A suíte passa a ter 14 cenários em duas
+configurações, totalizando 28 execuções; conferir o resultado mais recente na PR.
+
+Isso avança o card de testes das funcionalidades e a validação móvel do fluxo
+público. Não conclui testes reais de Auth/e-mail, áreas profissionais ou uma
+auditoria de todas as telas em celular.

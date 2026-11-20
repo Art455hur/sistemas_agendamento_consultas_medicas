@@ -7,9 +7,9 @@ AgendaSaúde: página inicial, consulta de especialidade, navegação para cadas
 login, validações dos formulários e entrada com um usuário de demonstração.
 A PR #36 acrescentou rejeição de nomes inválidos e edição do perfil local com
 persistência após recarregar a página. A base `c158029` contém 13 cenários. A configuração atual executa esses mesmos
-cenários nos projetos `desktop` e `celular` (Pixel 5 emulado no Chromium),
-totalizando 26 execuções. Isso não representa 26 cenários novos nem teste em
-aparelho físico.
+cenários e uma regressão do cabeçalho em tela estreita nos projetos `desktop`
+e `celular` (Pixel 5 emulado no Chromium), totalizando 14 cenários e 28
+execuções. Isso não representa 28 cenários novos nem teste em aparelho físico.
 
 Consulte a [revisão de 13/11/2026](revisao-testes-funcionalidades.md) para autoria,
 resultados e pendências. A existência dos cenários não indica que todos foram
@@ -83,3 +83,7 @@ npm run test:e2e -- --project=celular
 A execução no tamanho de celular verifica os mesmos fluxos de interação;
 não é uma auditoria visual completa de responsividade ou acessibilidade.
 A automação foi acrescentada por Sandro e preserva os cenários de Ian e Arthur.
+
+A primeira execução automática identificou o botão **Entrar** oculto abaixo
+de 800 px. A correção mantém login e cadastro visíveis, permite quebra do
+cabeçalho e acrescenta uma regressão em 320 px para evitar corte dos botões.

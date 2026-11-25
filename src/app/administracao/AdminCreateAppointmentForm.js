@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { createAdminAppointment } from "@/app/administracao/actions";
 import { createAppointment as createReceptionistAppointment } from "@/app/secretaria/actions";
@@ -48,8 +48,22 @@ export default function AdminCreateAppointmentForm({ patients, doctors, initialD
     return () => { cancelled = true; };
   }, [patientId, doctorId, day, receptionist, reload]);
 
+  const bookingReady = Boolean(patientId && doctorId && day && slots.includes(time) && !loading && !error);
+
+  function submitReceptionistBooking(event) {
+    event.preventDefault();
+    if (!bookingReady || pending) return;
+
+    // Capture the selected values before the framework can reset form controls.
+    const payload = new FormData();
+    for (const [field, value] of Object.entries({ patientId, doctorId, day, time, reason })) {
+      payload.set(field, value);
+    }
+    startTransition(() => receptionistAction(payload));
+  }
+
   return (
-    <form action={receptionist ? receptionistAction : createAdminAppointment} className={styles.createAppointmentForm} aria-busy={receptionist && pending}>
+    <form action={receptionist ? undefined : createAdminAppointment} method={receptionist ? "post" : undefined} onSubmit={receptionist ? submitReceptionistBooking : undefined} className={styles.createAppointmentForm} aria-busy={receptionist && pending}>
       <div>
         <label htmlFor="new-appointment-patient">Paciente ativo</label>
         <select id="new-appointment-patient" name="patientId" required value={patientId} onChange={(event) => { setTime(""); setPatientId(event.target.value); }}>
@@ -100,7 +114,7 @@ export default function AdminCreateAppointmentForm({ patients, doctors, initialD
       {receptionist && bookingState?.message && !pending && <p role="alert" className={styles.createAppointmentHint}>{bookingState.message}</p>}
       {receptionist && patientId && doctorId && day && (error || bookingState?.message || (!loading && slots.length === 0)) &&
         <button type="button" disabled={loading || pending} onClick={() => { setTime(""); setReload((value) => value + 1); }}>Atualizar horários</button>}
-      <button type="submit" disabled={!time || loading || Boolean(error) || (receptionist && pending)}>
+      <button type="submit" disabled={receptionist ? !bookingReady || pending : !time || loading || Boolean(error)}>
         {receptionist && pending ? "Salvando…" : "Agendar para paciente"}
       </button>
       <p className={styles.createAppointmentHint}>O banco confere novamente as permissões, a disponibilidade e os conflitos antes de salvar.</p>

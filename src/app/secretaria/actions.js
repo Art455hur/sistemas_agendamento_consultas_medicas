@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { isAvailabilitySlot } from "@/features/appointments/availability.js";
 import { createClient } from "@/lib/supabase/server";
 
-const validUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+const validUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 function validDay(day) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return false;
   const date = new Date(`${day}T12:00:00Z`);

@@ -56,6 +56,7 @@ test("agenda da secretaria exige vínculo ativo e preserva as regras de reserva"
     "select public.receptionist_create_appointment($1,$2,$3,$4::time,null) as id",[patient,doctor,on,at],
   );
   const list = () => db.query("select * from public.receptionist_list_appointments($1)",[day]);
+  const rescheduleSlots = "select * from public.receptionist_reschedule_slots($1,$2)";
 
   await t.test("anônimo, paciente, médico, admin e secretaria inativa não usam nenhum RPC", async () => {
     for (const id of [null,ids.patient,ids.doctor,ids.admin,ids.inactiveReceptionist]) {
@@ -65,6 +66,7 @@ test("agenda da secretaria exige vínculo ativo e preserva as regras de reserva"
       await fails("select * from public.receptionist_booking_slots($1,$2,$3)",[ids.patient,ids.doctor,day],"42501");
       await fails("select public.receptionist_create_appointment($1,$2,$3,$4::time,null)",[ids.patient,ids.doctor,day,"08:00"],"42501");
       await fails("select public.receptionist_reschedule_appointment($1,$2,$3::time)",[ids.patient,day,"08:00"],"42501");
+      await fails(rescheduleSlots,[ids.patient,day],"42501");
       await fails("select public.receptionist_cancel_appointment($1)",[ids.patient],"42501");
     }
   });
@@ -104,6 +106,17 @@ test("agenda da secretaria exige vínculo ativo e preserva as regras de reserva"
     await fails("select public.receptionist_create_appointment($1,$2,$3,$4::time,null)",[ids.patient,ids.doctor,"2020-01-01","08:00"],"22023");
     await fails("select public.receptionist_reschedule_appointment($1,$2,$3::time)",[booked,day,"16:00"],"22023");
   });
+  await t.test("remarcação mostra apenas vagas configuradas sem conflitos de médico ou paciente", async () => {
+    await as(ids.admin);
+    await db.query("select public.admin_set_doctor_day($1,$2,ARRAY['16:00']::time[])",[ids.doctor,day]);
+    await as(ids.receptionist);
+    await create(ids.otherPatient,ids.doctor,"10:30",tomorrow);
+    await create(ids.patient,ids.otherDoctor,"14:00",tomorrow);
+    const times = async (date) => (await db.query(rescheduleSlots,[booked,date])).rows.map(({slot}) => slot.slice(0,5));
+    assert.deepEqual(await times(tomorrow),["08:00","15:30"]);
+    assert.deepEqual(await times(day),["16:00"]);
+    await fails(rescheduleSlots,[booked,"2020-01-01"],"22023");
+  });
   await t.test("horário personalizado às 16:00 aparece e pode ser reservado", async () => {
     await as(ids.admin);
     await db.query("select public.admin_set_doctor_day($1,$2,ARRAY['16:00']::time[])",[ids.otherDoctor,day]);
@@ -117,6 +130,7 @@ test("agenda da secretaria exige vínculo ativo e preserva as regras de reserva"
   await t.test("cancelar preserva histórico e desativar vínculo revoga acesso", async () => {
     await as(ids.receptionist);
     await db.query("select public.receptionist_cancel_appointment($1)",[booked]);
+    await fails(rescheduleSlots,[booked,day],"P0002");
     await fails("select public.receptionist_reschedule_appointment($1,$2,$3::time)",[booked,day,"08:00"],"P0002");
     await db.exec("reset role");
     assert.equal((await db.query("select status from public.appointments where id=$1",[booked])).rows[0].status,"cancelled");

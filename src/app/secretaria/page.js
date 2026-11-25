@@ -4,7 +4,7 @@ import { ROLES } from "@/features/auth/access-control.js";
 import { clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { createClient } from "@/lib/supabase/server";
 import AdminCreateAppointmentForm from "@/app/administracao/AdminCreateAppointmentForm";
-import { cancelAppointment, rescheduleAppointment } from "./actions";
+import AppointmentControls from "./AppointmentControls";
 import AgendaResults from "./AgendaResults";
 import styles from "@/app/administracao/page.module.css";
 import desk from "./secretaria.module.css";
@@ -145,19 +145,8 @@ export default async function SecretariaPage({ searchParams }) {
                   <span>{appointment.doctor_name?.trim() || "Médico sem nome"} · {appointment.specialty}</span>
                 </div>
                 <span className={status === "Agendada" ? styles.active : styles.inactive}>{status}</span>
-                {canManage && <div className={styles.appointmentActions}>
-                  <form action={rescheduleAppointment}>
-                    <input type="hidden" name="appointmentId" value={appointment.id} />
-                    <label>Nova data<input type="date" name="day" defaultValue={when.date} min={today} required /></label>
-                    <label>Novo horário<input type="time" name="time" min="08:00" max="17:30" step="1800" defaultValue={when.time} required /></label>
-                    <button type="submit">Remarcar</button>
-                  </form>
-                  <form action={cancelAppointment}>
-                    <input type="hidden" name="appointmentId" value={appointment.id} />
-                    <input type="hidden" name="day" value={when.date} />
-                    <button type="submit" className={styles.deactivate}>Cancelar consulta</button>
-                  </form>
-                </div>}
+                {canManage && <AppointmentControls key={appointment.scheduled_at} appointmentId={appointment.id}
+                  currentDay={when.date} currentTime={when.time} today={today} maxDay={max.toISOString().slice(0,10)} />}
                 </article>,
               };
             })} />}

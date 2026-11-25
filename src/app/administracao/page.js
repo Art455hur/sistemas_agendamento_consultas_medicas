@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ROLES } from "@/features/auth/access-control.js";
-import { clinicDateTime } from "@/features/appointments/appointment-format.js";
+import { appointmentDisplayStatus, appointmentStatusLabels, clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { createClient } from "@/lib/supabase/server";
 import AdminCreateAppointmentForm from "@/app/administracao/AdminCreateAppointmentForm";
 import StaffManager from "@/app/administracao/StaffManager";
@@ -74,9 +74,7 @@ function selectedDay(value) {
 }
 
 function appointmentStatus(row) {
-  if (row.status === "cancelled") return "Cancelada";
-  if (row.status === "completed" || new Date(row.scheduled_at) < new Date()) return "Concluída";
-  return "Agendada";
+  return appointmentStatusLabels[appointmentDisplayStatus(row)];
 }
 
 export default async function AdministracaoPage({ searchParams }) {

@@ -4,11 +4,11 @@ import Link from "next/link";
 import { formatDate } from "../../../shared/formatting/date.js";
 
 function getStatusClass(status) {
-    if (status === "Cancelada") {
+    if (status === "Cancelada" || status === "Paciente faltou") {
       return "status status-cancelled";
     }
 
-    if (status === "Concluída") {
+    if (status === "Concluída" || status === "Atendida" || status === "Aguardando registro") {
       return "status status-completed";
     }
 
@@ -64,10 +64,7 @@ export default function AppointmentListItem({ appointment, cancelling, onCancel 
                       )}
                     </div>
 
-                    {appointment.status !==
-                      "Cancelada" &&
-                      appointment.status !==
-                        "Concluída" && (
+                    {(!appointment.status || appointment.status === "Agendada") && (
                         <div className="appointment-actions">
                           <Link
                             href={`/agendar?remarcar=${appointment.id}`}

@@ -1,0 +1,11 @@
+.card { background:white; color:#17324d; border:1px solid #d9e6ed; border-radius:14px; padding:clamp(14px,3vw,24px); margin-top:18px; overflow-wrap:anywhere }
+.card h2 { margin:0 0 12px }
+.card form,.card label { display:grid; gap:8px }
+.card form { gap:14px; margin-top:16px }
+.card input { padding:9px; border:1px solid #bccfdb; border-radius:8px; width:100%; min-width:0; box-sizing:border-box }
+.card button { justify-self:start; border:0; background:#08748c; color:white; border-radius:8px; padding:10px 16px; font-weight:700; cursor:pointer }
+.card details { border-top:1px solid #d9e6ed; padding:12px 0 }
+.card summary { cursor:pointer; font-weight:700 }
+.card details p { white-space:pre-wrap }
+.card a { color:#086279 }
+.card p:empty { display:none }

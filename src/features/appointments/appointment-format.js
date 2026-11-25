@@ -13,15 +13,31 @@ export function clinicDateTime(value) {
   return { date: `${get("year")}-${get("month")}-${get("day")}`, time: `${get("hour")}:${get("minute")}` };
 }
 
+export const appointmentStatusLabels = Object.freeze({
+  scheduled: "Agendada",
+  pending: "Aguardando registro",
+  completed: "Atendida",
+  no_show: "Paciente faltou",
+  cancelled: "Cancelada",
+});
+
+export function appointmentDisplayStatus(row, now = Date.now()) {
+  if (!Object.hasOwn(appointmentStatusLabels, row.status)) return "scheduled";
+  if (row.status === "scheduled" && Date.parse(row.scheduled_at) <= now) return "pending";
+  return row.status;
+}
+
+export function isPastAppointmentStatus(status) {
+  return ["Concluída", "Atendida", "Paciente faltou", "Aguardando registro"].includes(status);
+}
+
 export function fromAppointmentRow(row, now = new Date()) {
   return {
     id: row.id, doctorId: row.doctor_id,
     doctor: row.doctor_name || "Profissional", specialty: row.specialty,
     scheduledAt: row.scheduled_at, ...clinicDateTime(row.scheduled_at),
     reason: row.reason || "",
-    // Regra do MVP: consultas passadas aparecem no histórico, sem gravar ao ler.
-    status: row.status === "cancelled" ? "Cancelada"
-      : row.status === "completed" || new Date(row.scheduled_at) < now ? "Concluída" : "Agendada",
+    status: appointmentStatusLabels[appointmentDisplayStatus(row, now)],
   };
 }
 

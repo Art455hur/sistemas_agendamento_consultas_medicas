@@ -3,6 +3,7 @@
 import ErrorNotice from "@/components/feedback/ErrorNotice.js";
 
 import AppointmentListItem from "@/features/appointments/components/AppointmentListItem.js";
+import { isPastAppointmentStatus } from "@/features/appointments/appointment-format.js";
 
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -43,9 +44,9 @@ function AppointmentsContent() {
       !appointment.status
   );
 
-  const completedAppointments = appointments.filter(
+  const historyAppointments = appointments.filter(
     (appointment) =>
-      appointment.status === "Concluída"
+      isPastAppointmentStatus(appointment.status)
   );
 
   const cancelledAppointments = appointments.filter(
@@ -55,7 +56,7 @@ function AppointmentsContent() {
 
   const appointmentsByTab = {
     scheduled: scheduledAppointments,
-    completed: completedAppointments,
+    completed: historyAppointments,
     cancelled: cancelledAppointments,
   };
 
@@ -69,9 +70,9 @@ function AppointmentsContent() {
         "Você ainda não possui consultas futuras.",
     },
     completed: {
-      title: "Nenhuma consulta concluída",
+      title: "Nenhuma consulta no histórico",
       description:
-        "Seu histórico de consultas concluídas aparecerá aqui.",
+        "Suas consultas passadas aparecerão aqui, com a situação de cada uma.",
     },
     cancelled: {
       title: "Nenhuma consulta cancelada",
@@ -142,9 +143,9 @@ function AppointmentsContent() {
                 setActiveTab("completed")
               }
             >
-              Concluídas
+              Histórico
               <span>
-                {completedAppointments.length}
+                {historyAppointments.length}
               </span>
             </button>
 

@@ -6,6 +6,7 @@ import { formatDate } from "../../../shared/formatting/date.js";
 
 import Link from "next/link";
 import { useAppointments } from "../hooks/useAppointments.js";
+import { isPastAppointmentStatus } from "../appointment-format.js";
 
 export default function DashboardData() {
   const { appointments, loading, error, retry } = useAppointments();
@@ -25,9 +26,9 @@ export default function DashboardData() {
     }
   );
 
-  const completedAppointments = appointments.filter(
+  const historyAppointments = appointments.filter(
     (appointment) =>
-      appointment.status === "Concluída"
+      isPastAppointmentStatus(appointment.status)
   );
 
   const cancelledAppointments = appointments.filter(
@@ -68,8 +69,8 @@ export default function DashboardData() {
     <div className="summary-icon">✓</div>
 
     <div>
-      <strong>{completedAppointments.length}</strong>
-      <span>Consultas concluídas</span>
+      <strong>{historyAppointments.length}</strong>
+      <span>Histórico de consultas</span>
     </div>
   </Link>
 

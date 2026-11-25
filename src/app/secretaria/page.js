@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ROLES } from "@/features/auth/access-control.js";
-import { clinicDateTime } from "@/features/appointments/appointment-format.js";
+import { appointmentDisplayStatus, appointmentStatusLabels, clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { createClient } from "@/lib/supabase/server";
 import AdminCreateAppointmentForm from "@/app/administracao/AdminCreateAppointmentForm";
 import AppointmentControls from "./AppointmentControls";
@@ -22,7 +22,10 @@ const messages = {
   erro: "Não foi possível concluir a operação. Tente novamente.",
   indisponivel: "A autenticação ainda não está ativada.",
 };
-const statusLabels = { scheduled: "Agendadas", completed: "Concluídas", cancelled: "Canceladas" };
+const statusLabels = {
+  scheduled: "Agendadas", pending: "Aguardando registro",
+  completed: "Atendidas", no_show: "Faltas", cancelled: "Canceladas",
+};
 
 function selectedDay(value) {
   const today = clinicDateTime(new Date()).date;
@@ -79,10 +82,9 @@ export default async function SecretariaPage({ searchParams }) {
   const statusFilter = typeof status === "string" && Object.hasOwn(statusLabels, status) ? status : "";
   const rows = appointments.map((appointment) => ({
     ...appointment,
-    displayStatus: appointment.status === "cancelled" ? "cancelled"
-      : appointment.status === "completed" || Date.parse(appointment.scheduled_at) <= now ? "completed" : "scheduled",
+    displayStatus: appointmentDisplayStatus(appointment, now),
   }));
-  const counts = { scheduled: 0, completed: 0, cancelled: 0 };
+  const counts = { scheduled: 0, pending: 0, completed: 0, no_show: 0, cancelled: 0 };
   for (const row of rows) counts[row.displayStatus]++;
   const filtered = rows.filter((row) => !statusFilter || row.displayStatus === statusFilter);
 
@@ -134,7 +136,7 @@ export default async function SecretariaPage({ searchParams }) {
             : filtered.length === 0 ? <p className={styles.agendaEmpty}>Nenhuma consulta corresponde aos filtros.</p>
             : <AgendaResults key={JSON.stringify([day, statusFilter, resultado])} entries={filtered.map((appointment) => {
               const when = clinicDateTime(appointment.scheduled_at);
-              const status = { scheduled: "Agendada", completed: "Concluída", cancelled: "Cancelada" }[appointment.displayStatus];
+              const status = appointmentStatusLabels[appointment.displayStatus];
               const canManage = appointment.displayStatus === "scheduled";
               return {
                 keywords: [appointment.patient_name, appointment.doctor_name, appointment.specialty].filter(Boolean).join(" "),
@@ -144,7 +146,7 @@ export default async function SecretariaPage({ searchParams }) {
                   <strong>{appointment.patient_name?.trim() || "Paciente sem nome"}</strong>
                   <span>{appointment.doctor_name?.trim() || "Médico sem nome"} · {appointment.specialty}</span>
                 </div>
-                <span className={status === "Agendada" ? styles.active : styles.inactive}>{status}</span>
+                <span className={canManage || appointment.displayStatus === "completed" ? styles.active : styles.inactive}>{status}</span>
                 {canManage && <AppointmentControls key={appointment.scheduled_at} appointmentId={appointment.id}
                   currentDay={when.date} currentTime={when.time} today={today} maxDay={max.toISOString().slice(0,10)} />}
                 </article>,

@@ -1,22 +1,27 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ROLES } from "@/features/auth/access-control.js";
-import { clinicDateTime } from "@/features/appointments/appointment-format.js";
+import { appointmentStatusLabels, clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/app/administracao/page.module.css";
 import agenda from "./agenda.module.css";
+import { recordAppointmentOutcome } from "./actions";
+import { adjacentDay, selectedDay } from "./day";
+import { filters, summarizeAgenda } from "./agenda-view";
+import AgendaList from "./AgendaList";
 
 export const metadata = { title: "Minha agenda | AgendaSaúde" };
 export const dynamic = "force-dynamic";
 
-const statusLabels = { scheduled: "Agendada", completed: "Concluída", cancelled: "Cancelada" };
+const messages = {
+  salvo: "Resultado registrado.",
+  indisponivel: "Só é possível registrar consultas próprias, no horário marcado ou depois, ainda sem resultado.",
+  negado: "O registro exige um vínculo médico ativo.",
+  invalido: "Selecione um resultado válido para a consulta.",
+  erro: "Não foi possível registrar o resultado. Atualize a agenda antes de tentar novamente.",
+};
 
-function selectedDay(value, today) {
-  if (value === undefined) return today;
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith("0000")) return null;
-  const date = new Date(`${value}T12:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value ? value : null;
-}
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "full", timeZone: "UTC" });
 
 function State({ title, detail }) {
   return (
@@ -37,8 +42,12 @@ export default async function DoctorPage({ searchParams }) {
     return <State title="Agenda médica indisponível" detail="A autenticação precisa estar configurada para acessar a agenda." />;
   }
 
-  const { dia } = await searchParams;
-  const day = selectedDay(dia, clinicDateTime(new Date()).date);
+  const { dia, resultado } = await searchParams;
+  const now = Date.now();
+  const today = clinicDateTime(now).date;
+  const day = selectedDay(dia, today);
+  const previous = adjacentDay(day, -1);
+  const next = adjacentDay(day, 1);
   const supabase = await createClient();
   const { data: auth, error: authError } = await supabase.auth.getClaims();
   const id = auth?.claims?.sub;
@@ -61,7 +70,7 @@ export default async function DoctorPage({ searchParams }) {
     ? await supabase.rpc("doctor_list_appointments", { p_day: day })
       .order("scheduled_at").order("id").limit(201)
     : { data: null, error: null };
-  const rows = (data ?? []).slice(0, 200);
+  const { rows, counts, upcoming } = summarizeAgenda((data ?? []).slice(0, 200), now);
 
   return (
     <div className={styles.shell}>
@@ -94,27 +103,74 @@ export default async function DoctorPage({ searchParams }) {
                 <p>Somente consultas vinculadas ao seu perfil.</p>
               </div>
             </div>
-            <form key={day || "invalid"} action="/medico" method="get" className={styles.agendaFilter}>
-              <label htmlFor="doctor-agenda-day">Data da agenda</label>
-              <input id="doctor-agenda-day" type="date" name="dia" defaultValue={day || ""} required />
-              <button type="submit">Consultar</button>
-              <Link href="/medico">Hoje</Link>
-            </form>
+            <div className={agenda.dateBar}>
+              <div>
+                <p className={agenda.caption}>DATA SELECIONADA</p>
+                {day && <time className={agenda.selectedDate} dateTime={day}>{dateFormatter.format(new Date(`${day}T12:00:00Z`))}</time>}
+                <nav className={agenda.days} aria-label="Navegar por dia">
+                  {previous && <Link href={`/medico?dia=${previous}`}>Dia anterior</Link>}
+                  <Link href="/medico" aria-current={day === today ? "date" : undefined}>Hoje</Link>
+                  {next && <Link href={`/medico?dia=${next}`}>Próximo dia</Link>}
+                </nav>
+              </div>
+              <form key={day || "invalid"} action="/medico" method="get" className={agenda.dateForm}>
+                <label htmlFor="doctor-agenda-day">Escolher data</label>
+                <input id="doctor-agenda-day" type="date" name="dia" defaultValue={day || ""} required />
+                <button type="submit">Consultar</button>
+              </form>
+            </div>
+            {typeof resultado === "string" && Object.hasOwn(messages, resultado) &&
+              <p className={styles.feedback} role={resultado === "salvo" ? "status" : "alert"}>{messages[resultado]}</p>}
             {!day ? <p className={styles.feedback} role="alert">Escolha uma data válida.</p>
               : error ? <p className={styles.feedback} role="alert">Não foi possível carregar a agenda. Tente novamente.</p>
-              : rows.length === 0 ? <p className={styles.agendaEmpty}>Você não tem consultas nesta data.</p>
-              : <ul className={`${styles.agendaList} ${agenda.list}`}>
-                {rows.map((row) => (
-                  <li className={styles.agendaRow} key={row.id}>
-                    <time className={styles.agendaTime} dateTime={row.scheduled_at}>{clinicDateTime(row.scheduled_at).time}</time>
+              : <>
+                <dl className={agenda.metrics} aria-label="Resumo de consultas da data">
+                  {filters.map(([value, label]) => <div key={value} data-status={value}>
+                    <dt>{label}</dt><dd>{counts[value]}</dd>
+                  </div>)}
+                </dl>
+                {upcoming && <section className={agenda.highlight} aria-label="Próximo atendimento da data">
+                  <div>
+                    <p className={agenda.caption}>PRÓXIMO ATENDIMENTO DA DATA</p>
+                    <strong>{upcoming.patient}</strong>
+                    {upcoming.specialty && <span>{upcoming.specialty}</span>}
+                  </div>
+                  <time dateTime={upcoming.scheduled_at}>{upcoming.time}</time>
+                </section>}
+                {rows.length === 0 ? <div className={agenda.empty}>
+                  <strong>Você não tem consultas nesta data</strong>
+                  <p>Escolha outra data para consultar sua agenda.</p>
+                </div> : <AgendaList key={day} entries={rows.map((row) => ({
+                  id: row.id, patient: row.patient, specialty: row.specialty, time: row.time, status: row.status,
+                  item: <>
+                    <time className={agenda.rowTime} dateTime={row.scheduled_at}>{row.time}</time>
                     <div className={styles.agendaDetails}>
-                      <strong>{row.patient_name?.trim() || "Paciente sem nome"}</strong>
+                      <strong>{row.patient}</strong>
                       <span>{row.specialty}</span>
                     </div>
-                    <span className={row.status === "scheduled" ? styles.active : styles.inactive}>{statusLabels[row.status]}</span>
-                  </li>
-                ))}
-              </ul>}
+                    <span className={agenda.status} data-status={row.status}>{appointmentStatusLabels[row.status]}</span>
+                    {row.status === "completed" && (
+                      <div className={agenda.outcome}>
+                        <Link className={agenda.secondary} href={`/medico/atendimento/${row.id}`} prefetch={false}
+                          aria-label={`Abrir atendimento: ${row.patient}, ${row.time}`}>Abrir atendimento</Link>
+                      </div>
+                    )}
+                    {row.status === "pending" && (
+                      <form action={recordAppointmentOutcome} className={agenda.outcome} aria-label={`Registrar resultado: ${row.patient}, ${row.time}`}>
+                        <input type="hidden" name="appointmentId" value={row.id} />
+                        <input type="hidden" name="day" value={day} />
+                        <label htmlFor={`outcome-${row.id}`}>Resultado do atendimento</label>
+                        <select id={`outcome-${row.id}`} name="outcome" defaultValue="" required>
+                          <option value="" disabled>Selecione o resultado</option>
+                          <option value="completed">Atendida</option>
+                          <option value="no_show">Paciente faltou</option>
+                        </select>
+                        <button type="submit">Registrar resultado</button>
+                      </form>
+                    )}
+                  </>,
+                }))} />}
+              </>}
             {(data?.length ?? 0) > 200 && <p>Exibindo as primeiras 200 consultas do dia.</p>}
           </section>
         </div>

@@ -14,6 +14,12 @@
 .topbar { min-height: 72px; border-bottom: 1px solid #e5ecf1; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(22px, 5vw, 70px); }
 .breadcrumb { color: #73899a; font-size: 13px; font-weight: 600; }
 .breadcrumb span { color: #c7d0d7; padding: 0 10px; }
+.topbarActions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.logoutButton { min-height: 36px; border: 1px solid #d5e1e8; border-radius: 9px; background: #fff; color: #17324d; padding: 0 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.logoutButton:hover { border-color: #0e7792; color: #0e7792; }
+.logoutButton:focus-visible { outline: 3px solid #9fd8e2; outline-offset: 2px; }
+.logoutButton:disabled { cursor: wait; opacity: .7; }
+.logoutError { flex-basis: 100%; text-align: right; color: #b42318; font-size: 12px; font-weight: 600; }
 .roleBadge, .phase { border: 1px solid #c7e5e9; color: #087c96; background: #edfafb; padding: 8px 13px; border-radius: 100px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .content { max-width: 1180px; padding: 54px clamp(22px, 5vw, 70px) 80px; margin: auto; }
 .overviewGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 24px 0 48px; }

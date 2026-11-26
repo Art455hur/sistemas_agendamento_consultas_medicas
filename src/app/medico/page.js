@@ -9,6 +9,7 @@ import { recordAppointmentOutcome } from "./actions";
 import { adjacentDay, selectedDay } from "./day";
 import { filters, summarizeAgenda } from "./agenda-view";
 import AgendaList from "./AgendaList";
+import LogoutButton from "@/features/auth/components/LogoutButton";
 
 export const metadata = { title: "Minha agenda | AgendaSaúde" };
 export const dynamic = "force-dynamic";
@@ -85,7 +86,10 @@ export default async function DoctorPage({ searchParams }) {
       <main className={styles.main}>
         <header className={styles.topbar}>
           <div className={styles.breadcrumb}>AgendaSaúde <span>/</span> Médico <span>/</span> Agenda</div>
-          <span className={styles.roleBadge}>Médico</span>
+          <div className={styles.topbarActions}>
+            <span className={styles.roleBadge}>Médico</span>
+            <LogoutButton className={styles.logoutButton} errorClassName={styles.logoutError} />
+          </div>
         </header>
         <div className={styles.content}>
           <div className={styles.heading}>

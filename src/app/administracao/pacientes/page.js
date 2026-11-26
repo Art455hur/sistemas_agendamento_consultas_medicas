@@ -8,6 +8,7 @@ import {
 } from "@/app/administracao/actions";
 import PatientEditForm from "./PatientEditForm";
 import styles from "@/app/administracao/page.module.css";
+import LogoutButton from "@/features/auth/components/LogoutButton";
 
 export const metadata = {
   title: "Pacientes | Administração | AgendaSaúde",
@@ -93,7 +94,10 @@ export default async function PacientesAdministracaoPage({ searchParams }) {
       <main className={styles.main}>
         <header className={styles.topbar}>
           <div className={styles.breadcrumb}>AgendaSaúde <span>/</span> Administração <span>/</span> Pacientes</div>
-          <span className={styles.roleBadge}>Administrador</span>
+          <div className={styles.topbarActions}>
+            <span className={styles.roleBadge}>Administrador</span>
+            <LogoutButton className={styles.logoutButton} errorClassName={styles.logoutError} />
+          </div>
         </header>
 
         <div className={styles.content}>

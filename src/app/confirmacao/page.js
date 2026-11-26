@@ -96,7 +96,7 @@ export default function Confirmacao() {
                 </Link>
 
                 <Link
-                  href="/"
+                  href="/dashboard"
                   className="confirmation-secondary"
                 >
                   Voltar ao início
@@ -125,7 +125,7 @@ export default function Confirmacao() {
                 </Link>
 
                 <Link
-                  href="/"
+                  href="/dashboard"
                   className="confirmation-secondary"
                 >
                   Voltar ao início

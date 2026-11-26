@@ -169,3 +169,5 @@
 .patientFoot { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e8edf1; color: #718699; font-size: 12px; }
 @media (max-width: 1050px) { .patientForm { grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 700px) { .patientHeader, .patientFoot { align-items: flex-start; flex-direction: column; } .patientForm { grid-template-columns: 1fr; } }
+/* Celular: nenhum bloco do painel pode passar da largura da tela; a navegação rola dentro da própria linha. */
+@media (max-width: 700px) { .sidebar, .main, .navigation { min-width: 0; max-width: 100%; } .topbar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; } .breadcrumb { min-width: 0; } .sectionHeading { flex-wrap: wrap; } .sectionHeading > span { white-space: normal; } }

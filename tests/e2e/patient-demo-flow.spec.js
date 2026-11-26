@@ -17,5 +17,8 @@ test("paciente fictício conclui cadastro e entra no painel local", async ({ pag
 
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("heading", { name: /Olá, seja bem-vindo!/ })).toBeVisible();
+  // No celular, a saudação fica na aba lateral aberta pelo botão ☰.
+  const openMenu = page.getByRole("button", { name: "Abrir menu" });
+  if (await openMenu.isVisible()) await openMenu.click();
   await expect(page.getByText(`Olá, ${patient.name}!`)).toBeVisible();
 });

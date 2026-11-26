@@ -1,6 +1,6 @@
 # Documentação técnica — AgendaSaúde N2
 
-Atualizada em 20/11/2026 com base na `main` em `20b69e5`, após a PR #43. Registra também as consultas de leitura ao Supabase, Vercel e GitHub Actions dessa data; cada resultado é uma fotografia do ambiente, não uma certificação do fluxo completo.
+Atualizada em 26/11/2026 com base na `main` em `80e52b2`, após as PRs #48–#50. Os resultados de Supabase, Vercel e GitHub Actions descrevem o estado observado nessa data, sem substituir testes manuais com Auth real.
 
 ## Objetivo e modos de execução
 
@@ -51,9 +51,11 @@ A landing institucional em `landing-nextech` é uma aplicação independente.
 | `/administracao` | Visão geral e abas Agenda, Equipe e Especialidades; criação, leitura, remarcação e cancelamento de consultas por administrador ativo |
 | `/administracao/pacientes` | Listagem, edição, desativação e reativação de pacientes |
 | `/administracao/horarios` | Disponibilidade por médico e data |
+| `/secretaria` | Agenda diária, filtros, agendamento, remarcação e cancelamento pela secretaria ativa |
+| `/medico` | Agenda do médico ativo por data |
+| `/medico/atendimento/[id]` | Registro de atendimento, histórico clínico e anexos de exames autorizados |
 
-`/medico` e `/secretaria` aparecem no planejamento de navegação, mas ainda não
-têm páginas implementadas. Não considerar os painéis desses perfis concluídos.
+As rotas de secretaria e médico foram integradas nas PRs #48 e #49. O login unificado da PR #50 direciona cada perfil à própria área. Os fluxos com sessão real no site publicado ainda precisam de conferência.
 
 ## Configuração local
 
@@ -101,7 +103,7 @@ permanecer fora dos esquemas expostos pela Data API.
 
 ## Migrações versionadas
 
-Há **16 migrações SQL** versionadas nesta base. Aplicar em ordem de versão somente as pendentes no ambiente de destino.
+Há **22 migrações SQL** versionadas nesta base. Aplicar em ordem de versão somente as pendentes no ambiente de destino.
 
 | Versão | Arquivo em `supabase/migrations` | Mudança |
 | --- | --- | --- |
@@ -121,13 +123,17 @@ Há **16 migrações SQL** versionadas nesta base. Aplicar em ordem de versão s
 | `20261113134032` | `20261113134032_extend_doctor_day_slots.sql` | Amplia a grade diária de horários configuráveis para intervalos de meia hora |
 | `20261113134034` | `20261113134034_admin_manage_appointments.sql` | Permite ao administrador remarcar ou cancelar consultas futuras |
 | `20261116001239` | `20261116001239_admin_create_appointments.sql` | Permite criação de consultas por administrador ativo |
+| `20261119235524` | `20261119235524_receptionist_agenda.sql` | Agenda e operações da secretaria |
+| `20261125025036` | `20261125025036_receptionist_reschedule_slots.sql` | Horários livres na remarcação pela secretaria |
+| `20261125032343` | `20261125032343_doctor_agenda.sql` | Consulta da agenda por médico |
+| `20261125034747` | `20261125034747_doctor_appointment_outcomes.sql` | Registro dos resultados de atendimento |
+| `20261125040430` | `20261125040430_doctor_clinical_notes.sql` | Notas e histórico clínico |
+| `20261125215809` | `20261125215809_doctor_exam_files.sql` | Arquivos de exames vinculados a atendimentos |
 
-A consulta de 20/11/2026 ao projeto `rgggijnypvvdkskyalip` retornou estado
-`ACTIVE_HEALTHY` e **17 migrações aplicadas**, incluindo as 16 versões desta base.
-A versão `20261119235524_receptionist_agenda` está aplicada no banco, mas não
-consta na `main` consultada. Alinhar com Railson a recuperação do arquivo SQL
-original, preservando versão e conteúdo após comparação; não reaplicar a migração.
-O banco já contém RPCs da secretaria, mas isso não entrega a página do painel.
+A consulta de 26/11/2026 ao projeto `rgggijnypvvdkskyalip` retornou estado
+`ACTIVE_HEALTHY` e **22 migrações aplicadas**, com as mesmas versões das 22
+migrações em `supabase/migrations` na `main`. A divergência histórica de 20/11
+sobre `20261119235524_receptionist_agenda` foi resolvida no versionamento.
 Esta revisão não executou mudanças de esquema.
 Confira o histórico remoto antes de qualquer execução. Não reaplique arquivos já
 registrados nem altere migrações antigas para introduzir novas mudanças. Mudanças
@@ -140,8 +146,8 @@ banco compartilhado. Esta atualização documental não executa SQL.
 | --- | --- | --- |
 | Visitante | Páginas públicas e autenticação | Sem acesso aos dados privados |
 | Paciente | Próprio perfil; ler, agendar, cancelar e remarcar suas consultas | Não altera papéis nem dados de outros pacientes |
-| Médico ativo | Leitura das consultas em que é o médico, conforme RLS | Painel próprio pendente; desativação revoga essa leitura |
-| Secretaria | Leitura do próprio perfil e vínculo | Agenda da clínica e painel próprios ainda pendentes |
+| Médico ativo | Agenda por data e registro de atendimento, histórico e exames autorizados | Confirmar fluxo com Auth real; vínculo ativo é exigido |
+| Secretaria | Agenda diária e operações autorizadas de agendamento, remarcação e cancelamento | Confirmar fluxo com Auth real e restrição ao vínculo ativo |
 | Administrador ativo | Painel, gestão da equipe, especialidades, pacientes, horários e criação/leitura/remarcação/cancelamento da agenda da clínica | Não promove administradores; CRUD de pacientes usa desativação lógica |
 
 RLS restringe linhas e grants restringem operações/colunas. As RPCs de equipe
@@ -225,23 +231,25 @@ Os registros antigos de 41, 52 e 86 testes correspondem às respectivas entregas
 não à contagem atual. A compilação já havia sido aprovada na entrega da PR #37;
 não foi repetida nesta revisão exclusivamente documental.
 
-Há 13 cenários de navegador na suíte Playwright, executada separadamente em
-modo de demonstração. Nesta sessão, o navegador foi bloqueado antes de abrir
-as páginas; esses cenários não contam como aprovados. O teste opcional de
-concorrência com duas conexões está em [conflitos](conflitos-horarios.md).
+Na revisão histórica de 13/11 havia 13 cenários Playwright, cuja execução
+naquele ambiente foi bloqueada antes de abrir o navegador. A PR #46 adicionou
+um cenário de regressão do login em tela estreita: são 14 cenários executados
+em desktop e celular emulado (28 execuções), aprovados no CI.
+O teste opcional de concorrência com duas conexões está em [conflitos](conflitos-horarios.md).
 Veja a [revisão de cobertura, contribuições e pendências](revisao-testes-funcionalidades.md)
 e o [guia de execução dos testes de navegador](testes-ponta-a-ponta.md).
 
 Na consulta de 20/11/2026, a Vercel estava com produção READY no commit
 `20b69e5`, correspondente à `main`, e `NEXT_PUBLIC_ENABLE_SUPABASE_AUTH=true`
-configurado para produção. URL e chave publicável constavam para esse ambiente;
-previews não tinham essas variáveis na consulta e usam a demonstração.
+configurado para produção. Em 26/11, a produção estava READY no commit
+`80e52b2` e o site respondeu HTTP 200; as três variáveis de integração
+continuavam cadastradas, mas seus valores não foram reavaliados.
 Isso não comprova login, cookies ou entrega de e-mail.
 
-Após as PRs #42 e #43, a [PR #44](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/44), de Sandro, registra
-128 testes aprovados. O [job de testes e compilação](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/44683026264)
-foi consultado e concluiu instalação, testes e build com sucesso. A PR ainda está
-aberta: a automação não deve ser descrita como já integrada à `main`.
+Após as PRs #42 e #43, a [PR #44](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/44), de Sandro, registrou
+128 testes aprovados e foi integrada. Em 26/11, o [workflow da `main`](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45751679524)
+no commit `80e52b2` concluiu com sucesso testes Node/PGlite, compilação e
+Playwright em desktop e celular emulado, com Auth desligado no CI.
 Não foram repetidos testes ou build localmente nesta atualização documental.
 
 Para concluir a validação funcional, executar com contas fictícias:
@@ -262,11 +270,15 @@ não substituem o roteiro com autenticação real.
 
 ## Pendências e manutenção
 
-Painéis de médico/secretaria, grade semanal recorrente, gestão completa dos demais
-cadastros, módulo de serviços e validações adicionais continuam pendentes. Criação
-administrativa de consultas já foi integrada pela PR #39. Priorizar alinhamento da
-migração remota da secretaria, revisão da PR #44 e validação real por perfil. Não marcar um card inteiro como concluído pela
-entrega de uma parte.
+Os painéis de médico e secretaria e o login unificado já estão na `main` pelas PRs
+#48–#50. Permanecem pendentes de validação os fluxos com Auth real desses perfis,
+o envio de e-mails, a experiência em celular físico e os critérios completos do
+backlog (como grade semanal recorrente, módulo de serviços e demais cadastros).
+Revisar os avisos atuais do Supabase antes de usar dados reais: três tabelas com
+RLS sem políticas, duas RPCs administrativas `SECURITY DEFINER` disponíveis a
+`authenticated` e a proteção contra senhas vazadas desabilitada. Os avisos não
+comprovam que exista exploração ou acesso indevido; devem ser avaliados pela equipe.
+Não marcar um card inteiro como concluído pela entrega de uma parte.
 
 Cada PR que mudar comportamento, banco ou configuração deve atualizar a documentação
 afetada e registrar como foi validada. O responsável pela documentação pode revisar

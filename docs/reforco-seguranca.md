@@ -35,6 +35,56 @@ Referências dos avisos:
 - https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
 - https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 
+## Revisão das migrações (somente leitura, 26/11/2026)
+
+Os avisos acima continuam no Supabase, agora com mais funções e uma tabela a
+mais por causa dos painéis da secretaria e do médico. A análise leu as 22
+migrações da `main` em `9121a72`. Nada foi alterado no banco.
+
+### Funções SECURITY DEFINER executáveis por authenticated (WARN)
+
+É o padrão adotado no projeto: as tabelas não aceitam leitura ou escrita direta,
+e cada operação passa por uma função `public.*` que chama uma `private.*` com
+SECURITY DEFINER e `search_path` vazio. O papel `authenticated` precisa de
+EXECUTE nas duas, por isso o aviso aparece.
+
+As 35 funções privadas liberadas para `authenticated` verificam o chamador no
+início e recusam com erro (`42501` ou “indisponível”) quando ele não pode agir:
+
+| Grupo | Verificação |
+| --- | --- |
+| Administração (`admin_*`, especialidades, equipe, horários, agenda) | `is_active_hospital_admin()`: administrador com vínculo ativo |
+| Secretaria (`receptionist_*`) | `is_active_hospital_receptionist()` |
+| Médico (agenda, resultado, anotações clínicas) | médico com vínculo ativo e responsável pela consulta (`active_clinical_doctor()` e `doctor_id`) |
+| Paciente (listar médicos, agendar, remarcar, cancelar) | `assert_booking_patient()`: paciente autenticado e ativo |
+
+Um paciente desativado continua conseguindo entrar no sistema, mas o banco
+recusa novos agendamentos dele. O ensaio local de 26/11 confirmou na prática
+que um segundo médico não abre o atendimento nem o exame de outro médico
+([evidências](evidencias-ensaio-local-26nov.md)).
+
+Não remover o EXECUTE só para eliminar o aviso: os painéis deixariam de
+funcionar. Qualquer função nova deve repetir a verificação do chamador.
+
+### RLS ativada sem policies (INFO)
+
+`public.specialties`, `public.doctor_day_availability` e
+`private.doctor_clinical_note_versions` têm RLS ativa, nenhuma policy e
+`revoke all` para `anon` e `authenticated`. É um bloqueio intencional: o acesso
+acontece só pelas funções acima. Não adicionar políticas permissivas para
+silenciar o aviso.
+
+### Proteção contra senhas vazadas (WARN)
+
+Continua desativada. É uma opção do Supabase Auth no painel do projeto online,
+não uma mudança de código, e pode depender do plano contratado. Ligar ou não é
+decisão da equipe.
+
+### Limite desta revisão
+
+Comparou o código versionado. Não comparou o corpo das funções no banco online
+com as migrações nem fez teste de invasão.
+
 ## Limites e validação
 
 O modo de demonstração ainda guarda senha simulada em registeredUser e usa token

@@ -13,6 +13,7 @@ import {
   useState,
 } from "react";
 import { createClient, isSupabaseConfigured } from "../../../lib/supabase/client";
+import { destinationFor, loadAccess, requestedFromLoginParams } from "../role-routing.js";
 
 const protectedRoutes = [
   "/dashboard",
@@ -72,7 +73,23 @@ export default function AuthGuard({
             setAllowedPath(pathname);
           }
         } else if (isGuestOnlyRoute) {
-          router.replace("/dashboard");
+          // Já autenticado em /login ou /cadastro: abre a área do próprio perfil.
+          return loadAccess(supabase, user.id).then(async (access) => {
+            if (!active) return;
+            if (access.error) {
+              setSessionError(true);
+              return;
+            }
+            const parameters = new URLSearchParams(window.location.search);
+            const destination = destinationFor(access, requestedFromLoginParams(parameters));
+            if (destination) {
+              router.replace(destination);
+              return;
+            }
+            // Sem perfil válido: encerra a sessão local e mostra o login, sem ciclo.
+            await supabase.auth.signOut({ scope: "local" });
+            if (active) setAllowedPath(pathname);
+          });
         } else {
           setAllowedPath(pathname);
         }

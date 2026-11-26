@@ -9,6 +9,11 @@ import {
   useState,
 } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  destinationFor,
+  loadAccess,
+  requestedFromLoginParams,
+} from "@/features/auth/role-routing.js";
 
 export default function Login() {
   const router = useRouter();
@@ -37,6 +42,10 @@ export default function Login() {
         "Cadastro realizado! Agora entre com seus dados."
       );
       setMessageType("success");
+    }
+    if (parameters.get("erro") === "acesso") {
+      setMessage("Sua conta não tem acesso liberado. Se você faz parte da equipe, procure a administração da clínica.");
+      setMessageType("error");
     }
     if (parameters.get("erro") === "confirmacao") {
       setMessage("O link não pôde ser confirmado. Solicite um novo e-mail e tente novamente.");
@@ -68,6 +77,22 @@ export default function Login() {
         setMessageType("error");
         return;
       }
+      // O perfil é lido no banco pelo ID da sessão; o formulário não escolhe o tipo de conta.
+      const access = await loadAccess(supabase, data.user.id);
+      if (access.error) {
+        await supabase.auth.signOut({ scope: "local" });
+        setMessage("Não foi possível verificar o seu perfil. Tente novamente em instantes.");
+        setMessageType("error");
+        return;
+      }
+      const parameters = new URLSearchParams(window.location.search);
+      const destination = destinationFor(access, requestedFromLoginParams(parameters));
+      if (!destination) {
+        await supabase.auth.signOut({ scope: "local" });
+        setMessage("Sua conta não tem acesso liberado. Se você faz parte da equipe, procure a administração da clínica.");
+        setMessageType("error");
+        return;
+      }
       // A sessão real usa cookies. Nunca persista a senha ou um token próprio.
       localStorage.removeItem("registeredUser");
       localStorage.removeItem("authToken");
@@ -76,10 +101,7 @@ export default function Login() {
         name: data.user.user_metadata?.name || "Paciente",
         email: data.user.email, phone: "", birthDate: "", cpf: "",
       }));
-      const parameters = new URLSearchParams(window.location.search);
-      const redirect = parameters.get("redirect");
-      const safe = safeRedirect(redirect);
-      router.replace(safe || "/dashboard");
+      router.replace(destination);
       router.refresh();
       return;
     }

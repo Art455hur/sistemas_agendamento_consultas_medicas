@@ -2,7 +2,7 @@
 
 O **AgendaSaúde** é um projeto acadêmico desenvolvido na disciplina de Programação Web.
 
-> **N2 — revisão de 20/11/2026:** a `main` em `20b69e5` inclui as entregas até a PR #43 e está publicada na Vercel com estado READY. A configuração de produção consultada tem Supabase Auth habilitado; a demonstração continua sendo a alternativa local sem configuração. Os painéis próprios de médico/secretaria e a validação completa dos fluxos ainda estão pendentes. Consulte a [documentação técnica](docs/documentacao-tecnica.md) e a [conferência de publicação](docs/publicacao-n2.md).
+> **N2 — revisão de 26/11/2026:** a `main` em `80e52b2` já inclui os painéis da secretaria e do médico e o login unificado por perfil (PRs #48–#50). A Vercel publicou essa versão com estado READY e o banco possui 22 migrações aplicadas, todas versionadas no repositório. O [GitHub Actions](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45751679524) passou; os fluxos com Auth real, e-mails e os quatro perfis no ambiente publicado ainda exigem testes manuais. Consulte a [documentação técnica](docs/documentacao-tecnica.md) e a [conferência de publicação](docs/publicacao-n2.md).
 
 A aplicação tem como objetivo facilitar o acesso a profissionais da saúde, permitindo que pacientes consultem especialidades, escolham horários e gerenciem seus agendamentos em uma interface simples e navegável.
 
@@ -21,7 +21,7 @@ Essas dificuldades podem tornar o processo demorado, confuso e dependente de ate
 
 ## Público-alvo
 
-O fluxo principal atende pacientes. A N2 também inclui gestão de médicos e secretárias pelo administrador. Os painéis próprios de médico e secretaria ainda estão pendentes. O banco atual considera um único estabelecimento: **Hospital Sapiens**.
+O fluxo principal atende pacientes. A N2 também inclui a gestão administrativa e painéis próprios para médico e secretaria. O banco atual considera um único estabelecimento: **Hospital Sapiens**.
 
 ## Proposta de solução
 
@@ -52,14 +52,17 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Área | Implementação disponível na N2 |
 | --- | --- |
 | Páginas públicas | Home e apresentação das especialidades |
-| Autenticação | Cadastro de paciente, login, confirmação de e-mail, recuperação de senha e logout com Supabase; modo simulado preservado |
+| Autenticação | Cadastro e recuperação de acesso com Supabase; login unificado para paciente, médico, secretaria e administrador, com direcionamento e logout por perfil; modo simulado preservado |
 | Consultas | Agendamento, confirmação, listagem, cancelamento e remarcação das próprias consultas |
 | Disponibilidade | Catálogo de médicos ativos, grade padrão com personalização por médico e dia e atualização dos horários ao retornar à aba ou acionar o botão |
 | Conflitos | Proteção no banco contra duas consultas ativas do mesmo médico ou paciente no mesmo instante |
 | Dashboard e notificações | Indicadores e avisos individuais de consultas futuras/canceladas, com links e atualização após alterações |
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
 | Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes, leitura diária da agenda, criação/remarcação/cancelamento de consultas futuras, busca/filtros de profissionais e horários por médico/dia |
-| Banco e testes | Dezesseis migrações versionadas na `main`; a revisão encontrou 17 no Supabase. Alinhar a migração da secretaria com o responsável, sem reaplicá-la |
+| Secretaria | Painel com agenda diária e filtros, agendamento, remarcação com horários disponíveis e cancelamento com confirmação |
+| Médico | Painel com agenda por data, registro de atendimentos, histórico clínico e arquivos de exames |
+| Acesso por perfil | Login único com redirecionamento ao painel permitido e proteção contra acesso a painéis de outros perfis |
+| Banco e testes | 22 migrações versionadas na `main` e 22 aplicadas no Supabase em 26/11/2026 |
 | Validação automática | GitHub Actions executa instalação pelo lockfile, testes, build e Playwright em desktop/celular emulado nos PRs e pushes na main, sem acessar o banco hospedado |
 
 A gestão de funcionários exige contas previamente existentes no Supabase Auth. Não cria contas Auth nem concede papel de administrador. Notificações na interface não representam envio de e-mail, SMS ou push.
@@ -259,7 +262,7 @@ npm run dev
 
 Abra `http://localhost:3000`. No PowerShell, se `npm` estiver bloqueado, use `npm.cmd ci` e `npm.cmd run dev`.
 
-O modo de demonstração funciona com a autenticação real desligada. Para testar Supabase, copie `.env.example` para `.env.local` e siga [o guia de configuração](docs/autenticacao-supabase.md). Na consulta de 20/11/2026, Auth já estava habilitado na produção. Isso não conclui os testes de contas, e-mails e permissões; mudanças de configuração devem ser combinadas com a equipe.
+O modo de demonstração funciona com a autenticação real desligada. Para testar Supabase, copie `.env.example` para `.env.local` e siga [o guia de configuração](docs/autenticacao-supabase.md). Em 20/11/2026 a flag de Auth foi registrada como habilitada na produção; em 26/11 as três variáveis necessárias continuavam cadastradas, mas seus valores não foram reavaliados. Isso não conclui os testes de contas, e-mails e permissões; mudanças de configuração devem ser combinadas com a equipe.
 
 ```bash
 npm test
@@ -268,7 +271,7 @@ npm run build
 
 Os testes automatizados usam dados fictícios e banco descartável; não acessam o Supabase hospedado. O teste opcional com duas conexões está em [conflitos de horários](docs/conflitos-horarios.md).
 
-A revisão de 13/11/2026 registrou 104 testes na base `c158029`. Após as PRs #42 e #43, Sandro registrou **128 testes aprovados** na validação da [PR #44](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/44); o check de testes e compilação do GitHub Actions também foi conferido e passou. Essa PR ainda estava aberta na consulta de 20/11. Não houve nova execução local nesta atualização documental. Os testes de navegador são executados separadamente e cobrem o modo de demonstração. Consulte a [revisão dos testes, contribuições e pendências](docs/revisao-testes-funcionalidades.md) e o [guia de ponta a ponta](docs/testes-ponta-a-ponta.md).
+A revisão de 13/11/2026 registrou 104 testes na base `c158029`; a [PR #44](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/44) registrou 128 testes aprovados e foi integrada posteriormente. Em 26/11, o [workflow da `main` no commit `80e52b2`](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45751679524) passou nas etapas de testes Node/PGlite, build e Playwright para desktop e celular emulado. A automação usa Auth desligado, banco descartável e não comprova autenticação, e-mails ou operações reais de produção. Nenhum teste foi reexecutado nesta atualização documental. Consulte a [revisão dos testes, contribuições e pendências](docs/revisao-testes-funcionalidades.md) e o [guia de ponta a ponta](docs/testes-ponta-a-ponta.md).
 
 ## Documentação técnica
 
@@ -302,22 +305,18 @@ A revisão de 13/11/2026 registrou 104 testes na base `c158029`. Após as PRs #4
 
 ## Situação atual
 
-A N1 entregou o protótipo e os fluxos simulados do paciente. A N2 já possui autenticação preparada, persistência de consultas e perfil, gestão de equipe e proteção contra conflitos na `main`.
+A N1 entregou o protótipo e os fluxos simulados do paciente. Na N2, a `main` em `80e52b2` inclui persistência de perfis e consultas, painel administrativo, painéis próprios de secretaria e médico e login unificado (PRs [#48](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/48), [#49](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/49) e [#50](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/50)).
 
-Em 20/11/2026, a Vercel publicou a `main` em `20b69e5` e a configuração consultada tinha Auth habilitado em produção. Os testes da demonstração não comprovam os fluxos reais de e-mail, cookies e permissões. O histórico remoto tem uma migração da secretaria ainda ausente desta base; conferir com o responsável antes de novas mudanças.
+Em 26/11/2026, as publicações de produção da aplicação e da landing institucional estavam READY no commit da `main`, e o endereço principal da aplicação respondeu HTTP 200. As 22 migrações do repositório constavam como aplicadas no Supabase. O GitHub Actions passou, mas os testes de navegador nele executados usam o modo de demonstração; não há validação completa dos quatro perfis com Auth real no site publicado.
 
 ## Próximos passos
 
-- Concluir painéis do médico e da secretaria.
-- Completar os demais cadastros e o módulo de serviços previstos no backlog; horários por médico/dia já estão implementados.
-- Validar criação, leitura, remarcação e cancelamento pelo administrador, já implementados; grade semanal recorrente continua pendente.
-- Alinhar com Railson a migração `20261119235524_receptionist_agenda`, aplicada no banco e ausente da `main` consultada; preservar versão e conteúdo após conferência, sem executar novamente.
-- Revisar a PR #44 e conferir a automação na `main` após integração; não duplicar esse trabalho.
-- Ampliar as validações dos demais campos; formulários e banco já conferem os dígitos verificadores do CPF em novas gravações e alterações do número. Veja [escopo e testes](docs/validacao-cpf.md).
-- Definir o destino dos dados simulados e validar isolamento entre contas.
-- Executar os roteiros manuais com contas de teste, inclusive disputa de horário em duas sessões.
-- Revisar autenticação, permissões e configuração antes da publicação funcional da N2.
-- Atualizar documentação e evidências nas PRs que alterarem comportamento, banco ou configuração.
+- Testar com contas fictícias os fluxos reais de paciente, administrador, médico e secretaria, incluindo restrições por papel, logout, agendamento, remarcação, cancelamento, atendimento e anexos de exames.
+- Verificar a entrega dos e-mails de confirmação e recuperação de senha no domínio publicado.
+- Revisar os avisos de segurança do Supabase: funções administrativas privilegiadas executáveis por `authenticated`, três tabelas com RLS sem políticas e proteção contra senhas vazadas desabilitada; os alertas não comprovam exploração.
+- Conferir o restante do backlog, como grade semanal recorrente, módulo de serviços e validações adicionais, antes de declará-los como entregues.
+- Registrar evidências, revisões de PRs por outros integrantes e atualização dos cards no PraxiLab. Não considerar os testes automáticos como validação de todos os critérios de aceitação.
+- Atualizar a documentação afetada por cada mudança de comportamento, banco ou configuração.
 
 ## Referências
 

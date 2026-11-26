@@ -5,6 +5,11 @@ A Vercel publica a branch `main`. Antes de apresentar, confira se o commit
 do deployment pronto corresponde ao último merge que a equipe pretende mostrar.
 Um preview de PR não é o mesmo que o site de produção.
 
+Na revisão de 26/11/2026, a aplicação em `https://sistemas-agendamento-consultas-medi.vercel.app/`
+respondeu HTTP 200 e a Vercel marcou o deploy da `main` em `80e52b2` como READY.
+As PRs #48–#50 já integraram painéis da secretaria e do médico e login unificado.
+As 22 migrações remotas estavam alinhadas às 22 versões do repositório.
+
 ## Verificação automática
 
 O workflow **Testes e build** roda em PRs destinados à `main`, em pushes na
@@ -25,6 +30,11 @@ O check não bloqueia merge automaticamente: isso depende das regras de proteç�
 da branch, que não são alteradas por este arquivo. A equipe deve verificar o
 resultado dos testes e da Vercel antes de integrar alterações.
 
+O [workflow da `main` de 26/11/2026](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45751679524)
+concluiu todas as etapas com sucesso, incluindo Playwright em desktop e celular
+emulado. A execução usa o modo de demonstração e não valida sessões reais,
+permissões do banco hospedado ou entrega de e-mails.
+
 Para reproduzir no computador:
 
 ```bash
@@ -44,12 +54,15 @@ limpo. No Windows, use `npm.cmd` caso o PowerShell bloqueie `npm`.
 - [ ] Testar duas contas de paciente e confirmar que uma não acessa dados da outra.
 - [ ] Entrar como administrador e conferir pacientes, profissionais,
       especialidades e agenda; testar busca/filtros e edição de profissionais.
-- [ ] Concluir e validar os painéis próprios de médico e secretaria com seus
-      responsáveis. Na base de 20/11/2026, esses caminhos ainda não estão no código.
+- [ ] Validar os painéis já implementados de médico e secretaria com contas de
+      teste, conferindo autorização por perfil, remarcação, cancelamento,
+      registro de atendimento, histórico clínico e anexos de exames.
 - [ ] Conferir confirmação e recuperação de e-mail com uma caixa acessível,
       usando o link mais recente e o domínio publicado; conta criada não comprova
       entrega do e-mail. Respeitar a cota e não apagar contas para tentar contorná-la.
-- [ ] Percorrer o fluxo principal no celular e pelo teclado.
+- [ ] Testar logout e impedimento de acesso cruzado entre paciente, médico,
+      secretaria e administrador no ambiente publicado.
+- [ ] Percorrer o fluxo principal no celular físico e pelo teclado.
 - [ ] Preparar contas fictícias previamente verificadas para demonstrar o fluxo
       caso o provedor de e-mail esteja indisponível. Não expor senhas no repositório
       nem desativar a confirmação de e-mail em produção para a apresentação.

@@ -276,7 +276,7 @@ A revisão de 13/11/2026 registrou 104 testes na base `c158029`; a [PR #44](http
 ## Documentação técnica
 
 - [Guia técnico e estado da N2](docs/documentacao-tecnica.md)
-- [Revisão dos testes, contribuições e pendências](docs/revisao-testes-funcionalidades.md)
+- [Revisão dos testes, contribuições de toda a equipe e pendências (26/11/2026)](docs/revisao-testes-funcionalidades.md)
 - [Testes de navegador no modo de demonstração](docs/testes-ponta-a-ponta.md)
 - [Integração entre cadastro e perfil](docs/testes-integracao-paciente.md)
 - [Refatoração de código e componentes](docs/refatoracao-componentes.md)

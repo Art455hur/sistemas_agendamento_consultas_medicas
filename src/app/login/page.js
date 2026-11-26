@@ -48,7 +48,11 @@ export default function Login() {
       setMessageType("error");
     }
     if (parameters.get("erro") === "confirmacao") {
-      setMessage("O link não pôde ser confirmado. Solicite um novo e-mail e tente novamente.");
+      setMessage("Não foi possível concluir a confirmação neste navegador. Se você abriu o link do e-mail, sua conta pode já estar confirmada: tente entrar com seu e-mail e senha. Se não conseguir, solicite um novo e-mail de confirmação.");
+      setMessageType("info");
+    }
+    if (parameters.get("erro") === "recuperacao") {
+      setMessage("O link de redefinição de senha não pôde ser aberto neste navegador. Abra o link no mesmo navegador em que fez o pedido ou clique em \"Esqueci minha senha\" para receber um novo.");
       setMessageType("error");
     }
   }, []);

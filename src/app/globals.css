@@ -3119,3 +3119,155 @@ html {
   outline-offset: 3px;
   scroll-margin-top: 24px;
 }
+
+/* =========================
+   ÁREA DO PACIENTE NO CELULAR
+   O menu lateral vira uma aba aberta pelo botão ☰, a barra superior
+   não tem altura fixa e os cartões ocupam a largura da tela.
+   ========================= */
+
+.topbar-start {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.menu-toggle,
+.sidebar-close,
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .dashboard .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1100;
+    width: min(280px, 84vw);
+    height: 100vh;
+    min-height: 0;
+    padding: 20px 16px;
+    overflow-y: auto;
+    border-right: 1px solid #e5e7eb;
+    box-shadow: 8px 0 30px rgba(15, 23, 42, 0.18);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.2s ease, visibility 0.2s;
+  }
+
+  .dashboard.menu-open .sidebar {
+    transform: none;
+    visibility: visible;
+  }
+
+  .dashboard .sidebar-logo {
+    margin-bottom: 24px;
+    padding: 0 4px;
+  }
+
+  .sidebar-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-left: auto;
+    border: none;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #17324d;
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    border: none;
+    background: rgba(15, 23, 42, 0.45);
+    cursor: pointer;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #17324d;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .dashboard-content > .topbar {
+    height: auto;
+    min-height: 60px;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 10px 16px;
+  }
+
+  .dashboard-content > .topbar .topbar-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dashboard-content > .topbar .topbar-user {
+    flex-shrink: 0;
+    gap: 8px;
+  }
+
+  .dashboard-content > .topbar .topbar-user > strong {
+    display: none;
+  }
+
+  .dashboard-content > .topbar .logout-button {
+    margin-left: 0;
+  }
+
+  .dashboard-header,
+  .dashboard-section,
+  .summary-cards {
+    max-width: calc(100% - 32px);
+  }
+
+  .dashboard-header {
+    margin-top: 20px;
+    margin-bottom: 24px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .summary-card {
+    padding: 14px 16px;
+  }
+
+  .appointment-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+    padding: 20px;
+  }
+
+  .appointment-card a {
+    text-align: center;
+  }
+}

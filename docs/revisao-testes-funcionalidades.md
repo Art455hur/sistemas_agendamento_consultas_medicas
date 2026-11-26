@@ -1,7 +1,7 @@
 # Revisão dos testes das funcionalidades
 
 Registro inicial de 13/11/2026, baseado em `c158029`, preservado como histórico.
-A [atualização de 20/11/2026](#atualização-de-20112026) registra as entregas mais recentes.
+A [atualização de 20/11/2026](#atualização-de-20112026) preserva o estado daquela data; a revisão consolidada de 26/11/2026, ao final do arquivo, registra as entregas posteriores.
 Relacionada aos cards **Criar testes das funcionalidades**, **Implementar
 validações de dados** e **Preparar documentação técnica**. Registra o que já
 existe para orientar a divisão do trabalho e evitar testes duplicados.
@@ -131,3 +131,75 @@ configurações, totalizando 28 execuções; conferir o resultado mais recente n
 Isso avança o card de testes das funcionalidades e a validação móvel do fluxo
 público. Não conclui testes reais de Auth/e-mail, áreas profissionais ou uma
 auditoria de todas as telas em celular.
+
+## Revisão consolidada da equipe — 26/11/2026
+
+Levantamento documental do histórico de PRs do repositório até a
+[PR #54](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/54),
+já integrada à `main`. Foram conferidas 54 PRs numeradas, das quais **53 foram
+integradas**; a [PR #9](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/9)
+não foi integrada, e a preparação de autenticação entrou pela PR #10. A contagem
+abaixo é por **conta que abriu a PR**, não uma declaração de autoria exclusiva
+de cada linha ou teste. O código compartilhado, as revisões e os testes da equipe
+podem envolver mais de uma pessoa.
+
+| Integrante / conta | PRs integradas | Entregas verificadas no histórico |
+| --- | ---: | --- |
+| **Railson** / `railsondsr` | **23** | Protótipo e documentos iniciais, landing NexTech e base de perfis, autenticação e administração; modelagem do hospital, equipe, agenda, horários e agendamento administrativo; [painel da secretaria (#48)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/48), [painel do médico (#49)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/49), [login unificado e saída (#50)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/50), [ensaio local documentado (#52)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/52), [revisão documental dos avisos de segurança (#53)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/53) e [atualização do roteiro (#54)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/54). |
+| **Luiz** / `luiz22082003-source` | **3** | [Navegação inicial (#3)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/3), [CRUD de especialidades (#24)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/24) e [CRUD administrativo de pacientes (#28)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/28). |
+| **Sandro (San)** / `sanzin71` | **11** | Integração de consultas, médicos e perfil, validação de horários, fluxo de cadastro e confirmação; [testes administrativos de pacientes (#42)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/42), [filtros de profissionais (#43)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/43), [CI de testes/build (#44)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/44), [correção móvel e Playwright no CI (#46)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/46) e [roteiro inicial de apresentação (#47)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/47). |
+| **Arthur** / `Art455hur` | **8** | [CPF no frontend (#19)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/19) e [no banco (#20)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/20), [regra de nome (#36)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/36), [mensagens de erro do perfil (#37)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/37) e documentação técnica/de testes/estado da N2 nas [PRs #18](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/18), [#38](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/38), [#45](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/45) e [#51](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/51). |
+| **Brício** / `bricioprincipalh18-lang` | **6** | [Organização por funcionalidades (#21)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/21), componentes compartilhados do paciente (#23), notificações (#26), carregamento/formatação de consultas (#32), tratamento de falhas (#33) e [reforço dos redirecionamentos/cabeçalhos (#41)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/41). |
+| **Ian** / `ianhebertt15` | **2** | [Testes de navegação e demonstração com Playwright (#34)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/34) e [disponibilidade e operações administrativas de consultas (#35)](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/35). |
+| **Total** | **53** | PRs integradas dos seis usuários acima; a PR #9 permanece fora da contagem. |
+
+Para auditoria, os números das PRs integradas por conta são:
+
+- **Railson:** #1, #2, #4–#8, #10–#14, #25, #29–#30, #39–#40, #48–#50, #52–#54.
+- **Luiz:** #3, #24, #28.
+- **Sandro/San:** #15–#17, #22, #27, #31, #42–#44, #46–#47.
+- **Arthur:** #18–#20, #36–#38, #45, #51.
+- **Brício:** #21, #23, #26, #32–#33, #41.
+- **Ian:** #34–#35.
+
+### Estado que a equipe pode apresentar
+
+- **Implementado na `main`:** fluxo do paciente; especialidades e gestão
+  administrativa; grade de disponibilidade e bloqueio de conflitos; painéis de
+  administração, secretaria e médico; login único e saída por perfil. O
+  [README](../README.md) e a
+  [documentação técnica](documentacao-tecnica.md) descrevem o escopo e os
+  limites. Em 26/11, estavam registradas 22 migrações versionadas e aplicadas,
+  conforme a revisão documental da PR #51.
+- **Automação:** a PR #44 registrou 128 testes Node/PGlite e build aprovados;
+  a PR #46 registrou 14 cenários Playwright em desktop e celular emulado
+  (28 execuções), também aprovados. O
+  [workflow da `main` de 26/11](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45751679524)
+  passou. Esses testes não usam o Auth nem o banco Supabase hospedado.
+- **Ensaio manual local:** o [registro do ensaio local da PR #52](evidencias-ensaio-local-26nov.md)
+  descreve agendamento, conflito, remarcação, cancelamento, registro médico,
+  exames fictícios e separação de dados entre perfis no Supabase **local**.
+  Isso não equivale à homologação completa da versão publicada.
+
+### O que ainda precisa de conferência ou correção
+
+1. Percorrer os quatro perfis e as permissões no site **publicado**, com Auth
+   real e contas fictícias; conferir também confirmação de e-mail e recuperação
+   de senha. Os testes locais e o CI não certificam esses fluxos online.
+2. Corrigir e retestar o layout estreito do paciente (botão **Sair** cortado)
+   e da administração (conteúdo horizontal cortado); fazer conferência em
+   celular físico e pelo teclado. A correção pública do botão **Entrar**
+   da PR #46 não resolve automaticamente esses painéis.
+3. Avaliar os avisos de segurança do Supabase descritos em
+   [reforço de segurança](reforco-seguranca.md), em especial a proteção
+   contra senhas vazadas desabilitada; a revisão documental não muda a
+   configuração nem representa auditoria de produção.
+4. Confirmar com a equipe os itens restantes do backlog, como convites de
+   funcionários pelo painel e a grade semanal recorrente, antes de marcar
+   essas funções como entregues.
+
+Esta atualização consultou o Git e as evidências já registradas; **não
+executou novamente os testes, não alterou código, banco, contas nem deploy**.
+Os resultados antigos de 104/123/128 testes e os estados históricos de PRs
+acima continuam datados para evitar que um registro anterior seja confundido
+com a situação atual.

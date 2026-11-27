@@ -1,8 +1,8 @@
 # Roteiro de demonstração da N2 — AgendaSaúde
 
 Preparado por Sandro para o card **Preparar demonstração da N2**.
-Atualizado em 26/11/2026 com os painéis da secretaria e do médico, o login
-único por perfil e os dados de demonstração preparados em produção.
+Atualizado em 27/11/2026 para incluir as correções móveis e de mensagens da
+PR #55, além dos painéis, login único e dados fictícios já preparados.
 Este roteiro organiza a apresentação da versão disponível; não certifica
 funcionalidades ainda não validadas.
 
@@ -17,6 +17,7 @@ funcionalidades ainda não validadas.
 - [PR #48: painel da secretaria](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/48)
 - [PR #49: painel do médico](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/49)
 - [PR #50: login único e botão Sair](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/50)
+- [PR #55: menu móvel, layout e mensagens de confirmação](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/55)
 - [Evidências do ensaio local de 26/11](evidencias-ensaio-local-26nov.md)
 - [Reforço de segurança e avisos do Supabase](reforco-seguranca.md)
 
@@ -24,9 +25,10 @@ A execução acima validou a base `3ccc737`: 128 testes Node/PGlite,
 28 execuções de navegador (14 cenários em duas configurações) e build.
 A Vercel foi conferida como READY nessa base.
 
-Em 26/11/2026 a `main` estava em `4200c40`, com as PRs #48 a #53. Antes de
-apresentar, confirmar na Vercel que o deployment de produção está READY no
-commit atual da `main`.
+O registro de 26/11/2026 usava a `main` em `4200c40`, com as PRs #48 a
+#53. A PR #54 atualizou este roteiro e a #55 corrigiu a interface depois
+daquele registro. Antes de apresentar, confirmar na Vercel que o deployment
+de produção está READY no commit atual da `main`.
 
 ## Dados de demonstração em produção
 
@@ -121,12 +123,13 @@ PR correspondente. Não atribuir a uma pessoa todo o código ou a suíte da equi
 
 ## Pendências que não devem ser escondidas
 
-- Na tela de celular, a área do paciente corta o botão Sair e o painel de
-  administração fica mais largo que a tela. Apresentar em desktop. A correção
-  está prevista na melhoria de layout.
-- O link de confirmação de cadastro pode mostrar que não foi possível verificar
-  o link, mesmo com a conta confirmada, quando aberto em outro navegador.
-  A conta funciona; a mensagem precisa ser revista.
+- A PR #55 adicionou menu móvel ao paciente e ajustes de largura da área
+  administrativa. Ainda é necessário verificar se botão Sair, navegação e
+  cabeçalho estão totalmente visíveis no site publicado e em celular físico.
+- A PR #55 também passou a explicar a possível falha de confirmação quando
+  o link é aberto em navegador diferente, além de diferenciar recuperação de
+  senha. O código PKCE ainda depende do navegador de origem; testar os links
+  reais antes da apresentação.
 - Notificações são avisos internos no sino; não há envio de e-mail, SMS ou push
   sobre consultas.
 - Não há convite de funcionários pelo painel: a conta é criada no Supabase Auth

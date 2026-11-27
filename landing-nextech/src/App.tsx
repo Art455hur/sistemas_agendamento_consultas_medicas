@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import logoUrl from './assets/nextech-logo.svg?url'
 
+const AGENDASAUDE_URL = 'https://sistemas-agendamento-consultas-medi.vercel.app/'
 const GITHUB_URL = 'https://github.com/Art455hur/sistemas_agendamento_consultas_medicas'
 const FIGMA_URL = 'https://www.figma.com/make/g3WjcN1nALBsvfIhpLZsVb/Sistema-de-Agendamento-M%C3%A9dico-v2?t=xFoMyMTe26hyE9HX-20&fullscreen=1'
 const EMAIL = 'prgweb.sh@gmail.com'
@@ -372,9 +373,17 @@ export default function App() {
             </ul>
 
             <div className="flex flex-wrap gap-3">
+              <a
+                href={AGENDASAUDE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-3 rounded-lg bg-[#087B99] text-white font-semibold hover:bg-[#0aafdb] transition-colors"
+              >
+                Acessar AgendaSaúde
+              </a>
               <button
                 onClick={() => setShowModal(true)}
-                className="px-5 py-3 rounded-lg bg-[#087B99] text-white font-semibold hover:bg-[#0aafdb] transition-colors"
+                className="px-5 py-3 rounded-lg border-2 border-[#087B99]/50 text-[#4dd8f5] font-semibold hover:border-[#087B99] transition-colors"
               >
                 Conhecer o AgendaSaúde
               </button>
@@ -665,6 +674,14 @@ export default function App() {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 mb-5">
+              <a
+                href={AGENDASAUDE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2.5 rounded-lg bg-[#087B99] text-white text-sm font-semibold hover:bg-[#065e75] transition-colors focus:outline-none focus:ring-2 focus:ring-[#087B99]/50"
+              >
+                Acessar AgendaSaúde
+              </a>
               <a
                 href={FIGMA_URL}
                 target="_blank"

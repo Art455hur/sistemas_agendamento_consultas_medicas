@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import PatientShell from "@/components/layout/PatientShell.js";
+import Icon from "@/components/ui/Icon.js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { loadPatientProfile, savePatientProfile } from "@/features/profile/services/patient-profile.js";
 import { isValidCpf } from "@/shared/validation/cpf.js";
@@ -211,166 +212,136 @@ export default function Perfil() {
 
   return (
     <PatientShell title="Perfil" activePath="/perfil">
-
-        <div className="profile-content">
-          <div className="profile-heading">
+      <div className="ph-page ph-profile">
+        <header className="ph-heading">
+          <div>
+            <p className="ph-eyebrow">Seus dados</p>
             <h1>Meu perfil</h1>
-
-            <p>
-              Consulte e atualize suas informações
-              pessoais.
-            </p>
+            <p>Consulte e atualize suas informações pessoais.</p>
           </div>
+        </header>
 
-          <div className="profile-layout">
-            <aside className="profile-summary">
-              <div className="profile-avatar-large">
-                {initials}
-              </div>
+        {message && (
+          <div
+            role={messageType === "error" ? "alert" : "status"}
+            className={`ph-banner ${messageType === "error" ? "ph-banner-error" : "ph-banner-success"}`}
+          >
+            <Icon name={messageType === "error" ? "warning" : "check"} size={18} />
+            <span>{message}</span>
+          </div>
+        )}
 
-              <h2>{profile.name}</h2>
+        <div className="ph-profile-grid">
+          <aside className="ph-card ph-profile-summary">
+            <span className="ph-profile-avatar" aria-hidden="true">{initials}</span>
+            <div>
+              <h2>{profile.name || "Paciente"}</h2>
               <p>Paciente</p>
+            </div>
+            <ul>
+              {profile.email && <li><Icon name="mail" size={16} /><span>{profile.email}</span></li>}
+              {profile.phone && <li><Icon name="phone" size={16} /><span>{profile.phone}</span></li>}
+            </ul>
+            <small>Seus dados são usados para identificar você nos atendimentos.</small>
+          </aside>
 
-              <div className="profile-summary-line">
-                <span>✉️</span>
-                <small>
-                  {profile.email}
-                </small>
+          <form className="ph-card ph-form-card ph-profile-form" onSubmit={saveProfile}>
+            <div className="ph-form-title">
+              <div>
+                <h2>Informações pessoais</h2>
+                <p>Mantenha seus dados de contato atualizados.</p>
               </div>
+              <span><Icon name="edit" size={14} />Editável</span>
+            </div>
 
-              <div className="profile-summary-line">
-                <span>📱</span>
-                <small>
-                  {profile.phone}
-                </small>
-              </div>
-            </aside>
+            {loading && <p className="ph-status" role="status">Carregando perfil...</p>}
 
-            <section className="profile-card">
-              <h2>
-                Informações pessoais
-              </h2>
+            <div className="ph-field">
+              <label htmlFor="name">Nome completo</label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                maxLength={120}
+                value={profile.name}
+                disabled={loading || saving || loadError}
+                onChange={updateField}
+                required
+              />
+            </div>
 
-              <form
-                className="profile-form"
-                onSubmit={saveProfile}
-              >
-                {loading && <p role="status">Carregando perfil...</p>}
-                <div className="profile-field profile-field-full">
-                  <label htmlFor="name">
-                    Nome completo
-                  </label>
+            <div className="ph-field">
+              <label htmlFor="email">E-mail</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={profile.email}
+                readOnly={isSupabaseConfigured()}
+                aria-describedby={isSupabaseConfigured() ? "email-help" : undefined}
+                disabled={loading || saving || loadError}
+                onChange={updateField}
+                required
+              />
+              {isSupabaseConfigured() && (
+                <small id="email-help">O e-mail de acesso não é alterado nesta tela.</small>
+              )}
+            </div>
 
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    maxLength={120}
-                    value={profile.name}
-                    disabled={loading || saving || loadError}
-                    onChange={updateField}
-                    required
-                  />
-                </div>
-
-                <div className="profile-field">
-                  <label htmlFor="email">
-                    E-mail
-                  </label>
-
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={profile.email}
-                    readOnly={isSupabaseConfigured()}
-                    aria-describedby={isSupabaseConfigured() ? "email-help" : undefined}
-                    disabled={loading || saving || loadError}
-                    onChange={updateField}
-                    required
-                  />
-                  {isSupabaseConfigured() && (
-                    <small id="email-help" style={{ color: "#66788a", fontSize: "12px", lineHeight: 1.5 }}>
-                      O e-mail de acesso não é alterado nesta tela.
-                    </small>
-                  )}
-                </div>
-
-                <div className="profile-field">
-                  <label htmlFor="phone">
-                    Telefone
-                  </label>
-
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={profile.phone}
-                    disabled={loading || saving || loadError}
-                    onChange={updateField}
-                    placeholder="(11) 99999-9999"
-                    required
-                  />
-                </div>
-
-                <div className="profile-field">
-                  <label htmlFor="birthDate">
-                    Data de nascimento
-                  </label>
-
-                  <input
-                    id="birthDate"
-                    name="birthDate"
-                    type="date"
-                    max={maximumBirthDate}
-                    value={
-                      profile.birthDate
-                    }
-                    disabled={loading || saving || loadError}
-                    onChange={updateField}
-                    required
-                  />
-                </div>
-
-                <div className="profile-field">
-                  <label htmlFor="cpf">
-                    CPF
-                  </label>
-
-                  <input
-                    id="cpf"
-                    name="cpf"
-                    type="text"
-                    inputMode="numeric"
-                    maxLength="14"
-                    value={profile.cpf}
-                    disabled={loading || saving || loadError}
-                    onChange={updateField}
-                    placeholder="000.000.000-00"
-                    required
-                  />
-                </div>
-
-                {message && (
-                  <p
-                    role={messageType === "error" ? "alert" : "status"}
-                    className={`profile-message ${messageType}`}
-                  >
-                    {message}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  className="profile-button"
+            <div className="ph-form-row">
+              <div className="ph-field">
+                <label htmlFor="phone">Telefone</label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={profile.phone}
                   disabled={loading || saving || loadError}
-                >
-                  {saving ? "Salvando..." : "Salvar alterações"}
-                </button>
-              </form>
-            </section>
-          </div>
+                  onChange={updateField}
+                  placeholder="(11) 99999-9999"
+                  required
+                />
+              </div>
+
+              <div className="ph-field">
+                <label htmlFor="birthDate">Data de nascimento</label>
+                <input
+                  id="birthDate"
+                  name="birthDate"
+                  type="date"
+                  max={maximumBirthDate}
+                  value={profile.birthDate}
+                  disabled={loading || saving || loadError}
+                  onChange={updateField}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="ph-field">
+              <label htmlFor="cpf">CPF</label>
+              <input
+                id="cpf"
+                name="cpf"
+                type="text"
+                inputMode="numeric"
+                maxLength="14"
+                value={profile.cpf}
+                disabled={loading || saving || loadError}
+                onChange={updateField}
+                placeholder="000.000.000-00"
+                required
+              />
+            </div>
+
+            <div className="ph-profile-actions">
+              <button type="submit" className="ui-button ui-button-primary" disabled={loading || saving || loadError}>
+                {saving ? "Salvando..." : "Salvar alterações"}
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
     </PatientShell>
   );
 }

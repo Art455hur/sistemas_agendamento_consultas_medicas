@@ -13,8 +13,11 @@ Depois dessa verificação, as PRs #52–#54 acrescentaram evidências e roteiro
 de demonstração, e a [PR #55](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/55)
 integrou o menu móvel do paciente, ajustes visuais de administração, retorno
 ao dashboard e mensagens específicas de confirmação e recuperação.
-O READY acima refere-se ao commit anterior `80e52b2`: confirmar um novo
-READY para a versão da `main` que inclui a PR #55 antes de apresentá-la.
+As PRs #58–#61 também foram integradas: novo visual do paciente, moldura e
+operações administrativas, agenda/registro médico e agendamento da secretaria.
+Não houve novas migrações SQL nessas PRs. O READY acima refere-se ao commit
+anterior `80e52b2`: confirmar o deployment atual da `main`, agora com a
+PR #61, antes de apresentá-la.
 
 ## Verificação automática
 
@@ -37,9 +40,10 @@ da branch, que não são alteradas por este arquivo. A equipe deve verificar o
 resultado dos testes e da Vercel antes de integrar alterações.
 
 O [workflow da `main` de 26/11/2026](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45751679524)
-concluiu todas as etapas com sucesso, incluindo Playwright em desktop e celular
-emulado. A execução usa o modo de demonstração e não valida sessões reais,
-permissões do banco hospedado ou entrega de e-mails.
+concluiu todas as etapas com sucesso. Os workflows das PRs #58–#61 também
+passaram, incluindo o [da PR #61](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45925186200).
+Essas execuções usam modo de demonstração no navegador e banco descartável;
+não validam sessões reais, permissões do Supabase hospedado ou e-mails.
 
 Para reproduzir no computador:
 
@@ -68,9 +72,11 @@ limpo. No Windows, use `npm.cmd` caso o PowerShell bloqueie `npm`.
       entrega do e-mail. Respeitar a cota e não apagar contas para tentar contorná-la.
 - [ ] Testar logout e impedimento de acesso cruzado entre paciente, médico,
       secretaria e administrador no ambiente publicado.
-- [ ] Percorrer o fluxo principal no celular físico e pelo teclado, incluindo
-      abrir/fechar o menu do paciente, visualizar Sair, verificar que a
-      administração não corta conteúdo e voltar ao dashboard após confirmar.
+- [ ] Percorrer os novos visuais no celular físico e pelo teclado: menus do
+      paciente e da equipe, botão Sair e confirmação, cartões e formulários,
+      janelas administrativas, horário do médico e cinco passos da secretaria.
+- [ ] Testar a nova revisão de agendamento do paciente, confirmar/remarcar/
+      cancelar, voltar ao dashboard e conferir a atualização de consultas.
 - [ ] Conferir as mensagens para links de confirmação/recuperação abertos no
       navegador correto e em outro navegador, sem presumir sucesso de Auth.
 - [ ] Preparar contas fictícias previamente verificadas para demonstrar o fluxo

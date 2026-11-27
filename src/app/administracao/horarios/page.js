@@ -5,6 +5,7 @@ import { AVAILABILITY_SLOTS } from "@/features/appointments/availability.js";
 import { createClient } from "@/lib/supabase/server";
 import { resetAvailability, saveAvailability } from "./actions";
 import styles from "./page.module.css";
+import StaffShell from "@/components/layout/StaffShell.js";
 
 export const metadata = { title: "Horários dos médicos | AgendaSaúde" };
 export const dynamic = "force-dynamic";
@@ -54,8 +55,16 @@ export default async function DoctorHoursPage({ searchParams }) {
   const booked = (selection.data?.[0]?.booked || []).map((slot) => slot.slice(0, 5));
 
   return (
+    <StaffShell role="Administrador" navigationLabel="Navegação administrativa" breadcrumb="Horários" navigation={[
+        { href: "/administracao", label: "Visão geral", icon: "home" },
+        { href: "/administracao/pacientes", label: "Pacientes", icon: "user" },
+        { href: "/administracao?aba=equipe", label: "Equipe", icon: "users" },
+        { href: "/administracao?aba=especialidades", label: "Especialidades", icon: "tag" },
+        { href: "/administracao?aba=agenda", label: "Agenda", icon: "calendar" },
+        { href: "/administracao/horarios", label: "Horários", icon: "clock", current: true },
+        { label: "Serviços", icon: "briefcase", disabled: true, note: "Em breve" },
+      ]}>
     <main className={styles.layout}>
-      <Link href="/administracao" className={styles.back}>← Voltar à administração</Link>
       <header><span className={styles.eyebrow}>GESTÃO DA CLÍNICA</span><h1>Horários dos médicos</h1>
         <p>Configure os horários de atendimento de cada médico para uma data. Consultas já marcadas permanecem protegidas.</p>
       </header>
@@ -98,5 +107,6 @@ export default async function DoctorHoursPage({ searchParams }) {
           </>}
         </>}
     </main>
+    </StaffShell>
   );
 }

@@ -14,23 +14,14 @@ import {
   updateSpecialty,
 } from "@/app/administracao/actions";
 import styles from "@/app/administracao/page.module.css";
-import LogoutButton from "@/features/auth/components/LogoutButton";
+import StaffShell from "@/components/layout/StaffShell.js";
+import Icon from "@/components/ui/Icon.js";
 
 export const metadata = {
   title: "Administração | AgendaSaúde",
 };
 
 export const dynamic = "force-dynamic";
-
-const modules = [
-  {
-    number: "02",
-    title: "Horários disponíveis",
-    description: "Configure a grade de atendimento individual dos profissionais.",
-    status: "Configurar",
-    href: "/administracao/horarios",
-  },
-];
 
 const feedback = {
   atribuido: "Dados do funcionário salvos e vínculo ativado no Hospital Sapiens.",
@@ -60,7 +51,7 @@ const feedback = {
 };
 
 const sections = {
-  geral: { eyebrow: "VISÃO GERAL DA CLÍNICA", title: "Painel administrativo", description: "Escolha uma área para gerenciar o Hospital Sapiens." },
+  geral: { eyebrow: "PAINEL ADMINISTRATIVO", title: "Visão geral", description: "Acesse as principais tarefas da clínica." },
   agenda: { eyebrow: "CONSULTAS", title: "Agenda da clínica", description: "Agende, consulte, remarque ou cancele consultas." },
   equipe: { eyebrow: "PROFISSIONAIS", title: "Equipe da clínica", description: "Gerencie os vínculos dos médicos e da secretaria." },
   especialidades: { eyebrow: "CATÁLOGO", title: "Especialidades", description: "Cadastre e organize as especialidades da clínica." },
@@ -172,58 +163,79 @@ export default async function AdministracaoPage({ searchParams }) {
   })) ?? [];
 
   return (
-    <div className={styles.shell}>
-      <aside className={styles.sidebar}>
-        <Link className={styles.brand} href="/">+ AgendaSaúde</Link>
-        <div className={styles.workspaceLabel}>ESPAÇO DE TRABALHO</div>
-        <nav aria-label="Navegação administrativa" className={styles.navigation}>
-          <Link className={section === "geral" ? styles.current : styles.teamLink} aria-current={section === "geral" ? "page" : undefined} href="/administracao">▦ Visão geral</Link>
-          <Link className={styles.teamLink} href="/administracao/pacientes">♙ Pacientes</Link>
-          <Link className={section === "equipe" ? styles.current : styles.teamLink} aria-current={section === "equipe" ? "page" : undefined} href="/administracao?aba=equipe">♧ Equipe</Link>
-          <Link className={section === "especialidades" ? styles.current : styles.teamLink} aria-current={section === "especialidades" ? "page" : undefined} href="/administracao?aba=especialidades">✚ Especialidades</Link>
-          <Link className={section === "agenda" ? styles.current : styles.teamLink} aria-current={section === "agenda" ? "page" : undefined} href="/administracao?aba=agenda">▤ Agenda</Link>
-          <Link className={styles.teamLink} href="/administracao/horarios">◷ Horários</Link>
-          <span className={styles.upcoming}>✚ Serviços <small>Em breve</small></span>
-        </nav>
-        <div className={styles.sidebarFooter}>Área administrativa · N2</div>
-      </aside>
-
+    <StaffShell
+      role="Administrador"
+      navigationLabel="Navegação administrativa"
+      breadcrumb={sections[section].title}
+      navigation={[
+          { href: "/administracao", label: "Visão geral", icon: "home", current: section === "geral" },
+          { href: "/administracao/pacientes", label: "Pacientes", icon: "user", current: false },
+          { href: "/administracao?aba=equipe", label: "Equipe", icon: "users", current: section === "equipe" },
+          { href: "/administracao?aba=especialidades", label: "Especialidades", icon: "tag", current: section === "especialidades" },
+          { href: "/administracao?aba=agenda", label: "Agenda", icon: "calendar", current: section === "agenda" },
+          { href: "/administracao/horarios", label: "Horários", icon: "clock", current: false },
+          { label: "Serviços", icon: "briefcase", disabled: true, note: "Em breve" },
+        ]}
+    >
       <main className={styles.main}>
-        <header className={styles.topbar}>
-          <div className={styles.breadcrumb}>AgendaSaúde <span>/</span> Administração <span>/</span> {sections[section].title}</div>
-          <div className={styles.topbarActions}>
-            <span className={styles.roleBadge}>Administrador</span>
-            <LogoutButton className={styles.logoutButton} errorClassName={styles.logoutError} />
-          </div>
-        </header>
 
         <div className={styles.content}>
           <div className={styles.heading}>
             <div>
               <span className={styles.eyebrow}>{sections[section].eyebrow}</span>
-              <h1>{section === "geral" ? `Olá, ${profile.full_name?.trim() || "administrador"}.` : sections[section].title}</h1>
+              <h1>{sections[section].title}</h1>
               <p>{sections[section].description}</p>
             </div>
-            <span className={styles.phase}>Hospital Sapiens</span>
           </div>
-
-          {section === "geral" && <section className={styles.notice} aria-label="Estado da integração">
-            <div className={styles.noticeIcon}>i</div>
-            <div>
-              <strong>Equipe, especialidades e agenda em ambiente de testes</strong>
-              <p>Especialidades desativadas ficam preservadas no histórico. A agenda permite agendar, remarcar e cancelar consultas; os horários dos médicos têm configuração própria.</p>
-            </div>
-          </section>}
 
           {feedback[resultado] && <p role="status" className={styles.feedback}>{feedback[resultado]}</p>}
 
-          {section === "geral" && <section className={styles.overviewGrid} aria-label="Áreas de gestão">
-            <Link href="/administracao?aba=agenda" className={styles.overviewCard}><span>▤</span><h2>Agenda</h2><p>Agendar, remarcar e cancelar consultas da clínica.</p><strong>Abrir agenda →</strong></Link>
-            <Link href="/administracao?aba=equipe" className={styles.overviewCard}><span>♧</span><h2>Equipe</h2><p>Consultar e atualizar vínculos de profissionais.</p><strong>{staff?.length ?? 0} vínculos →</strong></Link>
-            <Link href="/administracao?aba=especialidades" className={styles.overviewCard}><span>✚</span><h2>Especialidades</h2><p>Cadastrar e gerenciar as áreas de atendimento.</p><strong>{specialties?.length ?? 0} cadastradas →</strong></Link>
-            <Link href="/administracao/pacientes" className={styles.overviewCard}><span>♙</span><h2>Pacientes</h2><p>Consultar e atualizar os cadastros de pacientes.</p><strong>Abrir pacientes →</strong></Link>
-            <Link href="/administracao/horarios" className={styles.overviewCard}><span>◷</span><h2>Horários dos médicos</h2><p>Definir a disponibilidade por médico e data.</p><strong>Configurar horários →</strong></Link>
-          </section>}
+          {section === "geral" && <>
+            <section className={styles.overviewSection} aria-labelledby="operacao">
+              <h2 id="operacao">Operação da clínica</h2>
+              <div className={styles.operationGrid}>
+                <Link href="/administracao?aba=agenda" className={`${styles.featureCard} ${styles.primaryFeature}`}>
+                  <span className={styles.featureIcon}><Icon name="calendar" size={22} /></span>
+                  <span>
+                    <small className={styles.cardKicker}>Agenda</small>
+                    <strong>Abrir agenda</strong>
+                    <span>Veja os atendimentos do dia e faça novos agendamentos.</span>
+                  </span>
+                  <span className={styles.roundArrow} aria-hidden="true"><Icon name="arrow" size={18} /></span>
+                </Link>
+                <Link href="/administracao/horarios" className={styles.featureCard}>
+                  <span className={`${styles.featureIcon} ${styles.featureIconPale}`}><Icon name="clock" size={22} /></span>
+                  <span>
+                    <small className={styles.cardKicker}>Disponibilidade</small>
+                    <strong>Configurar horários</strong>
+                    <span>Defina quando cada médico atende.</span>
+                  </span>
+                  <span className={`${styles.roundArrow} ${styles.roundArrowOutline}`} aria-hidden="true"><Icon name="arrow" size={18} /></span>
+                </Link>
+              </div>
+            </section>
+            <section className={styles.overviewSection} aria-labelledby="cadastros">
+              <h2 id="cadastros">Cadastros</h2>
+              <p className={styles.overviewLead}>Informações essenciais para o funcionamento da clínica.</p>
+              <div className={styles.shortcutGrid}>
+                <Link href="/administracao/pacientes" className={styles.shortcutCard}>
+                  <span className={styles.smallIcon}><Icon name="user" size={19} /></span>
+                  <span><strong>Pacientes</strong><small>Consultar cadastros</small></span>
+                  <Icon name="chevron" size={18} />
+                </Link>
+                <Link href="/administracao?aba=equipe" className={styles.shortcutCard}>
+                  <span className={styles.smallIcon}><Icon name="users" size={19} /></span>
+                  <span><strong>Equipe</strong><small>{staff?.length ?? 0} {staff?.length === 1 ? "vínculo" : "vínculos"}</small></span>
+                  <Icon name="chevron" size={18} />
+                </Link>
+                <Link href="/administracao?aba=especialidades" className={styles.shortcutCard}>
+                  <span className={styles.smallIcon}><Icon name="tag" size={19} /></span>
+                  <span><strong>Especialidades</strong><small>{specialties?.length ?? 0} {specialties?.length === 1 ? "cadastrada" : "cadastradas"}</small></span>
+                  <Icon name="chevron" size={18} />
+                </Link>
+              </div>
+            </section>
+          </>}
 
           {section === "especialidades" && <section id="especialidades" className={styles.specialtySection} aria-labelledby="specialties-heading">
             <div className={styles.sectionHeading}>
@@ -362,38 +374,8 @@ export default async function AdministracaoPage({ searchParams }) {
             )}
           </section>}
 
-          {section === "geral" && <section aria-labelledby="modules-heading">
-            <div className={styles.sectionHeading}>
-              <div>
-                <h2 id="modules-heading">Módulos de gestão</h2>
-                <p>Funcionalidades planejadas para o administrador.</p>
-              </div>
-              <span>1 módulo</span>
-            </div>
-            <div className={styles.grid}>
-              {modules.map((module) => (
-                <article className={styles.module} key={module.number}>
-                  <div className={styles.moduleTop}>
-                    <span className={styles.moduleNumber}>{module.number}</span>
-                    <span className={styles.moduleStatus}>{module.status}</span>
-                  </div>
-                  <h3>{module.title}</h3>
-                  <p>{module.description}</p>
-                  <Link className={styles.moduleFoot} href={module.href}>Abrir horários →</Link>
-                </article>
-              ))}
-            </div>
-          </section>}
-
-          {section === "geral" && <section className={styles.nextStep} aria-labelledby="next-heading">
-            <div className={styles.nextIcon}>↗</div>
-            <div>
-              <h2 id="next-heading">Próximo passo</h2>
-              <p>Continue a validação das permissões e dos fluxos com contas fictícias antes de usar com pacientes reais.</p>
-            </div>
-          </section>}
         </div>
       </main>
-    </div>
+    </StaffShell>
   );
 }

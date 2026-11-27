@@ -8,7 +8,7 @@ import {
 } from "@/app/administracao/actions";
 import PatientEditForm from "./PatientEditForm";
 import styles from "@/app/administracao/page.module.css";
-import LogoutButton from "@/features/auth/components/LogoutButton";
+import StaffShell from "@/components/layout/StaffShell.js";
 
 export const metadata = {
   title: "Pacientes | Administração | AgendaSaúde",
@@ -76,29 +76,21 @@ export default async function PacientesAdministracaoPage({ searchParams }) {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className={styles.shell}>
-      <aside className={styles.sidebar}>
-        <Link className={styles.brand} href="/">+ AgendaSaúde</Link>
-        <div className={styles.workspaceLabel}>ESPAÇO DE TRABALHO</div>
-        <nav aria-label="Navegação administrativa" className={styles.navigation}>
-          <Link className={styles.teamLink} href="/administracao">▦ Visão geral</Link>
-          <span className={styles.current} aria-current="page">♙ Pacientes</span>
-          <Link className={styles.teamLink} href="/administracao?aba=equipe">♧ Equipe</Link>
-          <Link className={styles.teamLink} href="/administracao?aba=especialidades">✚ Especialidades</Link>
-          <Link className={styles.teamLink} href="/administracao?aba=agenda">▤ Agenda</Link>
-          <Link className={styles.teamLink} href="/administracao/horarios">◷ Horários</Link>
-        </nav>
-        <div className={styles.sidebarFooter}>Área administrativa · N2</div>
-      </aside>
-
+    <StaffShell
+      role="Administrador"
+      navigationLabel="Navegação administrativa"
+      breadcrumb="Pacientes"
+      navigation={[
+          { href: "/administracao", label: "Visão geral", icon: "home", current: false },
+          { href: "/administracao/pacientes", label: "Pacientes", icon: "user", current: true },
+          { href: "/administracao?aba=equipe", label: "Equipe", icon: "users", current: false },
+          { href: "/administracao?aba=especialidades", label: "Especialidades", icon: "tag", current: false },
+          { href: "/administracao?aba=agenda", label: "Agenda", icon: "calendar", current: false },
+          { href: "/administracao/horarios", label: "Horários", icon: "clock", current: false },
+          { label: "Serviços", icon: "briefcase", disabled: true, note: "Em breve" },
+        ]}
+    >
       <main className={styles.main}>
-        <header className={styles.topbar}>
-          <div className={styles.breadcrumb}>AgendaSaúde <span>/</span> Administração <span>/</span> Pacientes</div>
-          <div className={styles.topbarActions}>
-            <span className={styles.roleBadge}>Administrador</span>
-            <LogoutButton className={styles.logoutButton} errorClassName={styles.logoutError} />
-          </div>
-        </header>
 
         <div className={styles.content}>
           <div className={styles.heading}>
@@ -154,6 +146,6 @@ export default async function PacientesAdministracaoPage({ searchParams }) {
           )}
         </div>
       </main>
-    </div>
+    </StaffShell>
   );
 }

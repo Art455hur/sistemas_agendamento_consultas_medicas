@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/patient-theme.css";
+import "../styles/staff-theme.css";
 import AuthGuard from "@/features/auth/components/AuthGuard.js";
 
 // Fonte do tema da área do paciente; disponível como var(--font-inter).

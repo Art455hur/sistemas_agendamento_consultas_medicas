@@ -56,7 +56,8 @@ export async function createAppointment(_previousState, formData) {
     return { message: message || "Não foi possível confirmar o agendamento. Consulte a agenda antes de tentar novamente." };
   }
   refresh();
-  redirect(outcome("criada", day));
+  // A tela mostra a confirmação com os dados escolhidos e o link para a agenda do dia.
+  return { ok: true, day, time };
 }
 
 export async function rescheduleAppointment(formData) {

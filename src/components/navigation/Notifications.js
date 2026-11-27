@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useAppointments } from "../../features/appointments/hooks/useAppointments.js";
 import { appointmentNotifications } from "../../features/notifications/appointment-notifications.js";
 import { formatDate } from "../../shared/formatting/date.js";
+import Icon from "../ui/Icon.js";
 
 export default function Notifications() {
   const { appointments, loading, error, retry } = useAppointments();
@@ -47,7 +48,7 @@ export default function Notifications() {
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
       >
-        🔔
+        <Icon name="bell" size={19} />
         {count > 0 && <span className="notification-badge">{count}</span>}
       </button>
 

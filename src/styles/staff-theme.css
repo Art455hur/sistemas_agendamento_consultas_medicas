@@ -1,0 +1,336 @@
+/* =========================================================
+   MOLDURA DOS PAINÉIS DA EQUIPE (administração, secretaria e médico)
+   Protótipo do Figma Make do admin, com a mesma fonte e o mesmo verde
+   da área do paciente. O conteúdo de cada painel usa o próprio CSS Module.
+   ========================================================= */
+
+.staff-shell {
+  --as-primary: #087a75;
+  --as-primary-hover: #066b67;
+  --as-primary-text: #08736f;
+  --as-text: #153f3d;
+  --as-muted: #637a79;
+  --as-line: #d9e5e3;
+  --as-mint: #dff2ef;
+  --as-mint-soft: #edf7f5;
+  --as-border-strong: #a8c9c7;
+
+  min-height: 100vh;
+  background: #f4f8f7;
+  color: var(--as-text);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+
+.staff-shell button,
+.staff-shell input,
+.staff-shell select,
+.staff-shell textarea {
+  font-family: inherit;
+}
+
+.staff-shell :is(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(18, 120, 117, 0.25);
+  outline-offset: 2px;
+}
+
+/* ---------- Menu lateral ---------- */
+
+.staff-sidebar {
+  position: fixed;
+  z-index: 30;
+  inset: 0 auto 0 0;
+  display: flex;
+  width: 250px;
+  flex-direction: column;
+  padding: 31px 22px 22px;
+  overflow-y: auto;
+  border-right: 1px solid var(--as-line);
+  background: #ffffff;
+}
+
+.staff-sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.staff-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.staff-brand-mark {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--as-primary);
+  transform: rotate(8deg);
+}
+
+.staff-brand-mark span {
+  position: absolute;
+  top: 8px;
+  left: 15px;
+  width: 3px;
+  height: 18px;
+  border-radius: 3px;
+  background: #ffffff;
+}
+
+.staff-brand-mark span:last-child {
+  transform: rotate(90deg);
+}
+
+.staff-brand-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.staff-brand-copy strong {
+  color: #15524f;
+  font-size: 17px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.staff-brand-copy small {
+  margin-top: 3px;
+  color: var(--as-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.staff-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 50px;
+}
+
+.staff-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 12px 13px;
+  border-radius: 9px;
+  color: #506968;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.staff-nav-item:hover:not(.disabled) {
+  background: #f4f9f8;
+  color: var(--as-primary-hover);
+}
+
+.staff-nav-item.active {
+  background: var(--as-mint);
+  color: var(--as-primary-hover);
+}
+
+.staff-nav-item.disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.staff-nav-item small {
+  margin-left: 2px;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.staff-profile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--as-line);
+}
+
+.staff-avatar {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: #d9f0ed;
+  color: var(--as-primary-hover);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.staff-profile strong,
+.staff-profile small {
+  display: block;
+}
+
+.staff-profile strong {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.staff-profile small {
+  margin-top: 2px;
+  color: var(--as-muted);
+  font-size: 11px;
+}
+
+.staff-logout {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--as-muted);
+  cursor: pointer;
+}
+
+.staff-logout:hover {
+  background: var(--as-mint-soft);
+  color: var(--as-primary);
+}
+
+/* ---------- Área principal ---------- */
+
+.staff-main {
+  min-width: 0;
+  min-height: 100vh;
+  margin-left: 250px;
+}
+
+.staff-topbar {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  display: flex;
+  height: 56px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 clamp(22px, 5vw, 70px);
+  border-bottom: 1px solid #e2ebe9;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+}
+
+.staff-breadcrumb {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  color: var(--as-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.staff-breadcrumb strong {
+  overflow: hidden;
+  color: var(--as-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.staff-role {
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--as-mint-soft);
+  color: var(--as-primary-text);
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.staff-menu-toggle,
+.staff-menu-close,
+.staff-backdrop {
+  display: none;
+}
+
+/* ---------- Celular: menu em aba lateral ---------- */
+
+@media (max-width: 720px) {
+  .staff-sidebar {
+    z-index: 1100;
+    width: min(300px, 84vw);
+    padding: 22px 18px;
+    box-shadow: 20px 0 60px rgba(10, 45, 44, 0.18);
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0.25s;
+  }
+
+  .staff-shell.menu-open .staff-sidebar {
+    transform: none;
+    visibility: visible;
+  }
+
+  .staff-nav {
+    margin-top: 32px;
+  }
+
+  .staff-menu-close {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border: none;
+    border-radius: 50%;
+    background: #f1f5f4;
+    color: #607674;
+    cursor: pointer;
+  }
+
+  .staff-backdrop {
+    display: block;
+    position: fixed;
+    z-index: 1050;
+    inset: 0;
+    border: 0;
+    background: rgba(4, 34, 33, 0.42);
+    cursor: pointer;
+  }
+
+  .staff-main {
+    margin-left: 0;
+  }
+
+  .staff-topbar {
+    height: 60px;
+    padding: 0 16px;
+  }
+
+  .staff-menu-toggle {
+    display: grid;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 1px solid var(--as-line);
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--as-text);
+    cursor: pointer;
+  }
+
+  .staff-breadcrumb > span,
+  .staff-breadcrumb > svg {
+    display: none;
+  }
+}

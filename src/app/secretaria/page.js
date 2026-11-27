@@ -7,8 +7,8 @@ import AdminCreateAppointmentForm from "@/app/administracao/AdminCreateAppointme
 import AppointmentControls from "./AppointmentControls";
 import AgendaResults from "./AgendaResults";
 import styles from "@/app/administracao/page.module.css";
+import StaffShell from "@/components/layout/StaffShell.js";
 import desk from "./secretaria.module.css";
-import LogoutButton from "@/features/auth/components/LogoutButton";
 
 export const metadata = { title: "Secretaria | AgendaSaúde" };
 export const dynamic = "force-dynamic";
@@ -89,24 +89,16 @@ export default async function SecretariaPage({ searchParams }) {
   for (const row of rows) counts[row.displayStatus]++;
   const filtered = rows.filter((row) => !statusFilter || row.displayStatus === statusFilter);
 
-  return <div className={styles.shell}>
-    <aside className={styles.sidebar}>
-      <Link className={styles.brand} href="/">+ AgendaSaúde</Link>
-      <div className={styles.workspaceLabel}>ESPAÇO DE TRABALHO</div>
-      <nav className={styles.navigation} aria-label="Navegação da secretaria">
-        <Link className={isBooking ? styles.teamLink : styles.current} aria-current={!isBooking ? "page" : undefined} href={agendaHref}>Agenda da clínica</Link>
-        <Link className={isBooking ? styles.current : styles.teamLink} aria-current={isBooking ? "page" : undefined} href={bookingHref}>Novo agendamento</Link>
-      </nav>
-      <div className={styles.sidebarFooter}>Secretaria · Hospital Sapiens</div>
-    </aside>
+  return <StaffShell
+    role="Secretaria"
+    navigationLabel="Navegação da secretaria"
+    breadcrumb={screenTitle}
+    navigation={[
+      { href: agendaHref, label: "Agenda da clínica", icon: "calendar", current: !isBooking },
+      { href: bookingHref, label: "Novo agendamento", icon: "plus", current: isBooking },
+    ]}
+  >
     <main className={styles.main}>
-      <header className={styles.topbar}>
-        <div className={styles.breadcrumb}>AgendaSaúde <span>/</span> Secretaria <span>/</span> {screenTitle}</div>
-        <div className={styles.topbarActions}>
-          <span className={styles.roleBadge}>Secretaria</span>
-          <LogoutButton className={styles.logoutButton} errorClassName={styles.logoutError} />
-        </div>
-      </header>
       <div className={`${styles.content} ${desk.content}`}>
         <div className={styles.heading}><div>
           <span className={styles.eyebrow}>ATENDIMENTO · HOSPITAL SAPIENS</span>
@@ -167,5 +159,5 @@ export default async function SecretariaPage({ searchParams }) {
         </div>
       </div>
     </main>
-  </div>;
+  </StaffShell>;
 }

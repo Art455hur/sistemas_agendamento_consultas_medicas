@@ -1,6 +1,6 @@
 # Documentação técnica — AgendaSaúde N2
 
-Atualizada em 26/11/2026 com base na `main` em `80e52b2`, após as PRs #48–#50. Os resultados de Supabase, Vercel e GitHub Actions descrevem o estado observado nessa data, sem substituir testes manuais com Auth real.
+Atualizada documentalmente em 27/11/2026 com as entregas integradas até a PR #55. A checagem anterior de Supabase, Vercel e GitHub Actions foi feita em 26/11 na base `80e52b2`; ela não comprova a publicação ou os testes manuais dos ajustes posteriores.
 
 ## Objetivo e modos de execução
 
@@ -268,15 +268,45 @@ Conferir também URLs, e-mail e configurações de segurança do ambiente com a 
 Esta atualização não altera a flag de Auth. Merge, READY e testes de banco isolado
 não substituem o roteiro com autenticação real.
 
+## Mudanças integradas após a checagem de 26/11
+
+- As [evidências do ensaio local](evidencias-ensaio-local-26nov.md)
+  (PR #52) registram testes com contas fictícias no Supabase **local**:
+  agendamento e disputa de horário, operações da secretaria, atendimento e
+  exames pelo médico, isolamento por perfil e verificação em celular emulado.
+  São resultados manuais locais, não uma homologação do ambiente online.
+- A [revisão dos avisos de segurança](reforco-seguranca.md) (PR #53)
+  documentou a leitura das 22 migrações e os avisos sobre funções privilegiadas,
+  tabelas bloqueadas por RLS sem políticas e proteção contra senhas vazadas.
+  Essa entrega não alterou permissões nem configuração do Supabase.
+- O [roteiro da demonstração](roteiro-demonstracao-n2.md) foi atualizado
+  (PR #54) com os painéis, contas fictícias e limites do ensaio.
+- A [PR #55](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/55)
+  mudou o layout em telas de até 700 px: menu lateral do paciente agora abre
+  pelo botão de menu, fecha ao selecionar uma rota, tocar fora ou pressionar Esc;
+  barra superior e cartões se adaptam à largura. No painel administrativo,
+  cabeçalho e blocos receberam ajustes para não ultrapassar a tela.
+- A mesma PR direcionou o botão **Voltar ao início** da confirmação de consulta
+  ao `/dashboard` e separou as mensagens de falha na confirmação da conta e na
+  recuperação de senha. A troca do código PKCE continua dependente do navegador
+  onde o pedido foi iniciado; mensagem explicativa não garante entrega do e-mail
+  nem a conclusão do fluxo.
+- O cenário Playwright do paciente em modo de demonstração foi adaptado para
+  abrir o menu em telas pequenas. **Não houve reexecução dos testes ou
+  conferência do deploy nesta atualização documental.**
+
 ## Pendências e manutenção
 
 Os painéis de médico e secretaria e o login unificado já estão na `main` pelas PRs
-#48–#50. Permanecem pendentes de validação os fluxos com Auth real desses perfis,
-o envio de e-mails, a experiência em celular físico e os critérios completos do
-backlog (como grade semanal recorrente, módulo de serviços e demais cadastros).
-Revisar os avisos atuais do Supabase antes de usar dados reais: três tabelas com
-RLS sem políticas, duas RPCs administrativas `SECURITY DEFINER` disponíveis a
-`authenticated` e a proteção contra senhas vazadas desabilitada. Os avisos não
+#48–#50. A PR #55 acrescentou melhorias de navegação e layout móvel, mas sua
+experiência em celular físico e no deploy de produção ainda precisa de conferência.
+Permanecem pendentes de validação os fluxos com Auth real desses perfis, o envio
+de e-mails e os critérios completos do backlog (como grade semanal recorrente,
+módulo de serviços e demais cadastros).
+Revisar os avisos atuais do Supabase antes de usar dados reais: tabelas com RLS
+sem políticas, funções `SECURITY DEFINER` executáveis por `authenticated` e a
+proteção contra senhas vazadas desabilitada, conforme
+[revisão de segurança](reforco-seguranca.md). Os avisos não
 comprovam que exista exploração ou acesso indevido; devem ser avaliados pela equipe.
 Não marcar um card inteiro como concluído pela entrega de uma parte.
 

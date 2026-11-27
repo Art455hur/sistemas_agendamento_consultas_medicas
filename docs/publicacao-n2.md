@@ -9,6 +9,12 @@ Na revisão de 26/11/2026, a aplicação em `https://sistemas-agendamento-consul
 respondeu HTTP 200 e a Vercel marcou o deploy da `main` em `80e52b2` como READY.
 As PRs #48–#50 já integraram painéis da secretaria e do médico e login unificado.
 As 22 migrações remotas estavam alinhadas às 22 versões do repositório.
+Depois dessa verificação, as PRs #52–#54 acrescentaram evidências e roteiro
+de demonstração, e a [PR #55](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/55)
+integrou o menu móvel do paciente, ajustes visuais de administração, retorno
+ao dashboard e mensagens específicas de confirmação e recuperação.
+O READY acima refere-se ao commit anterior `80e52b2`: confirmar um novo
+READY para a versão da `main` que inclui a PR #55 antes de apresentá-la.
 
 ## Verificação automática
 
@@ -62,7 +68,11 @@ limpo. No Windows, use `npm.cmd` caso o PowerShell bloqueie `npm`.
       entrega do e-mail. Respeitar a cota e não apagar contas para tentar contorná-la.
 - [ ] Testar logout e impedimento de acesso cruzado entre paciente, médico,
       secretaria e administrador no ambiente publicado.
-- [ ] Percorrer o fluxo principal no celular físico e pelo teclado.
+- [ ] Percorrer o fluxo principal no celular físico e pelo teclado, incluindo
+      abrir/fechar o menu do paciente, visualizar Sair, verificar que a
+      administração não corta conteúdo e voltar ao dashboard após confirmar.
+- [ ] Conferir as mensagens para links de confirmação/recuperação abertos no
+      navegador correto e em outro navegador, sem presumir sucesso de Auth.
 - [ ] Preparar contas fictícias previamente verificadas para demonstrar o fluxo
       caso o provedor de e-mail esteja indisponível. Não expor senhas no repositório
       nem desativar a confirmação de e-mail em produção para a apresentação.

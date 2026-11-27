@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ROLES } from "@/features/auth/access-control.js";
-import { appointmentStatusLabels, clinicDateTime } from "@/features/appointments/appointment-format.js";
+import { clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/app/administracao/page.module.css";
 import StaffShell from "@/components/layout/StaffShell.js";
+import Icon from "@/components/ui/Icon.js";
 import agenda from "./agenda.module.css";
-import { recordAppointmentOutcome } from "./actions";
 import { adjacentDay, selectedDay } from "./day";
 import { filters, summarizeAgenda } from "./agenda-view";
 import AgendaList from "./AgendaList";
@@ -22,7 +22,16 @@ const messages = {
   erro: "Não foi possível registrar o resultado. Atualize a agenda antes de tentar novamente.",
 };
 
-const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "full", timeZone: "UTC" });
+const longDate = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+const dayMonth = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", timeZone: "UTC" });
+
+// "Hoje, 27 de novembro" ou "Sexta-feira, 27 de novembro" (dia da clínica, não do computador).
+function longDayLabel(day, today) {
+  const date = new Date(`${day}T12:00:00Z`);
+  if (day === today) return `Hoje, ${dayMonth.format(date)}`;
+  const text = longDate.format(date);
+  return text[0].toUpperCase() + text.slice(1);
+}
 
 function State({ title, detail }) {
   return (
@@ -73,6 +82,10 @@ export default async function DoctorPage({ searchParams }) {
     : { data: null, error: null };
   const { rows, counts, upcoming } = summarizeAgenda((data ?? []).slice(0, 200), now);
 
+  const dayLabel = day ? longDayLabel(day, today) : "";
+  const shortDate = day ? `${day.slice(8, 10)}/${day.slice(5, 7)}/${day.slice(0, 4)}` : "";
+  const doctorName = profile.full_name?.trim() || "profissional";
+
   return (
     <StaffShell
       role="Médico"
@@ -84,89 +97,78 @@ export default async function DoctorPage({ searchParams }) {
         <div className={styles.content}>
           <div className={styles.heading}>
             <div>
-              <span className={styles.eyebrow}>EQUIPE MÉDICA · HOSPITAL SAPIENS</span>
+              <span className={styles.eyebrow}>PAINEL DO MÉDICO</span>
               <h1>Minha agenda</h1>
-              <p>Olá, {profile.full_name?.trim() || "profissional"}. Consulte os seus atendimentos por data.</p>
+              <p>Consultas de <strong>{doctorName}</strong> no Hospital Sapiens</p>
             </div>
-            <span className={styles.phase}>Horário de São Paulo</span>
+            <span className={agenda.timezone}><Icon name="clock" size={16} /> Horário de São Paulo</span>
           </div>
-          <section className={agenda.section} aria-labelledby="doctor-agenda-heading">
-            <div className={styles.sectionHeading}>
-              <div>
-                <h2 id="doctor-agenda-heading">Consultas do dia</h2>
-                <p>Somente consultas vinculadas ao seu perfil.</p>
-              </div>
+
+          <section className={agenda.dateStrip} aria-label="Selecionar data">
+            <div className={agenda.selectedDate}>
+              <span className={agenda.iconBox}><Icon name="calendar" /></span>
+              <span>
+                <small>DATA SELECIONADA</small>
+                {day ? <><strong><time dateTime={day}>{dayLabel}</time></strong><em>{shortDate}</em></>
+                  : <strong>Data inválida</strong>}
+              </span>
             </div>
-            <div className={agenda.dateBar}>
-              <div>
-                <p className={agenda.caption}>DATA SELECIONADA</p>
-                {day && <time className={agenda.selectedDate} dateTime={day}>{dateFormatter.format(new Date(`${day}T12:00:00Z`))}</time>}
-                <nav className={agenda.days} aria-label="Navegar por dia">
-                  {previous && <Link href={`/medico?dia=${previous}`}>Dia anterior</Link>}
-                  <Link href="/medico" aria-current={day === today ? "date" : undefined}>Hoje</Link>
-                  {next && <Link href={`/medico?dia=${next}`}>Próximo dia</Link>}
-                </nav>
-              </div>
+            <div className={agenda.dateActions}>
+              {previous && <Link className={agenda.iconAction} href={`/medico?dia=${previous}`} aria-label="Dia anterior">
+                <Icon name="chevronLeft" />
+              </Link>}
+              <Link className="ui-button ui-button-secondary" href="/medico" aria-current={day === today ? "date" : undefined}>Hoje</Link>
+              {next && <Link className={agenda.iconAction} href={`/medico?dia=${next}`} aria-label="Próximo dia">
+                <Icon name="chevron" />
+              </Link>}
               <form key={day || "invalid"} action="/medico" method="get" className={agenda.dateForm}>
-                <label htmlFor="doctor-agenda-day">Escolher data</label>
-                <input id="doctor-agenda-day" type="date" name="dia" defaultValue={day || ""} required />
-                <button type="submit">Consultar</button>
+                <label className={agenda.calendarInput}>
+                  <Icon name="calendar" size={18} />
+                  <span className={agenda.srOnly}>Escolher data</span>
+                  <input type="date" name="dia" defaultValue={day || ""} required />
+                </label>
+                <button type="submit" className="ui-button ui-button-primary">Consultar</button>
               </form>
             </div>
-            {typeof resultado === "string" && Object.hasOwn(messages, resultado) &&
-              <p className={styles.feedback} role={resultado === "salvo" ? "status" : "alert"}>{messages[resultado]}</p>}
-            {!day ? <p className={styles.feedback} role="alert">Escolha uma data válida.</p>
-              : error ? <p className={styles.feedback} role="alert">Não foi possível carregar a agenda. Tente novamente.</p>
-              : <>
-                <dl className={agenda.metrics} aria-label="Resumo de consultas da data">
-                  {filters.map(([value, label]) => <div key={value} data-status={value}>
-                    <dt>{label}</dt><dd>{counts[value]}</dd>
-                  </div>)}
-                </dl>
-                {upcoming && <section className={agenda.highlight} aria-label="Próximo atendimento da data">
-                  <div>
-                    <p className={agenda.caption}>PRÓXIMO ATENDIMENTO DA DATA</p>
-                    <strong>{upcoming.patient}</strong>
-                    {upcoming.specialty && <span>{upcoming.specialty}</span>}
-                  </div>
-                  <time dateTime={upcoming.scheduled_at}>{upcoming.time}</time>
-                </section>}
-                {rows.length === 0 ? <div className={agenda.empty}>
-                  <strong>Você não tem consultas nesta data</strong>
-                  <p>Escolha outra data para consultar sua agenda.</p>
-                </div> : <AgendaList key={day} entries={rows.map((row) => ({
-                  id: row.id, patient: row.patient, specialty: row.specialty, time: row.time, status: row.status,
-                  item: <>
-                    <time className={agenda.rowTime} dateTime={row.scheduled_at}>{row.time}</time>
-                    <div className={styles.agendaDetails}>
-                      <strong>{row.patient}</strong>
-                      <span>{row.specialty}</span>
-                    </div>
-                    <span className={agenda.status} data-status={row.status}>{appointmentStatusLabels[row.status]}</span>
-                    {row.status === "completed" && (
-                      <div className={agenda.outcome}>
-                        <Link className={agenda.secondary} href={`/medico/atendimento/${row.id}`} prefetch={false}
-                          aria-label={`Abrir atendimento: ${row.patient}, ${row.time}`}>Abrir atendimento</Link>
-                      </div>
-                    )}
-                    {row.status === "pending" && (
-                      <form action={recordAppointmentOutcome} className={agenda.outcome} aria-label={`Registrar resultado: ${row.patient}, ${row.time}`}>
-                        <input type="hidden" name="appointmentId" value={row.id} />
-                        <input type="hidden" name="day" value={day} />
-                        <label htmlFor={`outcome-${row.id}`}>Resultado do atendimento</label>
-                        <select id={`outcome-${row.id}`} name="outcome" defaultValue="" required>
-                          <option value="" disabled>Selecione o resultado</option>
-                          <option value="completed">Atendida</option>
-                          <option value="no_show">Paciente faltou</option>
-                        </select>
-                        <button type="submit">Registrar resultado</button>
-                      </form>
-                    )}
-                  </>,
-                }))} />}
-              </>}
-            {(data?.length ?? 0) > 200 && <p>Exibindo as primeiras 200 consultas do dia.</p>}
           </section>
+
+          {typeof resultado === "string" && Object.hasOwn(messages, resultado) &&
+            <p className={resultado === "salvo" ? agenda.feedbackOk : agenda.feedbackError}
+              role={resultado === "salvo" ? "status" : "alert"}>
+              <Icon name={resultado === "salvo" ? "check" : "alert"} size={18} />
+              {messages[resultado]}
+            </p>}
+
+          {!day ? <p className={agenda.feedbackError} role="alert"><Icon name="alert" size={18} /> Escolha uma data válida.</p>
+            : error ? <p className={agenda.feedbackError} role="alert"><Icon name="alert" size={18} /> Não foi possível carregar a agenda. Tente novamente.</p>
+            : <>
+              <dl className={agenda.summary} aria-label="Resumo de consultas da data">
+                {filters.map(([value, label]) => <div key={value} className={agenda.summaryItem} data-status={value}>
+                  <dt>{label}</dt><dd>{counts[value]}</dd>
+                </div>)}
+              </dl>
+
+              <section className={agenda.agendaSection} aria-labelledby="doctor-agenda-heading">
+                {rows.length === 0 ? <>
+                  <div className={agenda.sectionTitle}>
+                    <div>
+                      <h2 id="doctor-agenda-heading">Consultas do dia</h2>
+                      <p>Somente consultas vinculadas ao seu perfil.</p>
+                    </div>
+                  </div>
+                  <div className={agenda.emptyState}>
+                    <span className={agenda.iconBox}><Icon name="calendar" /></span>
+                    <h3>Nenhuma consulta nesta data</h3>
+                    <p>Sua agenda está livre neste dia.</p>
+                    {day !== today && <Link className="ui-button ui-button-secondary" href="/medico">Voltar para hoje</Link>}
+                  </div>
+                </> : <AgendaList key={`${day}:${resultado ?? ""}:${now}`} day={day} entries={rows.map((row) => ({
+                  id: row.id, patient: row.patient, specialty: row.specialty, time: row.time, status: row.status,
+                  scheduledAt: row.scheduled_at, isNext: upcoming?.id === row.id,
+                }))} />}
+                {(data?.length ?? 0) > 200 && <p className={agenda.limitNote}>Exibindo as primeiras 200 consultas do dia.</p>}
+              </section>
+            </>}
         </div>
       </main>
     </StaffShell>

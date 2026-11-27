@@ -1,8 +1,9 @@
 # Roteiro de demonstração da N2 — AgendaSaúde
 
 Preparado por Sandro para o card **Preparar demonstração da N2**.
-Atualizado em 26/11/2026 com os painéis da secretaria e do médico, o login
-único por perfil e os dados de demonstração preparados em produção.
+Atualizado em 27/11/2026 para incluir as correções móveis da PR #55 e o
+novo visual das áreas do paciente e da equipe nas PRs #58–#61, mantendo os
+dados fictícios e os limites de validação.
 Este roteiro organiza a apresentação da versão disponível; não certifica
 funcionalidades ainda não validadas.
 
@@ -17,6 +18,11 @@ funcionalidades ainda não validadas.
 - [PR #48: painel da secretaria](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/48)
 - [PR #49: painel do médico](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/49)
 - [PR #50: login único e botão Sair](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/50)
+- [PR #55: menu móvel, layout e mensagens de confirmação](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/55)
+- [PR #58: novo visual do paciente](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/58)
+- [PR #59: novo visual administrativo e moldura da equipe](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/59)
+- [PR #60: novo visual médico](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/60)
+- [PR #61: novo visual da secretaria](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/61)
 - [Evidências do ensaio local de 26/11](evidencias-ensaio-local-26nov.md)
 - [Reforço de segurança e avisos do Supabase](reforco-seguranca.md)
 
@@ -24,9 +30,12 @@ A execução acima validou a base `3ccc737`: 128 testes Node/PGlite,
 28 execuções de navegador (14 cenários em duas configurações) e build.
 A Vercel foi conferida como READY nessa base.
 
-Em 26/11/2026 a `main` estava em `4200c40`, com as PRs #48 a #53. Antes de
-apresentar, confirmar na Vercel que o deployment de produção está READY no
-commit atual da `main`.
+O registro de 26/11/2026 usava a `main` em `4200c40`, com as PRs #48 a
+#53. As PRs #54–#61 foram integradas depois daquele marco; as quatro últimas
+redesenharam as telas sem novas migrações. O
+[CI da PR #61](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45925186200)
+passou. Antes de apresentar, confirmar na Vercel o deployment de produção
+READY no commit atual da `main` e ensaiar o novo visual com Auth real.
 
 ## Dados de demonstração em produção
 
@@ -69,11 +78,11 @@ as datas acima ou filtrar a agenda por situação.
 | --- | --- | --- |
 | 1 min | Home e especialidades | O problema é organizar consultas e disponibilidade de profissionais. A interface foi feita com Next.js; persistência e autenticação usam Supabase. |
 | 1 min | Login único | Uma tela `/login` para os quatro perfis. O sistema consulta o papel no banco pelo ID da sessão e abre o painel do perfil; não usa o texto do e-mail. |
-| 2 min | Paciente: agendar e acompanhar | Selecionar especialidade, profissional, data e horário livre. Mostrar Meus agendamentos e o aviso no sino. Explicar que o banco confere conflitos de novo ao confirmar. |
-| 2 min | Secretaria (Sofia Demo) | Agenda da clínica por data e situação. Mostrar a consulta da paciente; remarcar oferecendo só horários livres ou cancelar com confirmação. |
-| 2 min | Médica (Dra. Ana Demo) | Somente a própria agenda. Consulta que já passou aparece como Aguardando registro; marcar Atendida, salvar a anotação e, se ensaiado, anexar um exame fictício. |
+| 2 min | Paciente: agendar e acompanhar | Mostrar os passos do novo agendamento, a revisão antes de confirmar, a próxima consulta no início, Meus agendamentos e o aviso no sino. Explicar que o banco confere conflitos novamente. |
+| 2 min | Secretaria (Sofia Demo) | Mostrar a agenda com filtros, o novo agendamento em cinco passos e a remarcação com resumo De → Para; cancelar somente com confirmação. |
+| 2 min | Médica (Dra. Ana Demo) | Mostrar a agenda redesenhada e a confirmação para registrar Atendida/Falta; salvar anotações e, se ensaiado, anexar exame fictício. |
 | 1 min | Resultado nos outros perfis | A paciente vê Atendida no histórico, sem anotações nem exames do médico. |
-| 1 min | Administração | Equipe com vínculos ativos e inativos, especialidades, grade de horários e pacientes. Não alterar contas reais. |
+| 1 min | Administração | Mostrar a nova visão geral, equipe, especialidades, pacientes, horários e janelas da agenda. Não alterar contas reais. |
 | 1 min | Acesso por perfil | Com a secretaria, digitar `/medico`: o sistema volta para a área dela. Clicar em Sair e tentar voltar: pede login de novo. |
 | 1 min | Testes e evidências | Checks do GitHub Actions e o documento de evidências do ensaio local de 26/11. |
 
@@ -121,12 +130,13 @@ PR correspondente. Não atribuir a uma pessoa todo o código ou a suíte da equi
 
 ## Pendências que não devem ser escondidas
 
-- Na tela de celular, a área do paciente corta o botão Sair e o painel de
-  administração fica mais largo que a tela. Apresentar em desktop. A correção
-  está prevista na melhoria de layout.
-- O link de confirmação de cadastro pode mostrar que não foi possível verificar
-  o link, mesmo com a conta confirmada, quando aberto em outro navegador.
-  A conta funciona; a mensagem precisa ser revista.
+- As PRs #55 e #58–#61 mudaram menus, cabeçalhos, cartões e formulários da
+  área do paciente e da equipe. É necessário validar o layout, as operações e
+  o botão Sair no site publicado e em celular físico, mesmo com o CI aprovado.
+- A PR #55 também passou a explicar a possível falha de confirmação quando
+  o link é aberto em navegador diferente, além de diferenciar recuperação de
+  senha. O código PKCE ainda depende do navegador de origem; testar os links
+  reais antes da apresentação.
 - Notificações são avisos internos no sino; não há envio de e-mail, SMS ou push
   sobre consultas.
 - Não há convite de funcionários pelo painel: a conta é criada no Supabase Auth

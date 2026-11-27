@@ -1,6 +1,6 @@
 # Documentação técnica — AgendaSaúde N2
 
-Atualizada em 26/11/2026 com base na `main` em `80e52b2`, após as PRs #48–#50. Os resultados de Supabase, Vercel e GitHub Actions descrevem o estado observado nessa data, sem substituir testes manuais com Auth real.
+Atualizada documentalmente em 27/11/2026 com as entregas integradas até a PR #61. Os workflows de PRs #58–#61 passaram; a checagem anterior de Supabase e Vercel foi feita em 26/11 na base `80e52b2`, antes do redesenho das telas.
 
 ## Objetivo e modos de execução
 
@@ -268,15 +268,74 @@ Conferir também URLs, e-mail e configurações de segurança do ambiente com a 
 Esta atualização não altera a flag de Auth. Merge, READY e testes de banco isolado
 não substituem o roteiro com autenticação real.
 
+## Mudanças integradas após a checagem de 26/11
+
+- As [evidências do ensaio local](evidencias-ensaio-local-26nov.md)
+  (PR #52) registram testes com contas fictícias no Supabase **local**:
+  agendamento e disputa de horário, operações da secretaria, atendimento e
+  exames pelo médico, isolamento por perfil e verificação em celular emulado.
+  São resultados manuais locais, não uma homologação do ambiente online.
+- A [revisão dos avisos de segurança](reforco-seguranca.md) (PR #53)
+  documentou a leitura das 22 migrações e os avisos sobre funções privilegiadas,
+  tabelas bloqueadas por RLS sem políticas e proteção contra senhas vazadas.
+  Essa entrega não alterou permissões nem configuração do Supabase.
+- O [roteiro da demonstração](roteiro-demonstracao-n2.md) foi atualizado
+  (PR #54) com os painéis, contas fictícias e limites do ensaio.
+- A [PR #55](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/55)
+  mudou o layout em telas de até 700 px: menu lateral do paciente agora abre
+  pelo botão de menu, fecha ao selecionar uma rota, tocar fora ou pressionar Esc;
+  barra superior e cartões se adaptam à largura. No painel administrativo,
+  cabeçalho e blocos receberam ajustes para não ultrapassar a tela.
+- A mesma PR direcionou o botão **Voltar ao início** da confirmação de consulta
+  ao `/dashboard` e separou as mensagens de falha na confirmação da conta e na
+  recuperação de senha. A troca do código PKCE continua dependente do navegador
+  onde o pedido foi iniciado; mensagem explicativa não garante entrega do e-mail
+  nem a conclusão do fluxo.
+- O cenário Playwright do paciente em modo de demonstração foi adaptado para
+  abrir o menu em telas pequenas. **Não houve reexecução dos testes ou
+  conferência do deploy nesta atualização documental.**
+
+### Novo visual das áreas do sistema — PRs #58 a #61
+
+- [PR #58](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/58):
+  aplica o visual do protótipo à área do paciente, incluindo início com próxima
+  consulta e ações de remarcar/cancelar, agendamento por etapas com revisão,
+  lista por situação, confirmação de cancelamento, perfil e menu no celular.
+  Acrescenta componentes de diálogo/ícones e teste de formatação de data civil.
+- [PR #59](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/59):
+  introduz moldura visual compartilhada para administração, médico e secretaria,
+  com navegação lateral, menu móvel e confirmação de saída. Redesenha as telas
+  administrativas de equipe, especialidades, pacientes, agenda e horários,
+  incluindo janelas de operações e horários já reservados indisponíveis.
+- [PR #60](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/60):
+  redesenha a agenda médica em cartões, o resumo do dia, a confirmação para
+  registrar atendimento ou falta e a tela clínica de anotações, histórico e
+  exames. O registro clínico continua exigindo salvamento explícito.
+- [PR #61](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/61):
+  redesenha a secretaria com filtros e busca na agenda, remarcação que compara
+  **De → Para**, cancelamento confirmado e novo agendamento em cinco passos,
+  com escolha de paciente/médico, horário livre, revisão e tela de sucesso.
+
+Essas quatro PRs modificaram interfaces e testes, **sem novas migrações SQL**.
+Os respectivos workflows **Testes e build** concluíram com sucesso, inclusive
+o [da PR #61](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45925186200).
+O teste automatizado de navegador usa modo de demonstração; resta ensaiar as
+interfaces novas com Auth real, dados fictícios e o site efetivamente publicado.
+Não foram reexecutados testes locais nesta revisão documental.
+
 ## Pendências e manutenção
 
-Os painéis de médico e secretaria e o login unificado já estão na `main` pelas PRs
-#48–#50. Permanecem pendentes de validação os fluxos com Auth real desses perfis,
-o envio de e-mails, a experiência em celular físico e os critérios completos do
-backlog (como grade semanal recorrente, módulo de serviços e demais cadastros).
-Revisar os avisos atuais do Supabase antes de usar dados reais: três tabelas com
-RLS sem políticas, duas RPCs administrativas `SECURITY DEFINER` disponíveis a
-`authenticated` e a proteção contra senhas vazadas desabilitada. Os avisos não
+Os painéis de médico e secretaria e o login unificado estão na `main` pelas PRs
+#48–#50. Depois da PR #55, as PRs #58–#61 redesenharam as áreas do paciente,
+da administração, do médico e da secretaria. A interface e as operações reais
+em celular físico e no deploy de produção ainda precisam de conferência.
+Permanecem pendentes de validação os fluxos com Auth real desses perfis, o envio
+de e-mails e os critérios completos do backlog (como grade semanal recorrente,
+módulo de serviços e demais cadastros).
+Revisar os avisos atuais do Supabase antes de usar dados reais: tabelas com RLS
+sem políticas, funções `SECURITY DEFINER` executáveis por `authenticated` e a
+proteção contra senhas vazadas desabilitada, conforme
+[revisão de segurança](reforco-seguranca.md). Os avisos não
 comprovam que exista exploração ou acesso indevido; devem ser avaliados pela equipe.
 Não marcar um card inteiro como concluído pela entrega de uma parte.
 

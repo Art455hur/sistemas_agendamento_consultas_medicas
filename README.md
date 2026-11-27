@@ -6,6 +6,12 @@ O **AgendaSaúde** é um projeto acadêmico desenvolvido na disciplina de Progra
 
 A aplicação tem como objetivo facilitar o acesso a profissionais da saúde, permitindo que pacientes consultem especialidades, escolham horários e gerenciem seus agendamentos em uma interface simples e navegável.
 
+## Acessar o AgendaSaúde
+
+**Aplicação publicada na Vercel:** [Abrir AgendaSaúde](https://sistemas-agendamento-consultas-medi.vercel.app/).
+
+Esse é o endereço de produção. As versões de prévia das PRs podem ter URLs diferentes; consulte o [guia de publicação](docs/publicacao-n2.md) para conferir o deployment.
+
 ## Problema
 
 Pacientes podem enfrentar dificuldades para:

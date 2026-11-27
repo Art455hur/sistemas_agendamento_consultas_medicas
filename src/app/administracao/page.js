@@ -5,14 +5,8 @@ import { appointmentDisplayStatus, appointmentStatusLabels, clinicDateTime } fro
 import { createClient } from "@/lib/supabase/server";
 import AdminCreateAppointmentForm from "@/app/administracao/AdminCreateAppointmentForm";
 import StaffManager from "@/app/administracao/StaffManager";
-import {
-  createSpecialty,
-  cancelAdminAppointment,
-  deactivateSpecialty,
-  reactivateSpecialty,
-  rescheduleAdminAppointment,
-  updateSpecialty,
-} from "@/app/administracao/actions";
+import SpecialtyManager from "@/app/administracao/SpecialtyManager";
+import { cancelAdminAppointment, rescheduleAdminAppointment } from "@/app/administracao/actions";
 import styles from "@/app/administracao/page.module.css";
 import StaffShell from "@/components/layout/StaffShell.js";
 import Icon from "@/components/ui/Icon.js";
@@ -52,9 +46,9 @@ const feedback = {
 
 const sections = {
   geral: { eyebrow: "PAINEL ADMINISTRATIVO", title: "Visão geral", description: "Acesse as principais tarefas da clínica." },
-  agenda: { eyebrow: "CONSULTAS", title: "Agenda da clínica", description: "Agende, consulte, remarque ou cancele consultas." },
-  equipe: { eyebrow: "PROFISSIONAIS", title: "Equipe da clínica", description: "Gerencie os vínculos dos médicos e da secretaria." },
-  especialidades: { eyebrow: "CATÁLOGO", title: "Especialidades", description: "Cadastre e organize as especialidades da clínica." },
+  agenda: { eyebrow: "OPERAÇÃO DA CLÍNICA", title: "Agenda da clínica", description: "Acompanhe e organize os atendimentos." },
+  equipe: { eyebrow: "GESTÃO DA CLÍNICA", title: "Equipe da clínica", description: "Gerencie vínculos de médicos e secretárias." },
+  especialidades: { eyebrow: "GESTÃO DA CLÍNICA", title: "Especialidades", description: "Organize as áreas de atendimento disponíveis." },
 };
 
 function selectedDay(value) {
@@ -150,6 +144,8 @@ export default async function AdministracaoPage({ searchParams }) {
     day ? supabase.rpc("admin_list_appointments", { p_day: day }) : Promise.resolve({ data: null, error: null }),
   ]);
   const activeSpecialties = specialties?.filter((specialty) => specialty.active) ?? [];
+  // Muda a cada resposta do servidor: após salvar, a janela aberta é fechada e a lista recomeça.
+  const renderKey = `${resultado ?? ""}:${Date.now()}`;
   const appointments = agendaResult.data || [];
   const today = clinicDateTime(new Date()).date;
   const maxDate = new Date(`${today}T12:00:00Z`);
@@ -237,61 +233,19 @@ export default async function AdministracaoPage({ searchParams }) {
             </section>
           </>}
 
-          {section === "especialidades" && <section id="especialidades" className={styles.specialtySection} aria-labelledby="specialties-heading">
-            <div className={styles.sectionHeading}>
-              <div>
-                <h2 id="specialties-heading">Especialidades</h2>
-                <p>Cadastre, renomeie, desative ou reative especialidades disponíveis na clínica.</p>
-              </div>
-              <span>{specialties?.length ?? 0} cadastradas</span>
-            </div>
+          {section === "especialidades" && <section id="especialidades" className={styles.specialtySection} aria-label="Especialidades">
             {specialtyError ? (
               <p role="alert" className={styles.feedback}>Não foi possível carregar as especialidades. Aplique a migration deste card antes de testar a tela.</p>
             ) : (
-              <div className={styles.specialtyList}>
-                {specialties?.map((specialty) => (
-                  <div className={styles.specialtyRow} key={specialty.id}>
-                    <form action={updateSpecialty} className={styles.specialtyEditForm}>
-                      <input type="hidden" name="specialtyId" value={specialty.id} />
-                      <label className={styles.srOnly} htmlFor={`specialty-${specialty.id}`}>Nome da especialidade</label>
-                      <input id={`specialty-${specialty.id}`} name="name" type="text" minLength={2} maxLength={120} required defaultValue={specialty.name} />
-                      <button type="submit">Salvar</button>
-                    </form>
-                    <span className={specialty.active ? styles.active : styles.inactive}>{specialty.active ? "Ativa" : "Inativa"}</span>
-                    <form action={specialty.active ? deactivateSpecialty : reactivateSpecialty}>
-                      <input type="hidden" name="specialtyId" value={specialty.id} />
-                      <button className={specialty.active ? styles.deactivate : styles.reactivate} type="submit">
-                        {specialty.active ? "Desativar" : "Reativar"}
-                      </button>
-                    </form>
-                  </div>
-                ))}
-                {specialties?.length === 0 && <p>Ainda não há especialidades cadastradas.</p>}
-              </div>
+              <SpecialtyManager key={renderKey} specialties={specialties || []} />
             )}
-            <form action={createSpecialty} className={styles.specialtyCreateForm}>
-              <div>
-                <label htmlFor="new-specialty">Nova especialidade</label>
-                <input id="new-specialty" name="name" type="text" minLength={2} maxLength={120} required placeholder="Ex.: Cardiologia" />
-              </div>
-              <button type="submit">Cadastrar especialidade</button>
-            </form>
-            <p className={styles.staffHint}>Desativar não apaga consultas antigas. Médicos de uma especialidade inativa deixam de aparecer para novos agendamentos até a reativação.</p>
           </section>}
 
-          {section === "equipe" && <section id="equipe" className={styles.staffSection} aria-labelledby="staff-heading">
-            <div className={styles.sectionHeading}>
-              <div>
-                <h2 id="staff-heading">Equipe do Hospital Sapiens</h2>
-                <p>Vincule contas existentes e selecione uma especialidade ativa para médicos.</p>
-              </div>
-              <span>{staff?.length ?? 0} vínculos</span>
-            </div>
-
+          {section === "equipe" && <section id="equipe" className={styles.staffSection} aria-label="Equipe">
             {staffError ? (
               <p role="alert" className={styles.feedback}>Não foi possível carregar a equipe. Verifique se a migration de permissões foi aplicada.</p>
             ) : (
-              <StaffManager staff={staff || []} specialties={activeSpecialties} canEdit={!specialtyError} />
+              <StaffManager key={renderKey} staff={staff || []} specialties={activeSpecialties} canEdit={!specialtyError} />
             )}
           </section>}
 

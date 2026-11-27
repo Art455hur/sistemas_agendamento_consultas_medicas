@@ -37,7 +37,7 @@ O build gera a pasta `dist`, que não deve ser versionada. Colocar o código no 
 
 - O formulário valida os campos e prepara um e-mail por `mailto:`. O visitante precisa concluir o envio no próprio aplicativo de e-mail.
 - O site não envia nem armazena mensagens em um backend.
-- Os links do protótipo e do repositório do AgendaSaúde foram mantidos. Não há link público da aplicação AgendaSaúde nesta versão.
+- O botão **Acessar AgendaSaúde** abre o [site em produção](https://sistemas-agendamento-consultas-medi.vercel.app/) em uma nova aba, tanto no destaque do projeto quanto na janela de detalhes. Os links do protótipo e do repositório continuam disponíveis.
 
 ## Origem dos arquivos
 

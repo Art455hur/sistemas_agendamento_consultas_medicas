@@ -6,6 +6,8 @@ import { getBookingDoctors } from "@/features/appointments/services/appointments
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import PatientShell from "@/components/layout/PatientShell.js";
 import DashboardData from "@/features/appointments/components/DashboardData.js";
+import Icon from "@/components/ui/Icon.js";
+import { useSavedProfile } from "@/features/profile/hooks/useSavedProfile.js";
 
 const demoSpecialties = [
   {
@@ -146,141 +148,83 @@ export default function Dashboard() {
       ? doctors
       : doctors.slice(0, 3);
 
+  const profile = useSavedProfile();
+  const firstName = profile.name && profile.name !== "Usuário" ? profile.name.trim().split(/\s+/)[0] : "";
+
   return (
     <PatientShell title="Início" activePath="/dashboard">
-
-        <header className="dashboard-header">
+      <div className="ph-page ph-home">
+        <header className="ph-heading">
           <div>
-            <h1>
-              Olá, seja bem-vindo! 👋
-            </h1>
-
-            <p>
-              Encontre especialistas e agende sua próxima
-              consulta.
-            </p>
+            <p className="ph-eyebrow">Área do paciente</p>
+            <h1>{firstName ? `Olá, ${firstName}` : "Olá!"}</h1>
+            <p>Cuide da sua saúde com tranquilidade.</p>
           </div>
-
-          <Link
-            href="/agendar"
-            className="dashboard-schedule-button"
-          >
-            + Agendar consulta
+          <Link href="/agendar" className="ui-button ui-button-primary ph-heading-action">
+            Agendar consulta <Icon name="arrow" size={18} />
           </Link>
         </header>
 
         <DashboardData />
-        {catalogLoading && <p role="status">Carregando profissionais...</p>}
-        {catalogError && <p role="alert">{catalogError}</p>}
-        {realBooking && !catalogLoading && !catalogError && catalog.length === 0 && <p>Nenhum profissional disponível no momento. Entre em contato com a clínica.</p>}
 
-        <section className="dashboard-section">
-          <div className="section-title">
-            <h2>Especialidades</h2>
-
-            <button
-              type="button"
-              className="view-all-link"
-              onClick={() =>
-                setShowAllSpecialties(
-                  (currentValue) =>
-                    !currentValue
-                )
-              }
-            >
-              {showAllSpecialties
-                ? "Ver menos"
-                : "Ver todas"}
-            </button>
-          </div>
-
-          <div className="specialties">
-            {visibleSpecialties.map(
-              (specialty) => (
-                <Link
-                  key={specialty.name}
-                  href={`/agendar?especialidade=${encodeURIComponent(
-                    specialty.name
-                  )}`}
-                  className="specialty-card"
-                >
-                  <span>
-                    {specialty.icon}
-                  </span>
-
-                  <strong>
-                    {specialty.name}
-                  </strong>
-
-                  <small>
-                    {specialty.total} especialistas
-                  </small>
-                </Link>
-              )
+        <section className="ph-section" aria-labelledby="especialidades">
+          <div className="ph-section-heading">
+            <div>
+              <p className="ph-eyebrow">Atendimento</p>
+              <h2 id="especialidades">Especialidades</h2>
+            </div>
+            {specialties.length > 4 && (
+              <button type="button" className="ph-link-button" onClick={() => setShowAllSpecialties((value) => !value)}>
+                {showAllSpecialties ? "Ver menos" : "Ver todas"}
+              </button>
             )}
+          </div>
+          {catalogLoading && <p className="ph-status" role="status">Carregando profissionais...</p>}
+          {catalogError && <p className="ph-status ph-status-error" role="alert">{catalogError}</p>}
+          {realBooking && !catalogLoading && !catalogError && catalog.length === 0 && (
+            <p className="ph-status">Nenhum profissional disponível no momento. Entre em contato com a clínica.</p>
+          )}
+          <div className="ph-specialties">
+            {visibleSpecialties.map((specialty) => (
+              <Link
+                key={specialty.name}
+                href={`/agendar?especialidade=${encodeURIComponent(specialty.name)}`}
+                className="ph-card ph-specialty"
+              >
+                <span className="ph-soft-icon" aria-hidden="true">{specialty.name.trim()[0]}</span>
+                <strong>{specialty.name}</strong>
+                <small>{specialty.total} {specialty.total === 1 ? "especialista" : "especialistas"}</small>
+              </Link>
+            ))}
           </div>
         </section>
 
-        <section className="dashboard-section">
-          <div className="section-title">
-            <h2>
-              Especialistas disponíveis
-            </h2>
-
-            <button
-              type="button"
-              className="view-all-link"
-              onClick={() =>
-                setShowAllDoctors(
-                  (currentValue) =>
-                    !currentValue
-                )
-              }
-            >
-              {showAllDoctors
-                ? "Ver menos"
-                : "Ver todos"}
-            </button>
+        <section className="ph-section" aria-labelledby="especialistas">
+          <div className="ph-section-heading">
+            <div>
+              <p className="ph-eyebrow">Equipe</p>
+              <h2 id="especialistas">Especialistas disponíveis</h2>
+            </div>
+            {doctors.length > 3 && (
+              <button type="button" className="ph-link-button" onClick={() => setShowAllDoctors((value) => !value)}>
+                {showAllDoctors ? "Ver menos" : "Ver todos"}
+              </button>
+            )}
           </div>
-
-          <div className="doctors">
+          <div className="ph-doctors">
             {visibleDoctors.map((doctor) => {
-              const bookingParameters =
-                new URLSearchParams({
-                  especialidade:
-                    doctor.specialty,
-                  profissional: doctor.id || doctor.name,
-                });
-
+              const bookingParameters = new URLSearchParams({
+                especialidade: doctor.specialty,
+                profissional: doctor.id || doctor.name,
+              });
               return (
-                <div
-                  className="doctor-card"
-                  key={doctor.id || doctor.name}
-                >
-                  <div className="doctor-avatar">
-                    {doctor.initials}
+                <div className="ph-card ph-doctor" key={doctor.id || doctor.name}>
+                  <span className="ph-avatar" aria-hidden="true">{doctor.initials}</span>
+                  <div>
+                    <strong>{doctor.name}</strong>
+                    <small>{doctor.specialty}</small>
                   </div>
-
-                  <div className="doctor-info">
-                    <strong>
-                      {doctor.name}
-                    </strong>
-
-                    <p>
-                      {doctor.specialty}
-                    </p>
-
-                    {doctor.rating && <span className="doctor-rating">⭐ {doctor.rating}</span>}
-
-                    <small className="doctor-availability">
-                      {doctor.availability}
-                    </small>
-                  </div>
-
-                  <Link
-                    href={`/agendar?${bookingParameters.toString()}`}
-                    className="doctor-schedule"
-                  >
+                  <Link href={`/agendar?${bookingParameters.toString()}`} className="ui-button ui-button-secondary">
                     Agendar
                   </Link>
                 </div>
@@ -288,6 +232,7 @@ export default function Dashboard() {
             })}
           </div>
         </section>
+      </div>
     </PatientShell>
   );
 }

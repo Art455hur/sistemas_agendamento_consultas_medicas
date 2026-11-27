@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { formatPhone, formatCpf } from "../src/shared/formatting/patient-fields.js";
-import { formatDate } from "../src/shared/formatting/date.js";
+import { formatDate, formatLongDate } from "../src/shared/formatting/date.js";
 
 test("telefone mantém digitação parcial, telefone fixo e celular", () => {
   for (const [input, expected] of [
@@ -27,4 +27,11 @@ test("data civil mantém o mesmo dia sem conversão de fuso", () => {
   assert.equal(formatDate(""), "");
   assert.equal(formatDate(undefined), undefined);
   assert.equal(formatDate("A definir"), "A definir");
+});
+
+test("data por extenso usa o dia civil, em minúsculas e sem depender do fuso", () => {
+  assert.deepEqual(formatLongDate("2026-11-27"), { weekday: "sexta-feira", dayMonth: "27 de novembro", year: "2026" });
+  assert.deepEqual(formatLongDate("2026-12-04"), { weekday: "sexta-feira", dayMonth: "4 de dezembro", year: "2026" });
+  assert.equal(formatLongDate("27/11/2026"), null);
+  assert.equal(formatLongDate(""), null);
 });

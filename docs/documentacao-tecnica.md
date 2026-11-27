@@ -1,6 +1,6 @@
 # Documentação técnica — AgendaSaúde N2
 
-Atualizada documentalmente em 27/11/2026 com as entregas integradas até a PR #55. A checagem anterior de Supabase, Vercel e GitHub Actions foi feita em 26/11 na base `80e52b2`; ela não comprova a publicação ou os testes manuais dos ajustes posteriores.
+Atualizada documentalmente em 27/11/2026 com as entregas integradas até a PR #61. Os workflows de PRs #58–#61 passaram; a checagem anterior de Supabase e Vercel foi feita em 26/11 na base `80e52b2`, antes do redesenho das telas.
 
 ## Objetivo e modos de execução
 
@@ -295,11 +295,40 @@ não substituem o roteiro com autenticação real.
   abrir o menu em telas pequenas. **Não houve reexecução dos testes ou
   conferência do deploy nesta atualização documental.**
 
+### Novo visual das áreas do sistema — PRs #58 a #61
+
+- [PR #58](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/58):
+  aplica o visual do protótipo à área do paciente, incluindo início com próxima
+  consulta e ações de remarcar/cancelar, agendamento por etapas com revisão,
+  lista por situação, confirmação de cancelamento, perfil e menu no celular.
+  Acrescenta componentes de diálogo/ícones e teste de formatação de data civil.
+- [PR #59](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/59):
+  introduz moldura visual compartilhada para administração, médico e secretaria,
+  com navegação lateral, menu móvel e confirmação de saída. Redesenha as telas
+  administrativas de equipe, especialidades, pacientes, agenda e horários,
+  incluindo janelas de operações e horários já reservados indisponíveis.
+- [PR #60](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/60):
+  redesenha a agenda médica em cartões, o resumo do dia, a confirmação para
+  registrar atendimento ou falta e a tela clínica de anotações, histórico e
+  exames. O registro clínico continua exigindo salvamento explícito.
+- [PR #61](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/61):
+  redesenha a secretaria com filtros e busca na agenda, remarcação que compara
+  **De → Para**, cancelamento confirmado e novo agendamento em cinco passos,
+  com escolha de paciente/médico, horário livre, revisão e tela de sucesso.
+
+Essas quatro PRs modificaram interfaces e testes, **sem novas migrações SQL**.
+Os respectivos workflows **Testes e build** concluíram com sucesso, inclusive
+o [da PR #61](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45925186200).
+O teste automatizado de navegador usa modo de demonstração; resta ensaiar as
+interfaces novas com Auth real, dados fictícios e o site efetivamente publicado.
+Não foram reexecutados testes locais nesta revisão documental.
+
 ## Pendências e manutenção
 
-Os painéis de médico e secretaria e o login unificado já estão na `main` pelas PRs
-#48–#50. A PR #55 acrescentou melhorias de navegação e layout móvel, mas sua
-experiência em celular físico e no deploy de produção ainda precisa de conferência.
+Os painéis de médico e secretaria e o login unificado estão na `main` pelas PRs
+#48–#50. Depois da PR #55, as PRs #58–#61 redesenharam as áreas do paciente,
+da administração, do médico e da secretaria. A interface e as operações reais
+em celular físico e no deploy de produção ainda precisam de conferência.
 Permanecem pendentes de validação os fluxos com Auth real desses perfis, o envio
 de e-mails e os critérios completos do backlog (como grade semanal recorrente,
 módulo de serviços e demais cadastros).

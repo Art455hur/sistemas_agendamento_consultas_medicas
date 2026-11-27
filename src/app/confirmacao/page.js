@@ -1,17 +1,25 @@
 "use client";
 
-import { formatDate } from "@/shared/formatting/date.js";
-
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getAppointment } from "@/features/appointments/services/appointments.js";
 import PatientShell from "@/components/layout/PatientShell.js";
+import Icon from "@/components/ui/Icon.js";
+import { formatDate, formatLongDate } from "@/shared/formatting/date.js";
+
+function Detail({ icon, title, text }) {
+  return (
+    <div className="ph-detail">
+      <span aria-hidden="true"><Icon name={icon} size={19} /></span>
+      <p><strong>{title}</strong><small>{text}</small></p>
+    </div>
+  );
+}
 
 export default function Confirmacao() {
-  const [appointment, setAppointment] =
-    useState(undefined);
-
+  const [appointment, setAppointment] = useState(undefined);
   const [error, setError] = useState("");
+
   useEffect(() => {
     let active = true;
     const id = new URLSearchParams(window.location.search).get("id");
@@ -20,120 +28,54 @@ export default function Confirmacao() {
     return () => { active = false; };
   }, []);
 
+  const longDate = appointment ? formatLongDate(appointment.date) : null;
+
   return (
-    <PatientShell title="Confirmação" homeHref="/">
-
-        <div className="confirmation-content">
-          {error ? <p role="alert">{error}</p> : appointment === undefined ? (
-            <section className="confirmation-card">
-              <p>Carregando confirmação...</p>
-            </section>
-          ) : appointment ? (
-            <section className="confirmation-card">
-              <div className="confirmation-icon">
-                ✓
-              </div>
-
-              <h1>
-                Consulta agendada com sucesso!
-              </h1>
-
-              <p className="confirmation-description">
-                Sua consulta foi registrada no sistema.
-                Confira os dados abaixo.
-              </p>
-
-              <div className="confirmation-details">
-                <div>
-                  <span>Especialidade</span>
-                  <strong>
-                    {appointment.specialty}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>Profissional</span>
-                  <strong>
-                    {appointment.doctor}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>Data</span>
-                  <strong>
-                    {formatDate(
-                      appointment.date
-                    )}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>Horário</span>
-                  <strong>
-                    {appointment.time}
-                  </strong>
-                </div>
-
-                {appointment.reason && (
-                  <div className="confirmation-reason">
-                    <span>
-                      Motivo da consulta
-                    </span>
-
-                    <strong>
-                      {appointment.reason}
-                    </strong>
-                  </div>
-                )}
-              </div>
-
-              <div className="confirmation-actions">
-                <Link
-                  href="/agendamentos"
-                  className="confirmation-primary"
-                >
-                  Ver meus agendamentos
-                </Link>
-
-                <Link
-                  href="/dashboard"
-                  className="confirmation-secondary"
-                >
-                  Voltar ao início
-                </Link>
-              </div>
-            </section>
-          ) : (
-            <section className="confirmation-card">
-              <div className="confirmation-icon confirmation-icon-error">
-                !
-              </div>
-
-              <h1>Consulta não encontrada</h1>
-
-              <p className="confirmation-description">
-                Não foi possível encontrar os dados
-                dessa consulta.
-              </p>
-
-              <div className="confirmation-actions">
-                <Link
-                  href="/agendar"
-                  className="confirmation-primary"
-                >
-                  Agendar consulta
-                </Link>
-
-                <Link
-                  href="/dashboard"
-                  className="confirmation-secondary"
-                >
-                  Voltar ao início
-                </Link>
-              </div>
-            </section>
-          )}
-        </div>
+    <PatientShell title="Confirmação" homeHref="/dashboard">
+      <div className="ph-page ph-result-page">
+        {error ? (
+          <p className="ph-alert ph-alert-error" role="alert"><Icon name="warning" size={18} />{error}</p>
+        ) : appointment === undefined ? (
+          <p className="ph-status" role="status">Carregando confirmação...</p>
+        ) : appointment ? (
+          <section className="ph-card ph-result">
+            <span className="ph-result-icon" aria-hidden="true"><Icon name="check" size={30} /></span>
+            <p className="ph-eyebrow">Agendamento concluído</p>
+            <h1>Consulta agendada com sucesso</h1>
+            <p>Seu horário com {appointment.doctor} foi reservado.</p>
+            <div className="ph-result-summary">
+              <Detail
+                icon="calendar"
+                title={longDate ? `${longDate.dayMonth} de ${longDate.year}` : formatDate(appointment.date)}
+                text={longDate ? longDate.weekday : "Data da consulta"}
+              />
+              <Detail icon="clock" title={appointment.time} text="Horário de Brasília" />
+              <Detail icon="pin" title="Hospital Sapiens" text={appointment.specialty} />
+            </div>
+            {appointment.reason && (
+              <p className="ph-result-reason"><strong>Motivo:</strong> {appointment.reason}</p>
+            )}
+            <div className="ph-result-actions">
+              <Link href="/agendamentos" className="ui-button ui-button-primary">
+                Ver meus agendamentos <Icon name="arrow" size={18} />
+              </Link>
+              <Link href="/dashboard" className="ui-button ui-button-secondary">
+                Voltar ao início
+              </Link>
+            </div>
+          </section>
+        ) : (
+          <section className="ph-card ph-result">
+            <span className="ph-result-icon ph-result-icon-error" aria-hidden="true"><Icon name="warning" size={30} /></span>
+            <h1>Consulta não encontrada</h1>
+            <p>Não foi possível encontrar os dados dessa consulta.</p>
+            <div className="ph-result-actions">
+              <Link href="/agendar" className="ui-button ui-button-primary">Agendar consulta</Link>
+              <Link href="/dashboard" className="ui-button ui-button-secondary">Voltar ao início</Link>
+            </div>
+          </section>
+        )}
+      </div>
     </PatientShell>
   );
 }

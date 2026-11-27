@@ -1,72 +1,135 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
+import Dialog from "@/components/ui/Dialog.js";
+import Icon from "@/components/ui/Icon.js";
 import { createClient } from "@/lib/supabase/client";
 import { cancelAppointment, rescheduleAppointment } from "./actions";
-import styles from "@/app/administracao/page.module.css";
 import desk from "./secretaria.module.css";
 
-function Submit({ children, disabled, className }) {
+const shortDate = (day) => day.split("-").reverse().join("/");
+
+function Submit({ children, pendingText, className }) {
   const { pending } = useFormStatus();
-  return <button type="submit" className={className} disabled={pending || disabled}>{pending ? "Aguarde…" : children}</button>;
+  return <button type="submit" className={className} disabled={pending}>{pending ? pendingText : children}</button>;
 }
 
-export default function AppointmentControls({ appointmentId, currentDay, currentTime, today, maxDay }) {
-  const dialog = useRef(null);
-  const titleId = useId();
-  const panelId = useId();
-  const [open, setOpen] = useState(false);
-  const [day, setDay] = useState(currentDay);
+// Remarcar: escolhe data e um horário livre do mesmo médico, revisa "De → Para" e confirma.
+function RescheduleDialog({ appointment, today, maxDay, onClose }) {
+  const [day, setDay] = useState(appointment.date);
   const [time, setTime] = useState("");
   const [result, setResult] = useState(null);
   const [revision, setRevision] = useState(0);
+  const [reviewing, setReviewing] = useState(false);
+  const validDay = Boolean(day && day >= today && day <= maxDay);
   const ready = result?.day === day && result.revision === revision;
+  const slots = ready && !result.error ? result.slots.filter((slot) => !(day === appointment.date && slot === appointment.time)) : [];
 
   useEffect(() => {
-    if (!open || !day || day < today || day > maxDay) return;
+    if (!validDay) return undefined;
     let current = true;
-    async function load() {
-      try {
-        const { data, error } = await createClient().rpc("receptionist_reschedule_slots", { p_id: appointmentId, p_day: day });
-        if (current) setResult({ day, revision, slots: (data ?? []).map(({ slot }) => slot.slice(0, 5)), error: !!error });
-      } catch {
-        if (current) setResult({ day, revision, slots: [], error: true });
-      }
-    }
-    load();
+    createClient().rpc("receptionist_reschedule_slots", { p_id: appointment.id, p_day: day })
+      .then(({ data, error }) => {
+        if (current) setResult({ day, revision, slots: (data ?? []).map(({ slot }) => slot.slice(0, 5)), error: Boolean(error) });
+      })
+      .catch(() => { if (current) setResult({ day, revision, slots: [], error: true }); });
     return () => { current = false; };
-  }, [appointmentId, day, maxDay, open, revision, today]);
+  }, [appointment.id, day, revision, validDay]);
 
-  const validDay = day && day >= today && day <= maxDay;
-  const slots = ready && !result.error ? result.slots : [];
-  return <div className={styles.appointmentActions}>
-    <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => { setTime(""); setResult(null); setOpen(!open); }}>Remarcar</button>
-    <button type="button" className={styles.deactivate} onClick={() => dialog.current.showModal()}>Cancelar consulta</button>
-    <dialog ref={dialog} className={desk.confirmDialog} aria-labelledby={titleId}>
-      <h2 id={titleId}>Cancelar esta consulta?</h2>
-      <p>A consulta de {currentDay.split("-").reverse().join("/")} às {currentTime} será registrada como cancelada no histórico.</p>
-      <form action={cancelAppointment}>
-        <input type="hidden" name="appointmentId" value={appointmentId} />
-        <input type="hidden" name="day" value={currentDay} />
-        <button type="button" autoFocus onClick={() => dialog.current.close()}>Manter consulta</button>
-        <Submit className={styles.deactivate}>Confirmar cancelamento</Submit>
-      </form>
-    </dialog>
-    <div id={panelId} hidden={!open} className={desk.reschedulePanel}>
-      {open && <form action={rescheduleAppointment}>
-        <input type="hidden" name="appointmentId" value={appointmentId} />
-        <label>Nova data<input type="date" name="day" value={day} min={today} max={maxDay} required onChange={(e) => { setTime(""); setResult(null); setDay(e.target.value); }} /></label>
-        <label>Horário disponível<select name="time" value={time} required disabled={!slots.length} onChange={(e) => setTime(e.target.value)}>
-          <option value="">Selecione</option>
-          {slots.map((slot) => <option key={slot}>{slot}</option>)}
-        </select></label>
-        <Submit disabled={!slots.includes(time)}>Confirmar remarcação</Submit>
-        {ready && result.error && <button type="button" onClick={() => setRevision(revision + 1)}>Tentar novamente</button>}
-        <p role={ready && result.error ? "alert" : "status"} className={desk.slotMessage}>
-          {!validDay ? "Escolha uma data válida." : !ready ? "Consultando horários…" : result.error ? "Não foi possível consultar os horários." : !slots.length ? "Não há outro horário disponível nesta data." : ""}
-        </p>
+  return (
+    <Dialog title="Remarcar consulta" onClose={onClose}>
+      <div className={desk.dialogPerson}>
+        <strong>{appointment.patient}</strong>
+        <span>{appointment.doctor}{appointment.specialty ? ` · ${appointment.specialty}` : ""}</span>
+      </div>
+
+      {!reviewing ? <>
+        <div className={desk.currentSlot}>
+          <span>Horário atual</span>
+          <strong>{appointment.dateLabel} às {appointment.time}</strong>
+        </div>
+        <label className={desk.field}>
+          <span>Nova data</span>
+          <input type="date" value={day} min={today} max={maxDay} required
+            onChange={(event) => { setTime(""); setDay(event.target.value); }} />
+        </label>
+        <p className={desk.slotsLabel}>Horários livres de {appointment.doctor}</p>
+        {!validDay ? <p className={desk.noTimes}><strong>Escolha uma data válida</strong><span>Entre hoje e os próximos 12 meses.</span></p>
+          : !ready ? <p className={desk.slotHint} role="status">Consultando horários...</p>
+          : result.error ? <div className={desk.noTimes} role="alert">
+            <strong>Não foi possível consultar os horários</strong>
+            <button type="button" className="ui-button ui-button-secondary" onClick={() => setRevision(revision + 1)}>
+              <Icon name="refresh" size={16} /> Tentar novamente
+            </button>
+          </div>
+          : slots.length ? <div className={desk.timeGrid}>
+            {slots.map((slot) => (
+              <button type="button" key={slot} aria-pressed={time === slot}
+                className={time === slot ? desk.timeSelected : undefined} onClick={() => setTime(slot)}>{slot}</button>
+            ))}
+          </div>
+          : <p className={desk.noTimes}><strong>Não há vagas nesta data</strong><span>Troque a data para consultar outros horários.</span></p>}
+        <div className="ui-dialog-actions">
+          <button type="button" className="ui-button ui-button-secondary" onClick={onClose}>Voltar</button>
+          <button type="button" className="ui-button ui-button-primary" disabled={!time || !slots.includes(time)}
+            onClick={() => setReviewing(true)}>Revisar alteração</button>
+        </div>
+      </> : <form action={rescheduleAppointment}>
+        <input type="hidden" name="appointmentId" value={appointment.id} />
+        <input type="hidden" name="day" value={day} />
+        <input type="hidden" name="time" value={time} />
+        <div className={desk.changeSummary}>
+          <div><span>De</span><strong>{appointment.dateLabel} às {appointment.time}</strong></div>
+          <Icon name="arrow" />
+          <div><span>Para</span><strong>{shortDate(day)} às {time}</strong></div>
+        </div>
+        <p className="ui-dialog-text">Confirme a mudança de data e horário desta consulta. O sistema confere de novo se o horário está livre.</p>
+        <div className="ui-dialog-actions">
+          <button type="button" className="ui-button ui-button-secondary" onClick={() => setReviewing(false)}>Voltar</button>
+          <Submit className="ui-button ui-button-primary" pendingText="Remarcando...">Confirmar remarcação</Submit>
+        </div>
       </form>}
+    </Dialog>
+  );
+}
+
+export default function AppointmentControls({ appointment, today, maxDay }) {
+  const [dialog, setDialog] = useState(null);
+  return (
+    <div className={desk.cardActions}>
+      <button type="button" className="ui-button ui-button-secondary" onClick={() => setDialog("reschedule")}
+        aria-label={`Remarcar: ${appointment.patient}, ${appointment.time}`}>
+        <Icon name="edit" size={16} /> Remarcar
+      </button>
+      <button type="button" className={desk.dangerLink} onClick={() => setDialog("cancel")}
+        aria-label={`Cancelar consulta: ${appointment.patient}, ${appointment.time}`}>
+        Cancelar consulta
+      </button>
+
+      {dialog === "reschedule" && (
+        <RescheduleDialog appointment={appointment} today={today} maxDay={maxDay} onClose={() => setDialog(null)} />
+      )}
+
+      {dialog === "cancel" && (
+        <Dialog title="Cancelar esta consulta?" onClose={() => setDialog(null)}>
+          <p className="ui-dialog-text">A consulta continua agendada até você confirmar. O histórico é preservado.</p>
+          <div className={desk.cancelInfo}>
+            <span>Paciente<strong>{appointment.patient}</strong></span>
+            <span>Data e hora<strong>{appointment.dateLabel} às {appointment.time}</strong></span>
+          </div>
+          <form action={cancelAppointment}>
+            <input type="hidden" name="appointmentId" value={appointment.id} />
+            <input type="hidden" name="day" value={appointment.date} />
+            <div className="ui-dialog-actions">
+              <button type="button" className="ui-button ui-button-secondary" onClick={() => setDialog(null)} data-autofocus>
+                Manter consulta
+              </button>
+              <Submit className="ui-button ui-button-danger" pendingText="Cancelando...">Sim, cancelar consulta</Submit>
+            </div>
+          </form>
+        </Dialog>
+      )}
     </div>
-  </div>;
+  );
 }

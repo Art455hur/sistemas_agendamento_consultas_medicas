@@ -12,6 +12,7 @@ import { useAppointments } from "@/features/appointments/hooks/useAppointments.j
 import { cancelAppointment as cancelSavedAppointment } from "@/features/appointments/services/appointments.js";
 import PatientShell from "@/components/layout/PatientShell.js";
 import Dialog from "@/components/ui/Dialog.js";
+import Icon from "@/components/ui/Icon.js";
 import { formatDate } from "@/shared/formatting/date.js";
 
 function AppointmentsContent() {
@@ -110,109 +111,68 @@ function AppointmentsContent() {
 
   return (
     <PatientShell title="Meus agendamentos" activePath="/agendamentos">
-
-        <div className="appointments-content">
-          <header className="appointments-heading">
+        <div className="ph-page ph-appointments">
+          <header className="ph-heading">
             <div>
+              <p className="ph-eyebrow">Sua agenda</p>
               <h1>Meus agendamentos</h1>
-
-              <p>
-                Acompanhe e gerencie suas consultas.
-              </p>
+              <p>Acompanhe e gerencie suas consultas.</p>
             </div>
-
-            <Link
-              href="/agendar"
-              className="new-appointment-button"
-            >
-              + Nova consulta
+            <Link href="/agendar" className="ui-button ui-button-primary ph-appointments-new">
+              Agendar consulta <Icon name="arrow" size={18} />
             </Link>
           </header>
 
-          <section className="appointments-tabs">
+          <div className="ph-tabs" role="tablist" aria-label="Situação das consultas">
             <button
               type="button"
-              className={
-                activeTab === "scheduled"
-                  ? "appointments-tab active"
-                  : "appointments-tab"
-              }
-              onClick={() =>
-                setActiveTab("scheduled")
-              }
+              role="tab"
+              aria-selected={activeTab === "scheduled"}
+              className={activeTab === "scheduled" ? "active" : undefined}
+              onClick={() => setActiveTab("scheduled")}
             >
-              Próximas
-              <span>
-                {scheduledAppointments.length}
-              </span>
+              Próximas <span>{scheduledAppointments.length}</span>
             </button>
-
             <button
               type="button"
-              className={
-                activeTab === "completed"
-                  ? "appointments-tab active"
-                  : "appointments-tab"
-              }
-              onClick={() =>
-                setActiveTab("completed")
-              }
+              role="tab"
+              aria-selected={activeTab === "completed"}
+              className={activeTab === "completed" ? "active" : undefined}
+              onClick={() => setActiveTab("completed")}
             >
-              Histórico
-              <span>
-                {historyAppointments.length}
-              </span>
+              Histórico <span>{historyAppointments.length}</span>
             </button>
-
             <button
               type="button"
-              className={
-                activeTab === "cancelled"
-                  ? "appointments-tab active"
-                  : "appointments-tab"
-              }
-              onClick={() =>
-                setActiveTab("cancelled")
-              }
+              role="tab"
+              aria-selected={activeTab === "cancelled"}
+              className={activeTab === "cancelled" ? "active" : undefined}
+              onClick={() => setActiveTab("cancelled")}
             >
-              Canceladas
-              <span>
-                {cancelledAppointments.length}
-              </span>
+              Canceladas <span>{cancelledAppointments.length}</span>
             </button>
-          </section>
+          </div>
 
-          {actionError && !cancelTarget && <p role="alert">{actionError}</p>}
-          {loading ? <p role="status">Carregando consultas...</p> : error ? <ErrorNotice message={error} onRetry={retry} /> : filteredAppointments.length === 0 ? (
-            <section className="empty-appointments">
-              <div>🗓️</div>
-
-              <h2>
-                {currentEmptyMessage.title}
-              </h2>
-
-              <p>
-                {currentEmptyMessage.description}
-              </p>
-
+          {actionError && !cancelTarget && <p className="ph-alert ph-alert-error" role="alert"><Icon name="warning" size={18} />{actionError}</p>}
+          {loading ? <p className="ph-status" role="status">Carregando consultas...</p> : error ? <ErrorNotice message={error} onRetry={retry} /> : filteredAppointments.length === 0 ? (
+            <section className="ph-empty-state">
+              <span className="ph-soft-icon" aria-hidden="true"><Icon name="calendar" /></span>
+              <h2>{currentEmptyMessage.title}</h2>
+              <p>{currentEmptyMessage.description}</p>
               {activeTab === "scheduled" && (
-                <Link href="/agendar">
-                  Agendar consulta
-                </Link>
+                <Link href="/agendar" className="ui-button ui-button-primary">Agendar consulta</Link>
               )}
             </section>
           ) : (
-            <section className="appointments-list">
-              {filteredAppointments.map(
-                (appointment) => (
-                  <AppointmentListItem
-                    key={appointment.id}
-                    appointment={appointment}
-                    cancelling={cancelling}
-                    onCancel={askToCancel}
-                  />
-                )
-              )}
+            <section className="ph-appointment-list">
+              {filteredAppointments.map((appointment) => (
+                <AppointmentListItem
+                  key={appointment.id}
+                  appointment={appointment}
+                  cancelling={cancelling}
+                  onCancel={askToCancel}
+                />
+              ))}
             </section>
           )}
         </div>

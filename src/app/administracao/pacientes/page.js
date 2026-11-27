@@ -2,11 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ROLES } from "@/features/auth/access-control.js";
 import { createClient } from "@/lib/supabase/server";
-import {
-  deactivatePatient,
-  reactivatePatient,
-} from "@/app/administracao/actions";
-import PatientEditForm from "./PatientEditForm";
+import PatientManager from "./PatientManager";
 import styles from "@/app/administracao/page.module.css";
 import StaffShell from "@/components/layout/StaffShell.js";
 
@@ -95,54 +91,18 @@ export default async function PacientesAdministracaoPage({ searchParams }) {
         <div className={styles.content}>
           <div className={styles.heading}>
             <div>
-              <span className={styles.eyebrow}>CRUD DE PACIENTES</span>
+              <span className={styles.eyebrow}>CADASTROS</span>
               <h1>Pacientes</h1>
-              <p>Consulte, edite, desative e reative pacientes cadastrados. Novas contas continuam sendo criadas pelo cadastro público.</p>
+              <p>Consulte e gerencie o acesso dos pacientes. Novas contas são criadas pelo cadastro do site.</p>
             </div>
-            <span className={styles.phase}>{patients?.length ?? 0} cadastrados</span>
           </div>
-
-          <section className={styles.notice} aria-label="Regra de exclusão">
-            <div className={styles.noticeIcon}>i</div>
-            <div>
-              <strong>Exclusão lógica para preservar o histórico</strong>
-              <p>Desativar um paciente não apaga a conta nem consultas antigas. Consultas futuras agendadas são canceladas e o acesso do paciente aos fluxos privados fica bloqueado até a reativação.</p>
-            </div>
-          </section>
 
           {feedback[resultado] && <p role="status" className={styles.feedback}>{feedback[resultado]}</p>}
 
           {patientsError ? (
             <p role="alert" className={styles.feedback}>Não foi possível carregar os pacientes. Aplique a migration deste card antes de testar a tela.</p>
           ) : (
-            <section className={styles.patientList} aria-label="Pacientes cadastrados">
-              {patients?.map((patient) => (
-                <article className={styles.patientCard} key={patient.id}>
-                  <div className={styles.patientHeader}>
-                    <div>
-                      <h2>{patient.full_name?.trim() || "Paciente sem nome"}</h2>
-                      <p>{patient.email}</p>
-                    </div>
-                    <span className={patient.active ? styles.active : styles.inactive}>
-                      {patient.active ? "Ativo" : "Inativo"}
-                    </span>
-                  </div>
-
-                  <PatientEditForm patient={patient} today={today} />
-
-                  <div className={styles.patientFoot}>
-                    <span>{patient.appointment_count} consulta{Number(patient.appointment_count) === 1 ? "" : "s"} no histórico</span>
-                    <form action={patient.active ? deactivatePatient : reactivatePatient}>
-                      <input type="hidden" name="patientId" value={patient.id} />
-                      <button className={patient.active ? styles.deactivate : styles.reactivate} type="submit">
-                        {patient.active ? "Desativar paciente" : "Reativar paciente"}
-                      </button>
-                    </form>
-                  </div>
-                </article>
-              ))}
-              {patients?.length === 0 && <p className={styles.agendaEmpty}>Nenhum paciente cadastrado.</p>}
-            </section>
+            <PatientManager key={`${resultado ?? ""}:${Date.now()}`} patients={patients || []} today={today} />
           )}
         </div>
       </main>

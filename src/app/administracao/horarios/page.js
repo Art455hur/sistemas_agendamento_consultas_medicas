@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resetAvailability, saveAvailability } from "./actions";
 import styles from "./page.module.css";
 import StaffShell from "@/components/layout/StaffShell.js";
+import Icon from "@/components/ui/Icon.js";
 
 export const metadata = { title: "Horários dos médicos | AgendaSaúde" };
 export const dynamic = "force-dynamic";
@@ -19,6 +20,17 @@ const messages = {
   indisponivel: "A autenticação não está ativada.",
   erro: "Não foi possível salvar. Verifique se a migração de horários já foi aplicada.",
 };
+
+const periods = [
+  { label: "Manhã", range: "08:00 às 11:30", match: (time) => time < "12:00" },
+  { label: "Tarde", range: "12:00 às 17:30", match: (time) => time >= "12:00" },
+];
+
+const dayFormat = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+
+function dayLabel(day) {
+  return dayFormat.format(new Date(`${day}T12:00:00Z`)).toUpperCase();
+}
 
 function validDay(value) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -65,46 +77,83 @@ export default async function DoctorHoursPage({ searchParams }) {
         { label: "Serviços", icon: "briefcase", disabled: true, note: "Em breve" },
       ]}>
     <main className={styles.layout}>
-      <header><span className={styles.eyebrow}>GESTÃO DA CLÍNICA</span><h1>Horários dos médicos</h1>
-        <p>Configure os horários de atendimento de cada médico para uma data. Consultas já marcadas permanecem protegidas.</p>
+      <header className={styles.heading}>
+        <span className={styles.eyebrow}>OPERAÇÃO DA CLÍNICA</span>
+        <h1>Horários dos médicos</h1>
+        <p>Configure quando cada médico está disponível. Consultas já marcadas permanecem protegidas.</p>
       </header>
       {messages[resultado] && <p className={styles.notice} role="status">{messages[resultado]}</p>}
       {staffError ? <p className={styles.notice} role="alert">Não foi possível carregar os médicos.</p> :
         doctors.length === 0 ? <p className={styles.notice}>Cadastre e ative um médico na seção Equipe antes de configurar horários.</p> : <>
-          <form className={styles.filter} method="get" action="/administracao/horarios">
+          <form className={`${styles.panel} ${styles.controls}`} method="get" action="/administracao/horarios">
             <label>Médico
               <select name="medico" defaultValue={doctor.profile_id}>
                 {doctors.map((person) => <option value={person.profile_id} key={person.profile_id}>{person.full_name || person.email}</option>)}
               </select>
             </label>
-            <label>Dia da clínica (São Paulo)
+            <label>Data
               <input name="dia" type="date" defaultValue={day} required />
             </label>
-            <button type="submit">Consultar</button>
+            <div className={styles.timezone}>
+              <Icon name="clock" size={18} />
+              <span><small>Horário da clínica</small><strong>São Paulo (UTC−3)</strong></span>
+            </div>
+            <button type="submit" className="ui-button ui-button-primary">Consultar</button>
           </form>
-          {selection.error ? <p className={styles.notice} role="alert">Não foi possível consultar horários. Confira se a migração de horários foi aplicada.</p> : <>
-            <section className={styles.panel} aria-labelledby="day-heading">
-              <h2 id="day-heading">Disponibilidade em {day.split("-").reverse().join("/")}</h2>
-              <p>{selection.data?.[0]?.customized ? "Grade personalizada para este dia." : "Grade padrão da clínica para este dia."} Desmarque horários sem atendimento; para fechar o dia, desmarque todos.</p>
+          {selection.error ? <p className={styles.notice} role="alert">Não foi possível consultar horários. Confira se a migração de horários foi aplicada.</p> : (
+            <section className={`${styles.panel} ${styles.slotsPanel}`} aria-labelledby="day-heading">
+              <div className={styles.slotsHead}>
+                <div>
+                  <span className={styles.eyebrow}>{dayLabel(day)}</span>
+                  <h2 id="day-heading">Grade de disponibilidade</h2>
+                  <p>
+                    {selection.data?.[0]?.customized ? "Grade personalizada para este dia." : "Grade padrão da clínica para este dia."}
+                    {" "}Marque os horários em que {doctor.full_name || "o médico"} atende; para fechar o dia, desmarque todos.
+                  </p>
+                </div>
+                <div className={styles.legend} aria-hidden="true">
+                  <span><i className={styles.dotAvailable} />Disponível</span>
+                  <span><i className={styles.dotUnavailable} />Sem atendimento</span>
+                  <span><i className={styles.dotOccupied} />Já agendado</span>
+                </div>
+              </div>
               <form action={saveAvailability}>
                 <input type="hidden" name="doctorId" value={doctor.profile_id} />
                 <input type="hidden" name="day" value={day} />
-                <div className={styles.slots}>
-                  {AVAILABILITY_SLOTS.map((time) => <label key={`${doctor.profile_id}-${day}-${time}`}>
-                    <input type="checkbox" name="slots" value={time} defaultChecked={selectedSlots.includes(time)} />
-                    <span>{time}</span>{booked.includes(time) && <small>Consulta agendada</small>}
-                  </label>)}
+                {periods.map((period) => (
+                  <fieldset className={styles.period} key={period.label}>
+                    <legend>{period.label} <small>{period.range}</small></legend>
+                    <div className={styles.slotGrid}>
+                      {AVAILABILITY_SLOTS.filter(period.match).map((time) => booked.includes(time) ? (
+                        <div className={`${styles.slot} ${styles.slotOccupied}`} key={`${doctor.profile_id}-${day}-${time}`}>
+                          {/* Horário ocupado continua salvo na grade; não pode ser desmarcado. */}
+                          <input type="hidden" name="slots" value={time} />
+                          <strong>{time}</strong>
+                          <span><Icon name="check" size={12} /> Já agendado</span>
+                        </div>
+                      ) : (
+                        <label className={styles.slot} key={`${doctor.profile_id}-${day}-${time}`}>
+                          <input type="checkbox" name="slots" value={time} defaultChecked={selectedSlots.includes(time)} />
+                          <strong>{time}</strong>
+                          <span className={styles.slotOn}>Disponível</span>
+                          <span className={styles.slotOff}>Sem atendimento</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                ))}
+                <div className={styles.slotActions}>
+                  <button type="submit" className="ui-button ui-button-primary">Salvar horários</button>
                 </div>
-                <button type="submit">Salvar horários</button>
               </form>
               {selection.data?.[0]?.customized && <form action={resetAvailability} className={styles.reset}>
                 <input type="hidden" name="doctorId" value={doctor.profile_id} />
                 <input type="hidden" name="day" value={day} />
-                <button type="submit">Restaurar grade padrão</button>
+                <button type="submit" className="ui-button ui-button-secondary">Restaurar grade padrão</button>
               </form>}
-              <p className={styles.hint}>Escolha horários de 30 em 30 minutos, das 08:00 às 17:30. Consultas já agendadas não são canceladas; horários ocupados precisam permanecer selecionados.</p>
+              <p className={styles.hint}>Horários de 30 em 30 minutos, das 08:00 às 17:30. Horários com consulta agendada ficam travados e não são cancelados.</p>
             </section>
-          </>}
+          )}
         </>}
     </main>
     </StaffShell>

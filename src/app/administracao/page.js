@@ -3,10 +3,9 @@ import { redirect } from "next/navigation";
 import { ROLES } from "@/features/auth/access-control.js";
 import { appointmentDisplayStatus, appointmentStatusLabels, clinicDateTime } from "@/features/appointments/appointment-format.js";
 import { createClient } from "@/lib/supabase/server";
-import AdminCreateAppointmentForm from "@/app/administracao/AdminCreateAppointmentForm";
+import { AppointmentActions, NewAppointmentButton } from "@/app/administracao/AdminAgendaDialogs";
 import StaffManager from "@/app/administracao/StaffManager";
 import SpecialtyManager from "@/app/administracao/SpecialtyManager";
-import { cancelAdminAppointment, rescheduleAdminAppointment } from "@/app/administracao/actions";
 import styles from "@/app/administracao/page.module.css";
 import StaffShell from "@/components/layout/StaffShell.js";
 import Icon from "@/components/ui/Icon.js";
@@ -50,6 +49,23 @@ const sections = {
   equipe: { eyebrow: "GESTÃO DA CLÍNICA", title: "Equipe da clínica", description: "Gerencie vínculos de médicos e secretárias." },
   especialidades: { eyebrow: "GESTÃO DA CLÍNICA", title: "Especialidades", description: "Organize as áreas de atendimento disponíveis." },
 };
+
+const longDayFormat = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+const shortDayFormat = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+
+// "Sexta-feira, 27 de novembro" (ou "27 de novembro de 2026"), sem depender do fuso do servidor.
+function longDayLabel(day, withWeekday = true) {
+  const date = new Date(`${day}T12:00:00Z`);
+  const text = (withWeekday ? longDayFormat : shortDayFormat).format(date);
+  return withWeekday ? text[0].toUpperCase() + text.slice(1) : text;
+}
+
+function statusClass(status) {
+  if (status === "Agendada") return styles.statusActive;
+  if (status === "Aguardando registro") return styles.statusWaiting;
+  if (status === "Paciente faltou" || status === "Cancelada") return styles.statusDanger;
+  return styles.statusInactive;
+}
 
 function selectedDay(value) {
   const today = clinicDateTime(new Date()).date;
@@ -249,78 +265,83 @@ export default async function AdministracaoPage({ searchParams }) {
             )}
           </section>}
 
-          {section === "agenda" && <section id="agenda" className={styles.agendaSection} aria-labelledby="agenda-heading">
-            <div className={styles.sectionHeading}>
+          {section === "agenda" && <section id="agenda" className={styles.agendaSection} aria-label="Agenda da clínica">
+            <div className={styles.sectionAction}>
+              <NewAppointmentButton
+                key={renderKey}
+                patients={bookingPatients}
+                doctors={bookingDoctors}
+                initialDay={day && day >= today ? day : today}
+                minDay={today}
+                maxDay={maxDay}
+                disabledReason={patientsError || staffError
+                  ? "Não foi possível carregar pacientes ou médicos. Confira as permissões e atualize a página."
+                  : bookingPatients.length === 0 || bookingDoctors.length === 0
+                    ? "É necessário ter ao menos um paciente e um médico ativos para agendar."
+                    : ""}
+              />
+            </div>
+            <div className={`${styles.panel} ${styles.scheduleToolbar}`}>
               <div>
-                <h2 id="agenda-heading">Agenda da clínica</h2>
-                <p>Consulte, remarque ou cancele consultas futuras do Hospital Sapiens. Os conflitos são validados novamente pelo banco.</p>
+                <span className={styles.cardKicker}>Data selecionada</span>
+                <h2>{day ? longDayLabel(day) : "Escolha uma data"}</h2>
               </div>
-              <span>Até 200 consultas por dia</span>
+              <form action="/administracao" method="get" className={styles.dateControls}>
+                <input type="hidden" name="aba" value="agenda" />
+                <Link href="/administracao?aba=agenda" className="ui-button ui-button-secondary">Hoje</Link>
+                <label className={styles.srOnly} htmlFor="agenda-day">Dia da agenda</label>
+                <input id="agenda-day" type="date" name="dia" defaultValue={day || ""} required />
+                <button type="submit" className="ui-button ui-button-primary">Consultar</button>
+              </form>
             </div>
-            <div className={styles.createAppointmentCard}>
-              <h3>Agendar para um paciente</h3>
-              <p>Selecione uma conta de paciente já criada, um médico ativo e um horário livre.</p>
-              {patientsError || staffError ? (
-                <p role="alert" className={styles.feedback}>Não foi possível carregar pacientes ou médicos. Confira as permissões e atualize a página.</p>
-              ) : bookingPatients.length === 0 || bookingDoctors.length === 0 ? (
-                <p className={styles.createAppointmentHint}>É necessário ter ao menos um paciente e um médico ativos para agendar.</p>
-              ) : (
-                <AdminCreateAppointmentForm
-                  patients={bookingPatients}
-                  doctors={bookingDoctors}
-                  initialDay={day || today}
-                  minDay={today}
-                  maxDay={maxDay}
-                />
-              )}
-            </div>
-            <form action="/administracao" method="get" className={styles.agendaFilter}>
-              <input type="hidden" name="aba" value="agenda" />
-              <label htmlFor="agenda-day">Dia da agenda</label>
-              <input id="agenda-day" type="date" name="dia" defaultValue={day || ""} required />
-              <button type="submit">Consultar</button>
-            </form>
             {!day ? (
               <p role="alert" className={styles.feedback}>Escolha uma data válida para consultar a agenda.</p>
             ) : agendaResult.error ? (
               <p role="alert" className={styles.feedback}>Não foi possível carregar a agenda. Confira se a migração de leitura administrativa foi aplicada.</p>
-            ) : appointments.length === 0 ? (
-              <p className={styles.agendaEmpty}>Nenhuma consulta encontrada neste dia.</p>
             ) : (
-              <div className={styles.agendaList}>
-                {appointments.map((appointment) => {
+              <div className={styles.panel}>
+                <div className={styles.panelHead}>
+                  <div>
+                    <h3>Agenda do dia</h3>
+                    <p>{appointments.length === 0 ? "Nenhum atendimento neste dia" : `${appointments.length} ${appointments.length === 1 ? "atendimento" : "atendimentos"} em ordem de horário`}</p>
+                  </div>
+                </div>
+                {appointments.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <span className={styles.smallIcon} aria-hidden="true"><Icon name="calendar" size={20} /></span>
+                    <h3>Nenhuma consulta neste dia</h3>
+                    <p>Escolha outra data ou faça um novo agendamento.</p>
+                  </div>
+                ) : appointments.map((appointment) => {
                   const status = appointmentStatus(appointment);
                   const appointmentDateTime = clinicDateTime(appointment.scheduled_at);
                   const canManage = status === "Agendada" && new Date(appointment.scheduled_at) > new Date();
+                  const patientName = appointment.patient_name?.trim() || "Paciente sem nome";
+                  const doctorName = appointment.doctor_name?.trim() || "Médico sem nome";
                   return (
-                    <article className={styles.agendaRow} key={appointment.id}>
-                      <time dateTime={appointment.scheduled_at} className={styles.agendaTime}>
+                    <article className={styles.appointmentRow} key={appointment.id}>
+                      <time dateTime={appointment.scheduled_at} className={styles.timeBox}>
                         {appointmentDateTime.time}
+                        <small>horário</small>
                       </time>
-                      <div className={styles.agendaDetails}>
-                        <strong>{appointment.patient_name?.trim() || "Paciente sem nome"}</strong>
-                        <span>{appointment.doctor_name?.trim() || "Médico sem nome"} · {appointment.specialty}</span>
+                      <div className={styles.appointmentMain}>
+                        <strong>{patientName}</strong>
+                        <span>{doctorName}</span>
+                        <small>{appointment.specialty}</small>
                       </div>
-                      <span className={status === "Agendada" ? styles.active : styles.inactive}>{status}</span>
-                      {canManage && <div className={styles.appointmentActions}>
-                        <form action={rescheduleAdminAppointment}>
-                          <input type="hidden" name="appointmentId" value={appointment.id} />
-                          <label>
-                            <span>Nova data</span>
-                            <input type="date" name="day" defaultValue={appointmentDateTime.date} required />
-                          </label>
-                          <label>
-                            <span>Novo horário</span>
-                            <input type="time" name="time" min="08:00" max="17:30" step="1800" defaultValue={appointmentDateTime.time} required />
-                          </label>
-                          <button type="submit">Remarcar</button>
-                        </form>
-                        <form action={cancelAdminAppointment}>
-                          <input type="hidden" name="appointmentId" value={appointment.id} />
-                          <input type="hidden" name="day" value={appointmentDateTime.date} />
-                          <button type="submit" className={styles.deactivate}>Cancelar consulta</button>
-                        </form>
-                      </div>}
+                      <span className={statusClass(status)}>{status}</span>
+                      {canManage ? (
+                        <AppointmentActions
+                          appointment={{
+                            id: appointment.id,
+                            date: appointmentDateTime.date,
+                            time: appointmentDateTime.time,
+                            dateLabel: longDayLabel(appointmentDateTime.date, false),
+                            patient: patientName,
+                            doctor: doctorName,
+                          }}
+                        />
+                      ) : <span aria-hidden="true" />}
                     </article>
                   );
                 })}

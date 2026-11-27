@@ -2,7 +2,7 @@
 
 O **AgendaSaúde** é um projeto acadêmico desenvolvido na disciplina de Programação Web.
 
-> **N2 — atualização do GitHub em 27/11/2026:** a `main` reúne os painéis da secretaria e do médico, o login unificado (PRs #48–#50) e os ajustes de interface móvel e mensagens de confirmação/recuperação da [PR #55](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/55). As PRs #52–#54 registraram ensaio local, avaliação dos avisos de segurança e roteiro de apresentação. A conferência de Vercel READY, 22 migrações aplicadas e [GitHub Actions aprovado](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45751679524) corresponde ao commit anterior `80e52b2`, em 26/11; o deploy após a PR #55 não foi reconferido nesta atualização. Os fluxos com Auth real e entrega de e-mails ainda exigem validação no site publicado. Consulte a [documentação técnica](docs/documentacao-tecnica.md) e a [conferência de publicação](docs/publicacao-n2.md).
+> **N2 — revisão do GitHub em 27/11/2026:** a `main` já contém os painéis de secretaria e médico, login unificado (PRs #48–#50), ajustes de celular e mensagens (#55) e o redesenho das telas do paciente e da equipe ([PRs #58–#61](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/61)). O [workflow da PR #61](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45925186200) concluiu com sucesso. O último registro de Vercel READY e das 22 migrações aplicadas continua sendo a conferência de 26/11 no commit `80e52b2`, anterior aos redesenhos; o deploy atual e os fluxos com Auth real precisam de nova conferência. Consulte a [documentação técnica](docs/documentacao-tecnica.md) e a [conferência de publicação](docs/publicacao-n2.md).
 
 A aplicação tem como objetivo facilitar o acesso a profissionais da saúde, permitindo que pacientes consultem especialidades, escolham horários e gerenciem seus agendamentos em uma interface simples e navegável.
 
@@ -56,13 +56,13 @@ Os dados locais não são importados automaticamente. Código integrado à `main
 | Consultas | Agendamento, confirmação, listagem, cancelamento e remarcação das próprias consultas |
 | Disponibilidade | Catálogo de médicos ativos, grade padrão com personalização por médico e dia e atualização dos horários ao retornar à aba ou acionar o botão |
 | Conflitos | Proteção no banco contra duas consultas ativas do mesmo médico ou paciente no mesmo instante |
-| Dashboard e notificações | Indicadores e avisos individuais de consultas futuras/canceladas, com links e atualização após alterações |
+| Dashboard e notificações | Próxima consulta com opções de remarcar ou cancelar e confirmação visual, indicadores e avisos individuais de consultas futuras/canceladas, com links e atualização após alterações; novo visual do paciente na PR #58 |
 | Perfil | Leitura e edição de nome, telefone, CPF e nascimento no Supabase; e-mail de acesso somente leitura |
-| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades, gestão de pacientes, leitura diária da agenda, criação/remarcação/cancelamento de consultas futuras, busca/filtros de profissionais e horários por médico/dia |
-| Secretaria | Painel com agenda diária e filtros, agendamento, remarcação com horários disponíveis e cancelamento com confirmação |
-| Médico | Painel com agenda por data, registro de atendimentos, histórico clínico e arquivos de exames |
+| Administração | Painel restrito a administrador ativo, gestão de funcionários, CRUD de especialidades e pacientes, agenda e horários por médico/dia; novo visual de visão geral, formulários, grade de horários e janelas de agendar/remarcar/cancelar (PR #59) |
+| Secretaria | Agenda diária com busca e filtros na tela; novo agendamento em cinco passos com seleção e revisão; remarcação com comparação do horário anterior e do novo, e cancelamento com confirmação (PR #61) |
+| Médico | Agenda por data com cartões e resumo; confirmação antes de marcar atendimento ou falta; registro clínico com anotações, histórico e exames no novo visual (PR #60) |
 | Acesso por perfil | Login único com redirecionamento ao painel permitido e proteção contra acesso a painéis de outros perfis |
-| Interface móvel | Menu do paciente recolhível por botão, com fechamento pela tela ou tecla Esc; ajustes de largura e cabeçalho no painel administrativo (PR #55) |
+| Interface móvel | Menu recolhível do paciente e da equipe, cabeçalhos e cartões redesenhados e confirmação de saída; PRs #55 e #58–#61. Requer conferência em aparelhos físicos |
 | Confirmação e recuperação | Mensagens diferentes para falha de confirmação e de redefinição de senha; retorno “Voltar ao início” da confirmação de consulta direcionado ao dashboard (PR #55) |
 | Banco e testes | 22 migrações versionadas na `main` e 22 aplicadas no Supabase em 26/11/2026 |
 | Validação automática | GitHub Actions executa instalação pelo lockfile, testes, build e Playwright em desktop/celular emulado nos PRs e pushes na main, sem acessar o banco hospedado |
@@ -310,15 +310,15 @@ A revisão de 13/11/2026 registrou 104 testes na base `c158029`; a [PR #44](http
 
 ## Situação atual
 
-A N1 entregou o protótipo e os fluxos simulados do paciente. Na N2, a `main` inclui persistência de perfis e consultas, painel administrativo, painéis próprios de secretaria e médico e login unificado (PRs [#48](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/48), [#49](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/49) e [#50](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/50)). Depois foram integrados os ajustes de layout no celular, de navegação e de mensagens de confirmação e recuperação ([PR #55](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/55)).
+A N1 entregou o protótipo e os fluxos simulados do paciente. Na N2, a `main` inclui persistência de perfis e consultas, painel administrativo, painéis de secretaria e médico e login unificado (PRs #48–#50). A PR #55 corrigiu navegação móvel e mensagens de confirmação; depois, as [PRs #58](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/58), [#59](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/59), [#60](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/60) e [#61](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/pull/61) aproximaram as telas do protótipo Figma Make: paciente, administração, médico e secretaria. As quatro foram integradas sem novas migrações SQL.
 
-Em 26/11/2026, as publicações de produção da aplicação e da landing institucional estavam READY no commit `80e52b2` (anterior à PR #55), e o endereço principal da aplicação respondeu HTTP 200. As 22 migrações do repositório constavam como aplicadas no Supabase. O GitHub Actions passou, mas os testes de navegador nele executados usam o modo de demonstração; não há validação completa dos quatro perfis com Auth real no site publicado.
+Em 26/11/2026, as publicações de produção da aplicação e da landing institucional estavam READY no commit `80e52b2` (anterior às PRs #55 e #58–#61), e o endereço principal da aplicação respondeu HTTP 200. As 22 migrações do repositório constavam como aplicadas no Supabase. Os [checks da PR #61](https://github.com/Art455hur/sistemas_agendamento_consultas_medicas/actions/runs/45925186200) passaram, mas a automação de navegador usa o modo de demonstração. Não foi reconfirmado nesta revisão o deploy mais recente ou o funcionamento dos quatro perfis com Auth real no site publicado.
 
 ## Próximos passos
 
 - Testar com contas fictícias os fluxos reais de paciente, administrador, médico e secretaria, incluindo restrições por papel, logout, agendamento, remarcação, cancelamento, atendimento e anexos de exames.
 - Verificar a entrega dos e-mails de confirmação e recuperação de senha no domínio publicado, inclusive as novas mensagens de erro quando o link é aberto em outro navegador.
-- Conferir no celular físico e no site publicado o menu recolhível do paciente, o botão Sair, a largura do painel de administração e o retorno para o dashboard após confirmar uma consulta (PR #55).
+- Conferir no celular físico e no site publicado o novo visual dos quatro perfis: agendamento e cancelamento do paciente, janelas administrativas, registro e exames do médico, cinco passos de agendamento da secretaria e confirmação de saída (PRs #55 e #58–#61).
 - Revisar os avisos de segurança do Supabase: funções administrativas privilegiadas executáveis por `authenticated`, três tabelas com RLS sem políticas e proteção contra senhas vazadas desabilitada; os alertas não comprovam exploração.
 - Conferir o restante do backlog, como grade semanal recorrente, módulo de serviços e validações adicionais, antes de declará-los como entregues.
 - Registrar evidências, revisões de PRs por outros integrantes e atualização dos cards no PraxiLab. Não considerar os testes automáticos como validação de todos os critérios de aceitação.
